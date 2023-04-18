@@ -1,0 +1,15 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "CLI AgentBuilder",
+            "type": "python",
+            "request": "launch",
+            "program": "yagents_start_pod.py",
+            "console": "integratedTerminal",
+            "env": {
+                "PYTHONPATH": "${workspaceRoot}"
+            },
+        }
+    ]
+}
