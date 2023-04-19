@@ -1,5 +1,5 @@
 from typing import List
-from yeager_core.gen_agent.base_gen_agent import GenerativeAgent
+from yeager_core.gen_agents.base_gen_agent import GenerativeAgent
 
 def run_conversation(agents: List[GenerativeAgent], initial_observation: str) -> None:
     """Runs a conversation between agents."""

@@ -1,8 +1,13 @@
-from yeager_core.gen_agent.base_gen_agent import GenerativeAgent
-from yeager_core.gen_agent.gen_utils import create_new_memory_retriever
+import os
+from yeager_core.gen_agents.base_gen_agent import GenerativeAgent
+from yeager_core.gen_agents.gen_utils import create_new_memory_retriever, interview_agent
 from langchain.chat_models import ChatOpenAI
+from dotenv import load_dotenv
 
-LLM = ChatOpenAI(max_tokens=1500) # Can be any LLM you want.
+load_dotenv(dotenv_path=os.path.expanduser("~/.yeagerai-sessions/.env"))
+openai_api_key = os.getenv("OPENAI_API_KEY")
+
+LLM = ChatOpenAI(max_tokens=1500, openai_api_key=openai_api_key) # Can be any LLM you want.
 
 tommie = GenerativeAgent(name="Tommie", 
               age=25,
@@ -28,3 +33,5 @@ tommie_memories = [
 ]
 for memory in tommie_memories:
     tommie.add_memory(memory)
+print(tommie.get_summary(force_refresh=True))
+

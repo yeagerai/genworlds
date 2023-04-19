@@ -1,6 +1,6 @@
 from typing import List, Dict
 from pydantic import BaseModel
-from yeager_core.gen_agent.base_gen_agent import GenerativeAgent
+from yeager_core.gen_agents.base_gen_agent import GenerativeAgent
 
 """
 Required features:
@@ -16,4 +16,3 @@ class ResearchPod(BaseModel):
     description: str
     blackboard: List[str]
     agents: Dict[str,GenerativeAgent]
-    
