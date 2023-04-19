@@ -1,6 +1,6 @@
-from typing import List, Dict
+from typing import List, Dict, Callable, Any
 from pydantic import BaseModel
-from yeager_core.gen_agents.base_gen_agent import GenerativeAgent
+from yeager_core.agents.base_gen_agent import GenerativeAgent
 
 """
 Required features:
@@ -11,8 +11,16 @@ Required features:
 - Humans can only interact with agents through the pod, modifying the blackboard or adding/removing agents, etc.
 """
 
-class ResearchPod(BaseModel):
+class BaseObject(BaseModel):
     name: str
     description: str
-    blackboard: List[str]
-    agents: Dict[str,GenerativeAgent]
+    interactions: Dict[str, Callable]
+    data: Dict
+    position: List[float] = [0, 0, 0]
+    size: List[float] = [1, 1, 1]
+
+class BaseEnvironment(BaseModel):
+    name: str
+    description: str
+    objects: List[BaseObject]
+    agents: Dict[str, GenerativeAgent]

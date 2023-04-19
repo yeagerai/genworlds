@@ -2,10 +2,10 @@
     "version": "0.2.0",
     "configurations": [
         {
-            "name": "CLI AgentBuilder",
+            "name": "Start Env",
             "type": "python",
             "request": "launch",
-            "program": "yagents_start_pod.py",
+            "program": "agents_creator_lab/start_env.py",
             "console": "integratedTerminal",
             "env": {
                 "PYTHONPATH": "${workspaceRoot}"
