@@ -1,35 +1,13 @@
-from typing import List, Dict, Callable, Any
-from pydantic import BaseModel
-from yeager_core.agents.base_gen_agent import GenerativeAgent
+import json
 import asyncio
-from fastapi import WebSocket
+from typing import List, Dict, Callable, Any
 
+from pydantic import BaseModel
 
-class WebSocketManager:
-    def __init__(self):
-        self.active_connections: List[WebSocket] = []
-
-    async def connect(self, websocket: WebSocket):
-        await websocket.accept()
-        self.active_connections.append(websocket)
-
-    async def disconnect(self, websocket: WebSocket):
-        self.active_connections.remove(websocket)
-        await websocket.close()
-
-    async def send_update(self, data: str):
-        for connection in self.active_connections:
-            await connection.send_text(data)
-
-
-class BaseObject(BaseModel):
-    name: str
-    description: str
-    interactions: Dict[str, Callable]
-    data: Dict
-    position: List[float] = [0, 0, 0]
-    size: List[float] = [1, 1, 1]
-
+from yeager_core.agents.base_gen_agent import GenerativeAgent
+from yeager_core.worlds.base_object import BaseObject
+from yeager_core.worlds.websocket_manager import WebSocketManager
+from yeager_core.worlds.world_updates import update_dynamic_world
 
 class BaseWorld(BaseModel):
     name: str
@@ -53,16 +31,15 @@ class BaseWorld(BaseModel):
         self.agents.remove(agent)
 
     async def update_world_state(self):
-        for obj in self.objects:
-            # TODO: Update object positions, or other properties based on the world state
-            obj.position = [coord + 1 for coord in obj.position]
+        updates = update_dynamic_world(self)
+        return updates
 
     async def launch(self, callbacks: List[Callable] = [], time_step: float = 1.0):
         while True:
-            await self.update_world_state()
-            world_state = self.json()  # Serialize the current world state
+            updates = await self.update_world_state()
+            update_data = {"step": self.current_step, "updates": updates}
             await self.websocket_manager.send_update(
-                world_state
+                json.dumps(update_data)
             )  # Send the update to all connected agents
             self.current_step += 1
             await asyncio.sleep(time_step)
