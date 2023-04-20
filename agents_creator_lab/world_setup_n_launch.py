@@ -1,9 +1,8 @@
 import json
 import asyncio
 
-from fastapi import FastAPI, WebSocket
+from fastapi import FastAPI, WebSocket, WebSocketDisconnect
 from fastapi.responses import HTMLResponse
-from pydantic import BaseModel
 
 from yeager_core.worlds.base_world import BaseWorld
 from .world_agents.y_tools import ytools
@@ -18,15 +17,19 @@ world = BaseWorld(
     agents=[ytools],
 )
 
-world.launch()
+asyncio.create_task(world.launch())
 
-@app.websocket("/ws")
+
+@app.websocket("/ws/world")
 async def websocket_endpoint(websocket: WebSocket):
-    await websocket.accept()
-    while True:
-        world_state = world.serialize_state()
-        await websocket.send_text(world_state)
-        await asyncio.sleep(1)  # Send the world state every second
+    await world.websocket_manager.connect(websocket)
+    try:
+        while True:
+            data = await websocket.receive_text()
+            # Process data received from the agent, if needed
+    except WebSocketDisconnect:
+        world.websocket_manager.disconnect(websocket)
+
 
 @app.get("/")
 async def get():
@@ -52,5 +55,6 @@ async def get():
         """
     )
 
+
 # To execute the world, run the following command:
-# uvicorn main:app --reload 
+# uvicorn main:app --reload

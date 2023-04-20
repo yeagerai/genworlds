@@ -3,6 +3,9 @@ from yeager_core.agents.base_gen_agent import GenerativeAgent
 from yeager_core.interactions.base_interactions import create_new_memory_retriever, interview_agent
 from langchain.chat_models import ChatOpenAI
 from dotenv import load_dotenv
+from fastapi import FastAPI, WebSocket, WebSocketDisconnect
+
+app = FastAPI()
 
 load_dotenv(dotenv_path=os.path.expanduser("~/.yeagerai-sessions/.env"))
 openai_api_key = os.getenv("OPENAI_API_KEY")
@@ -10,7 +13,7 @@ openai_api_key = os.getenv("OPENAI_API_KEY")
 LLM = ChatOpenAI(max_tokens=5000, openai_api_key=openai_api_key) # Can be any LLM you want.
 
 ytools = GenerativeAgent(name="yTools", 
-              description=25,
+              description="25",
               master_prompt="ytools is a generative agent that lives in the lab. He is in charge of creating reliable tools for other agents."
               possible_actions=["ask_for_feedback_to_agent",
                                 "go_to_object",
@@ -39,3 +42,13 @@ ytools_memories = [
 ]
 for memory in ytools_memories:
     ytools.add_memory(memory)
+
+@app.websocket("/ws/agent")
+async def websocket_endpoint(websocket: WebSocket):
+    await ytools.websocket_manager.connect(websocket)
+    try:
+        while True:
+            data = await websocket.receive_text()
+            # Process data received from other agents or clients, if needed
+    except WebSocketDisconnect:
+        ytools.websocket_manager.disconnect(websocket)

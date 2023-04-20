@@ -2,6 +2,7 @@ import re
 from datetime import datetime, timedelta
 from typing import List, Optional, Tuple, Callable
 from termcolor import colored
+import websockets
 
 from pydantic import BaseModel, Field
 
@@ -14,17 +15,7 @@ from langchain.retrievers import TimeWeightedVectorStoreRetriever
 from langchain.schema import BaseLanguageModel, Document
 from langchain.vectorstores import FAISS
 
-"""
-Missing features:
-1. World state and agent state: Maintain the state of the world and the agent. The world state could include information about objects and other agents. The agent state could include information about its position, inventory, knowledge, and goals.
-2. Environment interaction: Add functions to interact with the environment, such as picking up objects, using objects, or talking to other agents to gather information.
-3. Dynamic world: Implement a dynamic world that changes over time or in response to the agent's actions. For example, objects could be consumed or moved, and agents could have changing goals or knowledge.
-4. Goal-driven behavior: Define goals for the agent and implement goal-driven behavior. This could involve creating functions to evaluate the current state of the world and the agent and to determine the most appropriate actions to achieve the goals.
-5. Learning capabilities: Implement learning capabilities for the agent, allowing it to learn from its actions, interactions, and observations of the world. This could involve reinforcement learning, supervised learning, or unsupervised learning techniques.
-6. Communication: Enhance the communication capabilities of the agent, enabling it to communicate more effectively with other agents in the world. This could involve natural language processing techniques to understand and generate text or implementing a simple communication protocol.
-7. Sensing and perception: Implement sensing and perception capabilities for the agent, allowing it to perceive its environment and process the information. This could involve processing visual information, detecting objects, or recognizing other agents.
-8. Memory and knowledge representation: Develop a memory system for the agent that allows it to store and retrieve information about the world, its experiences, and its interactions with other agents. This could involve implementing a knowledge base or other data structures.
-"""
+from yeager_core.worlds.base_world import WebSocketManager
 
 
 class GenerativeAgent(BaseModel):
@@ -37,10 +28,12 @@ class GenerativeAgent(BaseModel):
     tools: List[Callable]
     llm: BaseLanguageModel
     verbose: bool = False
-    status: str ## current action being executed
+    status: str  ## current action being executed
     memory_retriever: TimeWeightedVectorStoreRetriever  ## retrieves world stream memory
     reflection_threshold: Optional[float] = None
     current_plan: List[str] = []
+    current_step: int = 0
+    websocket_manager: WebSocketManager = WebSocketManager()
 
     summary: str = ""  #: :meta private:
     summary_refresh_seconds: int = 3600  #: :meta private:
@@ -186,11 +179,7 @@ class GenerativeAgent(BaseModel):
         ):
             self.summary = self._compute_agent_summary()
             self.last_refreshed = current_time
-        return (
-            f"Name: {self.name} (age: {self.age})"
-            + f"\nInnate traits: {self.traits}"
-            + f"\n{self.summary}"
-        )
+        return f"Name: {self.name}" + f"\n{self.summary}"
 
     def get_full_header(self, force_refresh: bool = False) -> str:
         """Return a full header of the agent's status, summary, and current time."""
@@ -328,7 +317,16 @@ class GenerativeAgent(BaseModel):
         else:
             return False, result
 
+    async def connect_to_world(self, world_url: str):
+        async with websockets.connect(world_url) as websocket:
+            await self.receive_updates(websocket)
+
+    async def receive_updates(self, websocket):
+        while True:
+            world_state = await websocket.recv()
+            # Process the received world state, e.g., deserialize and update agent's internal state
+
     async def autonomous_run(self, steps, callbacks=None):
-        for _ in range(steps): # replace by while True:
+        while True:
             action = self.choice_action_based_on_plan(self.world_actions)
             action()
