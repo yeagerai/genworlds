@@ -1,4 +1,4 @@
-from yeager_core.environments.base_environment import BaseObject
+from yeager_core.worlds.base_world import BaseObject
 
 
 def read_jobs(agent_name):

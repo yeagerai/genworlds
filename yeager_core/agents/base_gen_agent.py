@@ -1,6 +1,6 @@
 import re
 from datetime import datetime, timedelta
-from typing import List, Optional, Tuple
+from typing import List, Optional, Tuple, Callable
 from termcolor import colored
 
 from pydantic import BaseModel, Field
@@ -16,11 +16,14 @@ from langchain.vectorstores import FAISS
 
 """
 Missing features:
-- it should have a master prompt with access to vectorial memories
-- it should execute actions based on the current plan
-- it should have a series of world actions and tools like (ask for feedback, or find character)
-- it should have a success_score where measures the effectivity of the agent while doing the task outlined in the master prompt
-- it should have a separation_email tool that asks for being splitted into two agents to improve performance
+1. World state and agent state: Maintain the state of the world and the agent. The world state could include information about objects and other agents. The agent state could include information about its position, inventory, knowledge, and goals.
+2. Environment interaction: Add functions to interact with the environment, such as picking up objects, using objects, or talking to other agents to gather information.
+3. Dynamic world: Implement a dynamic world that changes over time or in response to the agent's actions. For example, objects could be consumed or moved, and agents could have changing goals or knowledge.
+4. Goal-driven behavior: Define goals for the agent and implement goal-driven behavior. This could involve creating functions to evaluate the current state of the world and the agent and to determine the most appropriate actions to achieve the goals.
+5. Learning capabilities: Implement learning capabilities for the agent, allowing it to learn from its actions, interactions, and observations of the world. This could involve reinforcement learning, supervised learning, or unsupervised learning techniques.
+6. Communication: Enhance the communication capabilities of the agent, enabling it to communicate more effectively with other agents in the world. This could involve natural language processing techniques to understand and generate text or implementing a simple communication protocol.
+7. Sensing and perception: Implement sensing and perception capabilities for the agent, allowing it to perceive its environment and process the information. This could involve processing visual information, detecting objects, or recognizing other agents.
+8. Memory and knowledge representation: Develop a memory system for the agent that allows it to store and retrieve information about the world, its experiences, and its interactions with other agents. This could involve implementing a knowledge base or other data structures.
 """
 
 
@@ -28,21 +31,16 @@ class GenerativeAgent(BaseModel):
     """A character with memory and innate characteristics."""
 
     name: str
-    age: int  ## wtf?
-    traits: str  ## master prompt + memories
-    """The traits of the character you wish not to change."""
-    status: str
-    """Current activities of the character."""
+    description: str
+    master_prompt: str
+    world_actions: List[Callable]
+    tools: List[Callable]
     llm: BaseLanguageModel
-    memory_retriever: TimeWeightedVectorStoreRetriever  ## memory (world) stream
-    """The retriever to fetch related memories."""
     verbose: bool = False
-
+    status: str ## current action being executed
+    memory_retriever: TimeWeightedVectorStoreRetriever  ## retrieves world stream memory
     reflection_threshold: Optional[float] = None
-    """When the total 'importance' of memories exceeds the above threshold, stop to reflect."""
-
     current_plan: List[str] = []
-    """The current plan of the agent."""
 
     summary: str = ""  #: :meta private:
     summary_refresh_seconds: int = 3600  #: :meta private:
@@ -52,8 +50,6 @@ class GenerativeAgent(BaseModel):
     max_tokens_limit: int = 1200  #: :meta private:
 
     class Config:
-        """Configuration for this pydantic object."""
-
         arbitrary_types_allowed = True
 
     @staticmethod
@@ -331,3 +327,8 @@ class GenerativeAgent(BaseModel):
             return True, f"{self.name} said {response_text}"
         else:
             return False, result
+
+    async def autonomous_run(self, steps, callbacks=None):
+        for _ in range(steps): # replace by while True:
+            action = self.choice_action_based_on_plan(self.world_actions)
+            action()
