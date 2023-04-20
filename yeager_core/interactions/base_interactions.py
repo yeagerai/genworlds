@@ -63,6 +63,7 @@ def run_conversation(agents: List[GenerativeAgent], initial_observation: str) ->
             break
         turns += 1
 
+
 def run_conversation(agents: List[GenerativeAgent], initial_observation: str) -> None:
     """Runs a conversation between agents."""
     _, observation = agents[1].generate_reaction(initial_observation)
