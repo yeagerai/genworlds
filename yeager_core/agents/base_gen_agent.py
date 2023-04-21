@@ -3,7 +3,7 @@ from datetime import datetime, timedelta
 from typing import List, Optional, Tuple, Callable
 from termcolor import colored
 import websockets
-
+import asyncio
 from pydantic import BaseModel, Field
 
 from langchain import LLMChain
@@ -34,6 +34,7 @@ class GenerativeAgent(BaseModel):
     current_plan: List[str] = []
     current_step: int = 0
     websocket_manager: WebSocketManager = WebSocketManager()
+    queued_events: List[str] = []
 
     summary: str = ""  #: :meta private:
     summary_refresh_seconds: int = 3600  #: :meta private:
@@ -321,12 +322,37 @@ class GenerativeAgent(BaseModel):
         async with websockets.connect(world_url) as websocket:
             await self.receive_updates(websocket)
 
-    async def receive_updates(self, websocket):
+    async def send_status_update(self, new_status: str):
+        self.status = new_status
+        async with websockets.connect(self.world_url) as websocket:
+            new_event = {
+                "type": "status_change",
+                "agent": self.name,
+                "time": datetime.now().strftime("%B %d, %Y, %I:%M %p"),
+                "status": self.status,
+            }
+            await websocket.send(new_event)
+
+    async def add_world_events_to_queue(self, websocket):
         while True:
             world_state = await websocket.recv()
-            # Process the received world state, e.g., deserialize and update agent's internal state
+            if self.name in world_state and world_state["type"] in ["observation"]:
+                self.queued_events.append(world_state)
 
     async def autonomous_run(self, steps, callbacks=None):
+        await self.send_status_update("starting")
+        await self.connect_to_world(self.world_url)
+        self.add_world_events_to_queue(self.world_url)
         while True:
-            action = self.choice_action_based_on_plan(self.world_actions)
-            action()
+            if len(self.queued_events) > 0:
+                await self.send_status_update("perceiving")
+                world_state = self.queued_events.pop(0)
+                ## starts the whole cycle, memory stream, etc.
+                await self.send_status_update("thinking")
+
+                action = self.choice_action_based_on_plan(self.world_actions)
+                await self.send_status_update("acting")
+                action()
+            else:
+                await self.send_status_update("idle")
+                await asyncio.sleep(1)
