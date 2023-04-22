@@ -9,6 +9,7 @@ from yeager_core.worlds.base_object import BaseObject
 from yeager_core.worlds.websocket_manager import WebSocketManager
 from yeager_core.worlds.world_updates import update_dynamic_world
 
+
 class BaseWorld(BaseModel):
     name: str
     description: str
@@ -35,6 +36,8 @@ class BaseWorld(BaseModel):
         return updates
 
     async def launch(self, callbacks: List[Callable] = [], time_step: float = 1.0):
+        for agent in self.agents:
+            agent.autonomous_run()
         while True:
             updates = await self.update_world_state()
             update_data = {"step": self.current_step, "updates": updates}

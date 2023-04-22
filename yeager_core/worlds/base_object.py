@@ -1,6 +1,7 @@
 from typing import Dict, Callable, List
 from pydantic import BaseModel
 
+
 class BaseObject(BaseModel):
     name: str
     description: str

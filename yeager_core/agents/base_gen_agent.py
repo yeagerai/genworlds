@@ -339,7 +339,7 @@ class GenerativeAgent(BaseModel):
             if self.name in world_state and world_state["type"] in ["observation"]:
                 self.queued_events.append(world_state)
 
-    async def autonomous_run(self, steps, callbacks=None):
+    async def autonomous_run(self, callbacks=None):
         await self.send_status_update("starting")
         await self.connect_to_world(self.world_url)
         self.add_world_events_to_queue(self.world_url)
@@ -349,10 +349,10 @@ class GenerativeAgent(BaseModel):
                 world_state = self.queued_events.pop(0)
                 ## starts the whole cycle, memory stream, etc.
                 await self.send_status_update("thinking")
-
+                self.think()
                 action = self.choice_action_based_on_plan(self.world_actions)
                 await self.send_status_update("acting")
-                action()
+                self.generate_reaction(world_state, action())
             else:
                 await self.send_status_update("idle")
                 await asyncio.sleep(1)

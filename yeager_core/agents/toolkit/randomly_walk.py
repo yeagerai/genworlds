@@ -17,12 +17,13 @@ from yeagerai.toolkit.create_tool_source.create_tool_master_prompt import (
 
 
 class RandomlyWalkAPIWrapper(BaseModel):
-    world_size:  List[float] = [100, 100, 100]
+    world_size: List[float] = [100, 100, 100]
     agent_positon: List[float] = [0, 0, 0]
     exploration_radius: int = 20
 
     def run(self, explored_zones: str) -> str:
         pass
+
 
 class RandomlyWalkRun(YeagerAITool):
     """Tool that adds the capability of creating the source code of other Tools on-the-fly and writing it into cwd."""

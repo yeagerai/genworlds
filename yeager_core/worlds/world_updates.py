@@ -5,15 +5,18 @@ from yeager_core.worlds.base_object import BaseObject
 from yeager_core.worlds.base_world import BaseWorld
 from yeager_core.agents.base_gen_agent import GenerativeAgent
 
+
 def update_object_data(obj: BaseObject) -> Dict:
     # TODO: Implement the logic for updating the object data
     updated_data = obj.data  # Just a placeholder, replace with the actual updated data
     return updated_data
 
+
 def update_agent_status(agent: GenerativeAgent, world: BaseWorld) -> str:
     # TODO: Implement the logic for updating the agent status
     new_status = "idle"  # Just a placeholder, replace with the actual updated status
     return new_status
+
 
 def update_dynamic_world(world: BaseWorld) -> Dict[str, Any]:
     updates = {"object_updates": [], "agent_updates": []}
@@ -22,7 +25,9 @@ def update_dynamic_world(world: BaseWorld) -> Dict[str, Any]:
     for obj in world.objects:
         # Update object position
         old_position = obj.position
-        movement = [random.uniform(-1, 1) for _ in range(3)]  # Random movement in 3D space
+        movement = [
+            random.uniform(-1, 1) for _ in range(3)
+        ]  # Random movement in 3D space
         new_position = [coord + move for coord, move in zip(old_position, movement)]
         obj.position = new_position
 
@@ -42,7 +47,9 @@ def update_dynamic_world(world: BaseWorld) -> Dict[str, Any]:
     for agent in world.agents:
         # Update agent position
         old_position = agent.position
-        movement = [random.uniform(-1, 1) for _ in range(3)]  # Random movement in 3D space
+        movement = [
+            random.uniform(-1, 1) for _ in range(3)
+        ]  # Random movement in 3D space
         new_position = [coord + move for coord, move in zip(old_position, movement)]
         agent.position = new_position
 
