@@ -5,19 +5,20 @@ from typing import List, Dict, Callable, Any
 from pydantic import BaseModel
 
 from yeager_core.agents.base_gen_agent import GenerativeAgent
-from yeager_core.worlds.base_object import BaseObject
+from yeager_core.worlds.base_object import BaseObject, Size
 from yeager_core.worlds.websocket_manager import WebSocketManager
 from yeager_core.worlds.world_updates import update_dynamic_world
 
 
 class BaseWorld(BaseModel):
+    id: str
     name: str
     description: str
     objects: List[BaseObject]
     agents: List[GenerativeAgent]
-    current_step: int = 0
+    current_step: int
     websocket_manager: WebSocketManager = WebSocketManager()
-    size: List[float] = [100, 100, 100]
+    size: Size
 
     def add_object(self, obj: BaseObject):
         self.objects.append(obj)

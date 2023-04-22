@@ -5,10 +5,18 @@ from fastapi import FastAPI, WebSocket, WebSocketDisconnect
 from fastapi.responses import HTMLResponse
 
 from yeager_core.worlds.base_world import BaseWorld
-from .world_agents.y_tools import ytools
-from .world_objects.blackboard import blackboard
+from .agents.y_tools import ytools
+from .objects.blackboard import Blackboard
 
 app = FastAPI()
+
+blackboard = Blackboard(
+    name="blackboard",
+    description="The blackboard is a place where agents can read and write all the jobs they have to do while in the lab",
+    content=[],
+)
+
+ytools = ...
 
 world = BaseWorld(
     name="agents_creator_lab",

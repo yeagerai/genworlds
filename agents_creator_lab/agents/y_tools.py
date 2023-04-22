@@ -57,4 +57,4 @@ async def websocket_endpoint(websocket: WebSocket):
             data = await websocket.receive_text()
             # Process data received from other agents or clients, if needed
     except WebSocketDisconnect:
-        ytools.websocket_manager.disconnect(websocket)
+        await ytools.websocket_manager.disconnect(websocket)
