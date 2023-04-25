@@ -12,7 +12,7 @@ blackboard = Blackboard(
 world = BaseWorld(
     name="agents_creator_lab",
     description="This is a lab where agents can be created",
-    position= Coordinates(x=0,y=0,z=0),
+    position=Coordinates(x=0, y=0, z=0),
     size=Size(width=100, height=100, depth=100),
     important_event_types=[],
     objects=[blackboard],
@@ -20,4 +20,4 @@ world = BaseWorld(
 )
 
 # this attaches to the websocket all the objects and agents in the world
-world.launch() 
+world.launch()

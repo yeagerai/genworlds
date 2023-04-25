@@ -8,7 +8,7 @@ class Event(BaseModel):
 
 
 class Listener:
-    def __init__(self, name: str, description: str, function: Callable[[Event], Any]):
+    def __init__(self, name: str, description: str, function: Callable):
         self.name = name
         self.description = description
         self.function = function
@@ -33,7 +33,7 @@ class EventDict:
     def __init__(self):
         self.event_classes = {}  # register all base events
 
-    def register_events(self, events: List[Event]):
+    def register_events(self, events: List[Any]):
         for event in events:
             self.event_classes[event.event_type] = event
 
