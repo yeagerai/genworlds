@@ -1,9 +1,11 @@
 from typing import Any, Callable, List
 from pydantic import BaseModel
 
+
 class Event(BaseModel):
     event_type: str
     description: str
+
 
 class Listener:
     def __init__(self, name: str, description: str, function: Callable[[Event], Any]):
@@ -25,6 +27,7 @@ class EventHandler:
         if event["event_type"] in self.listeners:
             if listener_name in self.listeners[event["event_type"]]:
                 self.listeners[event["event_type"]][listener_name].function(event)
+
 
 class EventDict:
     def __init__(self):

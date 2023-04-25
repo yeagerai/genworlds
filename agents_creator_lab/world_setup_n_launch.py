@@ -1,14 +1,7 @@
-import json
-import asyncio
-
-from fastapi import FastAPI, WebSocket, WebSocketDisconnect
-from fastapi.responses import HTMLResponse
-
 from yeager_core.worlds.base_world import BaseWorld
-from .agents.y_tools import ytools
-from .objects.blackboard import Blackboard
+from yeager_core.properties.basic_properties import Coordinates, Size
 
-app = FastAPI()
+from .objects.blackboard import Blackboard
 
 blackboard = Blackboard(
     name="blackboard",
@@ -16,53 +9,15 @@ blackboard = Blackboard(
     content=[],
 )
 
-ytools = ...
-
 world = BaseWorld(
     name="agents_creator_lab",
     description="This is a lab where agents can be created",
+    position= Coordinates(x=0,y=0,z=0),
+    size=Size(width=100, height=100, depth=100),
+    important_event_types=[],
     objects=[blackboard],
-    agents=[ytools],
+    agents=[],
 )
 
-asyncio.create_task(world.launch())
-
-
-@app.websocket("/ws/world")
-async def websocket_endpoint(websocket: WebSocket):
-    await world.websocket_manager.connect(websocket)
-    try:
-        while True:
-            data = await websocket.receive_text()
-            # Process data received from the agent, if needed
-    except WebSocketDisconnect:
-        world.websocket_manager.disconnect(websocket)
-
-
-@app.get("/")
-async def get():
-    return HTMLResponse(
-        """
-        <!DOCTYPE html>
-        <html>
-            <head>
-                <title>World Visualization</title>
-            </head>
-            <body>
-                <script>
-                    const socket = new WebSocket("ws://localhost:8000/ws");
-
-                    socket.onmessage = (event) => {
-                        const worldState = JSON.parse(event.data);
-                        console.log(worldState);
-                        // Render the world state visually here
-                    };
-                </script>
-            </body>
-        </html>
-        """
-    )
-
-
-# To execute the world, run the following command:
-# uvicorn main:app --reload
+# this attaches to the websocket all the objects and agents in the world
+world.launch() 

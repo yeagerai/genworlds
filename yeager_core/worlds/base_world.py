@@ -1,14 +1,8 @@
-import json
-import asyncio
-from uuid import uuid4
-from typing import List, Dict, Callable, Any
-
-from pydantic import BaseModel
+from typing import List
 
 from yeager_core.agents.base_agent import BaseAgent
 from yeager_core.objects.base_object import BaseObject
 from yeager_core.properties.basic_properties import Coordinates, Size
-from yeager_core.worlds.world_socket_client import WorldSocketClient
 
 
 class BaseWorld(BaseObject):
