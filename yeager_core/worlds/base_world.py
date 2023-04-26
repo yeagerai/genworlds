@@ -1,5 +1,6 @@
 from uuid import uuid4
 from typing import List
+import asyncio
 
 from yeager_core.agents.base_agent import BaseAgent
 from yeager_core.objects.base_object import BaseObject
@@ -68,8 +69,8 @@ class BaseWorld:
         await self.world_socket_client.send_message(obj_info.json())
 
     async def attach_to_socket(self):
-        with self.world_socket_client.ws_connection as websocket:
-            while True:
+        while True:
+            with self.world_socket_client.ws_connection as websocket:
                 event = await websocket.recv()
                 if (
                     event["event_type"] in self.important_event_types
@@ -83,9 +84,13 @@ class BaseWorld:
                     ).parse_obj(event)
                     self.event_handler.handle_event(parsed_event, event_listener_name)
 
-    async def launch(self):
-        self.attach_to_socket()
-        for agent in self.agents:
-            agent.attach_to_world()
-        for obj in self.objects:
-            obj.attach_to_world()
+    def launch(self):
+        asyncio.run(self.launch_async())
+
+    async def launch_async(self):
+        tasks = [
+            self.attach_to_socket(),
+            *[agent.attach_to_world() for agent in self.agents],
+            *[obj.attach_to_world() for obj in self.objects],
+        ]
+        await asyncio.gather(*tasks)

@@ -3,8 +3,8 @@ from pydantic import BaseModel
 
 
 class Event(BaseModel):
-    event_type: str
     description: str
+
 
 
 class Listener:
@@ -34,8 +34,9 @@ class EventDict:
         self.event_classes = {}  # register all base events
 
     def register_events(self, events: List[Any]):
-        for event in events:
-            self.event_classes[event.event_type] = event
+        for event_class in events:
+            event_type = event_class.event_type
+            self.event_classes[event_type] = event_class
 
     def get_event_class(self, event_type: str):
         if event_type in self.event_classes:
