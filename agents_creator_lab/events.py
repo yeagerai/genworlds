@@ -1,7 +1,6 @@
 from typing import List
 from yeager_core.events.base_event import Event
-from agents_creator_lab.objects.blackboard import Job
-
+from agents_creator_lab.objects.job import Job
 
 class AgentReadsBlackboardEvent(Event):
     event_type = "agent_reads_blackboard"

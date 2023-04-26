@@ -5,7 +5,7 @@
             "name": "Start Env",
             "type": "python",
             "request": "launch",
-            "program": "agents_creator_lab/start_env.py",
+            "program": "agents_creator_lab/world_setup_n_launch.py",
             "console": "integratedTerminal",
             "env": {
                 "PYTHONPATH": "${workspaceRoot}"

@@ -1,5 +1,5 @@
 from typing import List
-from pydantic import BaseModel
+
 from yeager_core.worlds.base_world import BaseObject
 from yeager_core.events.base_event import EventDict, EventHandler
 from yeager_core.objects.base_object import BaseObject
@@ -11,18 +11,7 @@ from agents_creator_lab.events import (
     AgentAddsJobToBlackboardEvent,
     BlackboardSendsContentEvent,
 )
-
-
-# Components
-class Job(BaseModel):
-    id: str
-    description: str
-    assigned_to: str
-    output_format: str
-    status: str
-
-
-# Main Class
+from agents_creator_lab.objects.job import Job
 class Blackboard(BaseObject):
     def __init__(
         self,
