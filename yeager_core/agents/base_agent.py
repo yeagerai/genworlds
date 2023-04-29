@@ -82,6 +82,3 @@ class BaseAgent:
             while True:
                 trigger_event = await websocket.recv()
                 if trigger_event["event_type"] in self.important_event_types:
-
-    async def move(self):
-        pass
