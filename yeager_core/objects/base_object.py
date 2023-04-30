@@ -4,7 +4,7 @@ from uuid import uuid4
 from yeager_core.sockets.world_socket_client import WorldSocketClient
 from yeager_core.properties.basic_properties import Coordinates, Size
 from yeager_core.events.base_event import EventHandler, EventDict
-from yeager_core.events.basic_events import AgentGetsObjectInfo, ObjectSendsInfoToAgent
+from yeager_core.events.basic_events import AgentGetsObjectInfoEvent, ObjectSendsInfoToAgentEvent
 from yeager_core.events.base_event import Listener
 
 
@@ -31,7 +31,7 @@ class BaseObject:
         self.important_event_types.extend(["agent_gets_object_info"])
 
         self.event_dict = event_dict
-        self.event_dict.register_events([AgentGetsObjectInfo])
+        self.event_dict.register_events([AgentGetsObjectInfoEvent])
 
         self.event_handler = event_handler
         self.event_handler.register_listener(
@@ -43,8 +43,8 @@ class BaseObject:
             ),
         )
 
-    async def agent_gets_object_info_listener(self, event: AgentGetsObjectInfo):
-        obj_info = ObjectSendsInfoToAgent(
+    async def agent_gets_object_info_listener(self, event: AgentGetsObjectInfoEvent):
+        obj_info = ObjectSendsInfoToAgentEvent(
             agent_id=event.agent_id,
             object_id=self.id,
             object_name=self.name,

@@ -1,20 +1,19 @@
 from __future__ import annotations
 from uuid import uuid4
+import asyncio
 from typing import List, Optional
 
 from pydantic import ValidationError
-import asyncio
 
+import faiss
+from langchain.chat_models import ChatOpenAI
+from langchain.vectorstores import FAISS
+from langchain.docstore import InMemoryDocstore
+from langchain.agents import Tool
+from langchain.tools.human.tool import HumanInputRun
+from langchain.vectorstores.base import VectorStoreRetriever
+from langchain.embeddings import OpenAIEmbeddings
 from langchain.chains.llm import LLMChain
-from langchain.chat_models.base import BaseChatModel
-from yeager_core.agents.yeager_autogpt.output_parser import (
-    AutoGPTOutputParser,
-    BaseAutoGPTOutputParser,
-)
-from yeager_core.agents.yeager_autogpt.prompt import AutoGPTPrompt
-from yeager_core.agents.yeager_autogpt.prompt_generator import (
-    FINISH_NAME,
-)
 from langchain.schema import (
     AIMessage,
     BaseMessage,
@@ -22,101 +21,107 @@ from langchain.schema import (
     HumanMessage,
     SystemMessage,
 )
-from langchain.tools.base import BaseTool
-from langchain.tools.human.tool import HumanInputRun
-from langchain.vectorstores.base import VectorStoreRetriever
 
+from yeager_core.agents.yeager_autogpt.output_parser import AutoGPTOutputParser
+from yeager_core.agents.yeager_autogpt.prompt import AutoGPTPrompt
+from yeager_core.agents.yeager_autogpt.prompt_generator import FINISH_NAME
 from yeager_core.sockets.world_socket_client import WorldSocketClient
 from yeager_core.agents.yeager_autogpt.listening_antena import ListeningAntena
 from yeager_core.events.base_event import EventHandler, EventDict
 from yeager_core.properties.basic_properties import Coordinates, Size
+from yeager_core.events.basic_events import (
+    AgentMoveToPositionEvent,
+    AgentGetsWorldObjectsInRadiusEvent,
+    AgentGetsWorldAgentsInRadiusEvent,
+    AgentGetsObjectInfoEvent,
+    AgentGetsAgentInfoEvent,
+    AgentSpeaksWithAgentEvent
+)
+
 class YeagerAutoGPT:
     """Agent class for interacting with Auto-GPT."""
 
     def __init__(
         self,
         ai_name: str,
-        memory: VectorStoreRetriever,
-        chain: LLMChain,
-        output_parser: BaseAutoGPTOutputParser,
-        tools: List[BaseTool],
-        position: Coordinates,
-        size: Size,
+        description: str,
+        goals: List[str],
+        important_event_types: List[str],
         event_dict: EventDict,
         event_handler: EventHandler,
-        important_event_types: List[str],
-        goals: List[str],
+        position: Coordinates,
+        size: Size,
+        openai_api_key: str,
         feedback_tool: Optional[HumanInputRun] = None,
-
+        additional_memories: Optional[List[VectorStoreRetriever]]=None,
     ):
+        # Its own properties
+        self.id = uuid4()
+        self.ai_name = ai_name
+        self.description = description
+        self.goals = goals
+
+        # Event properties
         self.important_event_types = important_event_types
         important_event_types.extend(
             [
                 "agent_move_to_position",
-
                 "agent_gets_world_objects_in_radius",
                 "agent_gets_world_agents_in_radius",
 
-                "agent_gets_object_info", # retrieves the possible interactions
-                "agent_gets_agent_info", # by now the only possible interaction is having a conversation
+                "agent_gets_object_info",
+                "agent_gets_agent_info",
 
-                "agent_interacts_with_object", # thinks about which interaction to do and prepares the event and sends it to the ws
+                "agent_interacts_with_object",
                 "agent_interacts_with_agent",
             ]
         )
 
         self.event_dict = event_dict
 
-        self.id = uuid4()
-
-        self.ai_name = ai_name
-        self.goals = goals
-        self.memory = memory
-        self.full_message_history: List[BaseMessage] = []
-        self.next_action_count = 0
-        self.vision_radius = 50
-        self.chain = chain
-        self.output_parser = output_parser
-        self.tools = tools
-        self.feedback_tool = feedback_tool
+        # Phisical world properties
         self.position = position
         self.size = size
+        self.vision_radius = 50
         self.world_socket_client = WorldSocketClient()
         self.listening_antena = ListeningAntena(self.world_socket_client, self.important_event_types)
 
-    @classmethod
-    def from_llm_and_tools(
-        cls,
-        ai_name: str,
-        ai_role: str,
-        memory: VectorStoreRetriever,
-        tools: List[BaseTool],
-        llm: BaseChatModel,
-        human_in_the_loop: bool = False,
-        output_parser: Optional[BaseAutoGPTOutputParser] = None,
-    ) -> YeagerAutoGPT:
+        # Agent actions
+        self.actions = [
+            Tool(
+                name="move",
+                description="Moves the agent to a position.",
+                func=self.agent_move_to_position_action,
+            ),
+        ]
+
+        # Brain properties
+        embeddings_model = OpenAIEmbeddings(openai_api_key=openai_api_key)
+        embedding_size = 1536
+        index = faiss.IndexFlatL2(embedding_size)
+        vectorstore = FAISS(embeddings_model.embed_query, index, InMemoryDocstore({}), {})
+        self.memory = vectorstore.as_retriever()
+
+        llm = ChatOpenAI(openai_api_key=openai_api_key)
         prompt = AutoGPTPrompt(
-            ai_name=ai_name,
-            ai_role=ai_role,
-            tools=tools,
+            ai_name=self.ai_name,
+            ai_role=self.description,
+            tools=self.actions,
             input_variables=["memory", "messages", "goals", "user_input"],
             token_counter=llm.get_num_tokens,
         )
-        human_feedback_tool = HumanInputRun() if human_in_the_loop else None
-        chain = LLMChain(llm=llm, prompt=prompt)
-        return cls(
-            ai_name,
-            memory,
-            chain,
-            output_parser or AutoGPTOutputParser(),
-            tools,
-            feedback_tool=human_feedback_tool,
-        )
+        self.chain = LLMChain(llm=llm, prompt=prompt)
 
+        self.full_message_history: List[BaseMessage] = []
+        self.next_action_count = 0
+        self.output_parser = AutoGPTOutputParser()
+        self.feedback_tool = None #HumanInputRun() if human_in_the_loop else None
 
-    def attach_to_world(self):
-        asyncio.run(self.listening_antena.listen())
-        asyncio.run(self.think())
+    async def attach_to_world(self):
+        await asyncio.gather(
+            self.listening_antena.listen(),
+            self.think()
+            )
 
     def think(self):
         user_input = (
@@ -182,29 +187,67 @@ class YeagerAutoGPT:
             self.memory.add_documents([Document(page_content=memory_to_add)])
             self.full_message_history.append(SystemMessage(content=result))
 
-    async def agent_move_to_position(self, new_position: Coordinates):
-        agent_new_position = AgentMoveToPosition(
+    async def agent_move_to_position_action(self, new_position: Coordinates):
+        agent_new_position = AgentMoveToPositionEvent(
             agent_id=self.id,
             new_position=new_position,
         )
         await self.world_socket_client.send_message(agent_new_position.json())
 
-    async def agent_gets_world_objects_in_radius(
+    async def agent_gets_world_objects_in_radius_action(
         self
     ):
-        agent_gets_world_objects_in_radius = AgentGetsWorldObjectsInRadius(
+        agent_gets_world_objects_in_radius = AgentGetsWorldObjectsInRadiusEvent(
             agent_id=self.id,
             position=self.position,
             radius=self.vision_radius,
         )
         await self.world_socket_client.send_message(agent_gets_world_objects_in_radius.json())
 
-    async def agent_gets_world_agents_in_radius(
+    async def agent_gets_world_agents_in_radius_action(
         self
     ):
-        agent_gets_world_agents_in_radius = AgentGetsWorldAgentsInRadius(
+        agent_gets_world_agents_in_radius = AgentGetsWorldAgentsInRadiusEvent(
             agent_id=self.id,
             position=self.position,
             radius=self.vision_radius,
         )
         await self.world_socket_client.send_message(agent_gets_world_agents_in_radius.json())
+
+    async def agent_gets_object_info_action(
+        self,
+        object_id: str,
+    ):
+        agent_gets_object_info = AgentGetsObjectInfoEvent(
+            agent_id=self.id,
+            object_id=object_id,
+        )
+        await self.world_socket_client.send_message(agent_gets_object_info.json())
+
+    async def agent_gets_agent_info_action(
+        self,
+        agent_id: str,
+    ):
+        agent_gets_agent_info = AgentGetsAgentInfoEvent(
+            agent_id=self.id,
+            other_agent_id=agent_id,
+        )
+        await self.world_socket_client.send_message(agent_gets_agent_info.json())
+
+    async def agent_interacts_with_object_action(
+        self,
+        created_interaction: str,
+    ):
+        await self.world_socket_client.send_message(created_interaction.json())
+
+    async def agent_speaks_with_agent_action(
+        self,
+        other_agent_id: str,
+        message: str,
+    ):
+        agent_speaks_with_agent = AgentSpeaksWithAgentEvent(
+            agent_id=self.id,
+            other_agent_id=other_agent_id,
+            message=message,
+        )
+        await self.world_socket_client.send_message(agent_speaks_with_agent.json())

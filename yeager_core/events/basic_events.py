@@ -10,7 +10,7 @@ class AgentMoveToPositionEvent(Event):
     new_position: Coordinates
 
 @event_type("agent_gets_world_objects_in_radius")
-class AgentGetsWorldObjectsInRadius(Event):
+class AgentGetsWorldObjectsInRadiusEvent(Event):
     description = "Get all objects in a radius around an agent."
     agent_id: str
     world_id: str
@@ -18,20 +18,25 @@ class AgentGetsWorldObjectsInRadius(Event):
     radius: int
 
 @event_type("world_sends_objects_in_radius")
-class WorldSendsObjectsInRadius(Event):
+class WorldSendsObjectsInRadiusEvent(Event):
     description = "Send all objects in a radius around an agent."
     agent_id: str
     world_id: str
     object_ids_in_radius: List[str]
 
 @event_type("agent_gets_object_info")
-class AgentGetsObjectInfo(Event):
+class AgentGetsObjectInfoEvent(Event):
     description = "Get info about an object."
     agent_id: str
     object_id: str
 
+class AgentGetsAgentInfoEvent(Event):
+    description = "Get info about an agent."
+    agent_id: str
+    target_agent_id: str
+
 @event_type("object_sends_info_to_agent")
-class ObjectSendsInfoToAgent(Event):
+class ObjectSendsInfoToAgentEvent(Event):
     description = "Send info about an object to an agent."
     agent_id: str
     object_id: str
@@ -45,3 +50,16 @@ class AgentInteractsWithObject(Event):
     agent_id: str
     object_id: str
     event: Event
+
+class AgentGetsWorldAgentsInRadiusEvent(Event):
+    description = "Get all agents in a radius around an agent."
+    agent_id: str
+    world_id: str
+    current_agent_position: Coordinates
+    radius: int
+
+class AgentSpeaksWithAgentEvent(Event):
+    description = "An agent speaks with another agent."
+    agent_id: str
+    other_agent_id: str
+    message: str

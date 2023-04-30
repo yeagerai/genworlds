@@ -2,14 +2,14 @@ from uuid import uuid4
 from typing import List
 import asyncio
 
-from yeager_core.agents.base_agent import BaseAgent
+from yeager_core.agents.yeager_autogpt.agent import YeagerAutoGPT
 from yeager_core.objects.base_object import BaseObject
 from yeager_core.properties.basic_properties import Coordinates, Size
 from yeager_core.sockets.world_socket_client import WorldSocketClient
 from yeager_core.events.base_event import EventHandler, EventDict, Listener
 from yeager_core.events.basic_events import (
-    AgentGetsWorldObjectsInRadius,
-    WorldSendsObjectsInRadius,
+    AgentGetsWorldObjectsInRadiusEvent,
+    WorldSendsObjectsInRadiusEvent,
 )
 
 
@@ -24,7 +24,7 @@ class BaseWorld:
         event_handler: EventHandler,
         important_event_types: List[str],
         objects: List[BaseObject],
-        agents: List[BaseAgent],
+        agents: List[YeagerAutoGPT],
     ):
         self.important_event_types = important_event_types
         self.important_event_types.extend(
@@ -33,7 +33,7 @@ class BaseWorld:
             ]
         )
         self.event_dict = event_dict
-        self.event_dict.register_events([AgentGetsWorldObjectsInRadius])
+        self.event_dict.register_events([AgentGetsWorldObjectsInRadiusEvent])
 
         self.event_handler = event_handler
         self.event_handler.register_listener(
@@ -55,13 +55,13 @@ class BaseWorld:
         self.agents = agents
 
     async def agent_gets_world_objects_in_radius_listener(
-        self, event: AgentGetsWorldObjectsInRadius
+        self, event: AgentGetsWorldObjectsInRadiusEvent
     ):
         objects_in_radius = []
         for obj in self.objects:
             if obj.position.distance_to(event.current_agent_position) <= event.radius:
                 objects_in_radius.append(obj.id)
-        obj_info = WorldSendsObjectsInRadius(
+        obj_info = WorldSendsObjectsInRadiusEvent(
             agent_id=event.agent_id,
             world_id=self.id,
             object_ids_in_radius=objects_in_radius,
