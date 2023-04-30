@@ -35,8 +35,9 @@ from yeager_core.events.basic_events import (
     AgentGetsWorldAgentsInRadiusEvent,
     AgentGetsObjectInfoEvent,
     AgentGetsAgentInfoEvent,
-    AgentSpeaksWithAgentEvent
+    AgentSpeaksWithAgentEvent,
 )
+
 
 class YeagerAutoGPT:
     """Agent class for interacting with Auto-GPT."""
@@ -53,7 +54,7 @@ class YeagerAutoGPT:
         size: Size,
         openai_api_key: str,
         feedback_tool: Optional[HumanInputRun] = None,
-        additional_memories: Optional[List[VectorStoreRetriever]]=None,
+        additional_memories: Optional[List[VectorStoreRetriever]] = None,
     ):
         # Its own properties
         self.id = uuid4()
@@ -68,10 +69,8 @@ class YeagerAutoGPT:
                 "agent_move_to_position",
                 "agent_gets_world_objects_in_radius",
                 "agent_gets_world_agents_in_radius",
-
                 "agent_gets_object_info",
                 "agent_gets_agent_info",
-
                 "agent_interacts_with_object",
                 "agent_interacts_with_agent",
             ]
@@ -84,7 +83,9 @@ class YeagerAutoGPT:
         self.size = size
         self.vision_radius = 50
         self.world_socket_client = WorldSocketClient()
-        self.listening_antena = ListeningAntena(self.world_socket_client, self.important_event_types)
+        self.listening_antena = ListeningAntena(
+            self.world_socket_client, self.important_event_types
+        )
 
         # Agent actions
         self.actions = [
@@ -99,7 +100,9 @@ class YeagerAutoGPT:
         embeddings_model = OpenAIEmbeddings(openai_api_key=openai_api_key)
         embedding_size = 1536
         index = faiss.IndexFlatL2(embedding_size)
-        vectorstore = FAISS(embeddings_model.embed_query, index, InMemoryDocstore({}), {})
+        vectorstore = FAISS(
+            embeddings_model.embed_query, index, InMemoryDocstore({}), {}
+        )
         self.memory = vectorstore.as_retriever()
 
         llm = ChatOpenAI(openai_api_key=openai_api_key)
@@ -115,13 +118,10 @@ class YeagerAutoGPT:
         self.full_message_history: List[BaseMessage] = []
         self.next_action_count = 0
         self.output_parser = AutoGPTOutputParser()
-        self.feedback_tool = None #HumanInputRun() if human_in_the_loop else None
+        self.feedback_tool = None  # HumanInputRun() if human_in_the_loop else None
 
     async def attach_to_world(self):
-        await asyncio.gather(
-            self.listening_antena.listen(),
-            self.think()
-            )
+        await asyncio.gather(self.listening_antena.listen(), self.think())
 
     def think(self):
         user_input = (
@@ -174,7 +174,9 @@ class YeagerAutoGPT:
             # If there are any relevant events in the world for this agent, add them to memory
             last_events = self.listening_antena.get_last_events()
             memory_to_add = (
-                f"Assistant Reply: {assistant_reply} " f"\nResult: {result} " f"\nLast World Events: {last_events}"
+                f"Assistant Reply: {assistant_reply} "
+                f"\nResult: {result} "
+                f"\nLast World Events: {last_events}"
             )
 
             if self.feedback_tool is not None:
@@ -194,25 +196,25 @@ class YeagerAutoGPT:
         )
         await self.world_socket_client.send_message(agent_new_position.json())
 
-    async def agent_gets_world_objects_in_radius_action(
-        self
-    ):
+    async def agent_gets_world_objects_in_radius_action(self):
         agent_gets_world_objects_in_radius = AgentGetsWorldObjectsInRadiusEvent(
             agent_id=self.id,
             position=self.position,
             radius=self.vision_radius,
         )
-        await self.world_socket_client.send_message(agent_gets_world_objects_in_radius.json())
+        await self.world_socket_client.send_message(
+            agent_gets_world_objects_in_radius.json()
+        )
 
-    async def agent_gets_world_agents_in_radius_action(
-        self
-    ):
+    async def agent_gets_world_agents_in_radius_action(self):
         agent_gets_world_agents_in_radius = AgentGetsWorldAgentsInRadiusEvent(
             agent_id=self.id,
             position=self.position,
             radius=self.vision_radius,
         )
-        await self.world_socket_client.send_message(agent_gets_world_agents_in_radius.json())
+        await self.world_socket_client.send_message(
+            agent_gets_world_agents_in_radius.json()
+        )
 
     async def agent_gets_object_info_action(
         self,

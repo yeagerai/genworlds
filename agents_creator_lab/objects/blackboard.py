@@ -12,6 +12,8 @@ from agents_creator_lab.events import (
     BlackboardSendsContentEvent,
 )
 from agents_creator_lab.objects.job import Job
+
+
 class Blackboard(BaseObject):
     def __init__(
         self,

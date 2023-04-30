@@ -6,7 +6,6 @@ class Event(BaseModel):
     description: str
 
 
-
 class Listener:
     def __init__(self, name: str, description: str, function: Callable):
         self.name = name

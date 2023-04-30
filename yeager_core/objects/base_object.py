@@ -4,7 +4,10 @@ from uuid import uuid4
 from yeager_core.sockets.world_socket_client import WorldSocketClient
 from yeager_core.properties.basic_properties import Coordinates, Size
 from yeager_core.events.base_event import EventHandler, EventDict
-from yeager_core.events.basic_events import AgentGetsObjectInfoEvent, ObjectSendsInfoToAgentEvent
+from yeager_core.events.basic_events import (
+    AgentGetsObjectInfoEvent,
+    ObjectSendsInfoToAgentEvent,
+)
 from yeager_core.events.base_event import Listener
 
 

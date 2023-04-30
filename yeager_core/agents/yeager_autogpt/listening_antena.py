@@ -2,12 +2,16 @@ from typing import List
 
 from yeager_core.sockets.world_socket_client import WorldSocketClient
 
+
 class ListeningAntena:
-    def __init__(self, world_socket_client: WorldSocketClient, important_event_types: List[str]):
+    def __init__(
+        self, world_socket_client: WorldSocketClient, important_event_types: List[str]
+    ):
         self.world_socket_client = world_socket_client
         self.important_event_types = important_event_types
         self.all_events = []
         self.last_events = []
+
     async def listen(self):
         while True:
             with self.world_socket_client.ws_connection as websocket:
