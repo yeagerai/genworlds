@@ -105,7 +105,7 @@ class YeagerAutoGPT:
         )
         self.memory = vectorstore.as_retriever()
 
-        llm = ChatOpenAI(openai_api_key=openai_api_key)
+        llm = ChatOpenAI(openai_api_key=openai_api_key, model_name="gpt-4")
         prompt = AutoGPTPrompt(
             ai_name=self.ai_name,
             ai_role=self.description,
@@ -120,10 +120,9 @@ class YeagerAutoGPT:
         self.output_parser = AutoGPTOutputParser()
         self.feedback_tool = None  # HumanInputRun() if human_in_the_loop else None
 
-    async def attach_to_world(self):
-        await asyncio.gather(self.listening_antena.listen(), self.think())
 
-    def think(self):
+    async def think(self):
+        print("Thinking...")
         user_input = (
             "Determine which next command to use, "
             "and respond using the format specified above:"
@@ -145,13 +144,13 @@ class YeagerAutoGPT:
 
             # Get command name and arguments
             action = self.output_parser.parse(assistant_reply)
-            tools = {t.name: t for t in self.tools}
+            tools = {t.name: t for t in self.actions}
             if action.name == FINISH_NAME:
                 return action.args["response"]
             if action.name in tools:
                 tool = tools[action.name]
                 try:
-                    observation = tool.run(action.args)
+                    observation = await tool.run(action.args)
                 except ValidationError as e:
                     observation = (
                         f"Validation Error in args: {str(e)}, args: {action.args}"
@@ -191,7 +190,7 @@ class YeagerAutoGPT:
 
     async def agent_move_to_position_action(self, new_position: Coordinates):
         agent_new_position = AgentMoveToPositionEvent(
-            agent_id=self.id,
+            agent_id=str(self.id),
             new_position=new_position,
         )
         await self.world_socket_client.send_message(agent_new_position.json())

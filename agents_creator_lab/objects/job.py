@@ -7,3 +7,6 @@ class Job(BaseModel):
     assigned_to: str
     output_format: str
     status: str
+    # creation_date: 
+    # end_date:
+    # job_dependencies:

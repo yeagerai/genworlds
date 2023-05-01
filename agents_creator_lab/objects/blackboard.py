@@ -30,6 +30,7 @@ class Blackboard(BaseObject):
                 "agent_reads_blackboard",
                 "agent_adds_job_to_blackboard",
                 "agent_deletes_job_from_blackboard",
+                "user_adds_job_to_blackboard",
             ]
         )
 
@@ -57,6 +58,16 @@ class Blackboard(BaseObject):
                 function=self.agent_adds_job_to_blackboard_listener,
             ),
         )
+
+        event_handler.register_listener(
+            event_type="user_adds_job_to_blackboard",
+            listener=Listener(
+                name="user_adds_job_to_blackboard_listener",
+                description="Listens for a user adding a job to the blackboard.",
+                function=self.user_adds_job_to_blackboard_listener,
+            ),
+        )
+
         event_handler.register_listener(
             event_type="agent_deletes_job_from_blackboard",
             listener=Listener(
@@ -97,6 +108,11 @@ class Blackboard(BaseObject):
         self._delete_job(event.job_id)
 
     async def agent_adds_job_to_blackboard_listener(
+        self, event: AgentAddsJobToBlackboardEvent
+    ):
+        self._add_job(event.new_job)
+
+    async def user_adds_job_to_blackboard_listener(
         self, event: AgentAddsJobToBlackboardEvent
     ):
         self._add_job(event.new_job)

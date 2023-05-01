@@ -29,14 +29,23 @@ async def websocket_endpoint(websocket: WebSocket):
 
     try:
         while True:
-            data = await websocket.receive_text()
+            try:
+                data = await websocket.receive_text()
+            except Exception as e:
+                print(f"Exception while receiving data: {type(e).__name__}, {e}")
+                continue
+
+            print(data)
             await websocket_manager.send_update(data)
 
     except Exception as e:
-        pass
+        print(f"Exception: {type(e).__name__}, {e}")
+        import traceback
+        traceback.print_exc()
 
     finally:
         await websocket_manager.disconnect(websocket)
+
 
 
 # uvicorn world_socket_server:app --host 0.0.0.0 --port 7456

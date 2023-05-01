@@ -25,7 +25,12 @@ class AgentAddsJobToBlackboardEvent(Event):
     agent_id: str
     blackboard_id: str
     new_job: Job
-
+@event_type("user_adds_job_to_blackboard")
+class UserAddsJobToBlackboardEvent(Event):
+    description = "User adds a job to the blackboard."
+    agent_id: str
+    blackboard_id: str
+    new_job: Job
 
 @event_type("agent_deletes_job_from_blackboard")
 class AgentDeletesJobFromBlackboardEvent(Event):
