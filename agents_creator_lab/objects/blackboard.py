@@ -34,14 +34,6 @@ class Blackboard(BaseObject):
             ]
         )
 
-        event_dict.register_events(
-            [
-                AgentReadsBlackboardEvent,
-                AgentDeletesJobFromBlackboardEvent,
-                AgentAddsJobToBlackboardEvent,
-            ]
-        )
-
         event_handler.register_listener(
             event_type="agent_reads_blackboard",
             listener=Listener(

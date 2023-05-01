@@ -1,4 +1,4 @@
-from fastapi import FastAPI, WebSocket
+from fastapi import FastAPI, WebSocket, WebSocketDisconnect
 from typing import List
 
 
@@ -29,21 +29,15 @@ async def websocket_endpoint(websocket: WebSocket):
 
     try:
         while True:
-            try:
-                data = await websocket.receive_text()
-            except Exception as e:
-                print(f"Exception while receiving data: {type(e).__name__}, {e}")
-                continue
-
+            data = await websocket.receive_text()
             print(data)
             await websocket_manager.send_update(data)
-
+    except WebSocketDisconnect as e:
+        print(f"WebSocketDisconnect: {e.code}")
     except Exception as e:
         print(f"Exception: {type(e).__name__}, {e}")
         import traceback
-
         traceback.print_exc()
-
     finally:
         await websocket_manager.disconnect(websocket)
 

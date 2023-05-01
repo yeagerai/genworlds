@@ -56,18 +56,23 @@ class BaseObject:
         )
         await self.world_socket_client.send_message(obj_info.json())
 
+    async def process_event(self, event):
+        if (
+            event["event_type"] in self.important_event_types
+            and event["object_id"] == self.id
+        ):
+            event_listener_name = self.event_handler.listeners[
+                event["event_type"]
+            ].name
+            parsed_event = self.event_dict.get_event_class(
+                event["event_type"]
+            ).parse_obj(event)
+            self.event_handler.handle_event(parsed_event, event_listener_name)
+
     async def attach_to_world(self):
-        with self.world_socket_client.ws_connection as websocket:
-            while True:
-                event = await websocket.recv()
-                if (
-                    event["event_type"] in self.important_event_types
-                    and event["object_id"] == self.id
-                ):
-                    event_listener_name = self.event_handler.listeners[
-                        event["event_type"]
-                    ].name
-                    parsed_event = self.event_dict.get_event_class(
-                        event["event_type"]
-                    ).parse_obj(event)
-                    self.event_handler.handle_event(parsed_event, event_listener_name)
+        try:
+            await self.world_socket_client.message_handler(self.process_event)
+        except Exception as e:
+            print(f"Exception: {type(e).__name__}, {e}")
+            import traceback
+            traceback.print_exc()

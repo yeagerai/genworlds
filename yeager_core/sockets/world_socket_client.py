@@ -1,21 +1,18 @@
-from websockets.sync.client import connect
-
-
-async def handler(websocket):
-    while True:
-        message = await websocket.recv()
-        print(message)
-
+from websockets.client import connect
 
 class WorldSocketClient:
     def __init__(self) -> None:
         self.uri = "ws://localhost:7456/ws"
-        self.ws_connection = connect(self.uri)
 
     async def send_message(self, message: str) -> None:
-        with self.ws_connection as websocket:
-            websocket.send(message)
+        async with connect(self.uri) as websocket:
+            await websocket.send(message)
 
-    async def message_handler(self) -> None:
-        with self.ws_connection as websocket:
-            await handler(websocket)
+    async def handler(self, websocket, process_event):
+        while True:
+            message = await websocket.recv()
+            await process_event(message)
+
+    async def message_handler(self, process_event) -> None:
+        async with connect(self.uri) as websocket:
+            await self.handler(websocket, process_event)

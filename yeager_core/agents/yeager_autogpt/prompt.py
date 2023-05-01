@@ -27,6 +27,11 @@ class AutoGPTPrompt(BaseChatPromptTemplate, BaseModel):
             "strategies with no legal complications.\n"
             "If you have completed all your tasks, make sure to "
             'use the "finish" command.'
+            "\n\n"
+            "You are an agent that lives in a world with other agents and objects.\n"
+            "You can move around the world, interact with objects, and talk to other agents.\n"
+            "You have been spawned in a random location in the world, and you have to explore it.\n"
+            "You live in a 2D world, so the coordinates are (x, y).\n"
         )
         # Construct full prompt
         full_prompt = (

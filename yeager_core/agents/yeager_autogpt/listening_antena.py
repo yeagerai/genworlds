@@ -12,13 +12,18 @@ class ListeningAntena:
         self.all_events = []
         self.last_events = []
 
+    async def process_event(self, event):
+        if event["event_type"] in self.important_event_types:
+            self.last_events.append(event)
+            self.all_events.append(event)
+
     async def listen(self):
-        while True:
-            with self.world_socket_client.ws_connection as websocket:
-                event = await websocket.recv()
-                if event["event_type"] in self.important_event_types:
-                    self.last_events.append(event)
-                    self.all_events.append(event)
+        try:
+            await self.world_socket_client.message_handler(self.process_event)
+        except Exception as e:
+            print(f"Exception: {type(e).__name__}, {e}")
+            import traceback
+            traceback.print_exc()
 
     def get_last_events(self):
         events_to_return = self.last_events
