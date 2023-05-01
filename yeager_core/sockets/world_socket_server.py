@@ -12,11 +12,19 @@ class WebSocketManager:
 
     async def disconnect(self, websocket: WebSocket):
         self.active_connections.remove(websocket)
-        await websocket.close()
 
     async def send_update(self, data: str):
+        closed_connections = []
         for connection in self.active_connections:
-            await connection.send_text(data)
+            try:
+                await connection.send_text(data)
+            except RuntimeError as e:
+                if "Unexpected ASGI message" in str(e) and "websocket.close" in str(e):
+                    closed_connections.append(connection)
+                else:
+                    raise e
+        for closed_connection in closed_connections:
+            self.active_connections.remove(closed_connection)
 
 
 app = FastAPI()
@@ -37,9 +45,10 @@ async def websocket_endpoint(websocket: WebSocket):
     except Exception as e:
         print(f"Exception: {type(e).__name__}, {e}")
         import traceback
+
         traceback.print_exc()
     finally:
-        await websocket_manager.disconnect(websocket)
+        pass
 
 
 # uvicorn world_socket_server:app --host 0.0.0.0 --port 7456

@@ -7,6 +7,7 @@ class Event(BaseModel):
     description: str
     event_type: str
 
+
 class Listener:
     def __init__(self, name: str, description: str, function: Callable):
         self.name = name
@@ -28,12 +29,15 @@ class EventHandler:
             if listener_name in self.listeners[event["event_type"]]:
                 self.listeners[event["event_type"]][listener_name].function(event)
 
+
 def capwords_to_snake_case(s):
     # Split the string into words using a regular expression
-    words = re.findall('[A-Z][a-z0-9]*', s)
+    words = re.findall("[A-Z][a-z0-9]*", s)
 
     # Convert the words to lowercase and join with underscores
-    return '_'.join([word.lower() for word in words])
+    return "_".join([word.lower() for word in words])
+
+
 class EventDict:
     def __init__(self):
         self.event_classes = {}  # register all base events

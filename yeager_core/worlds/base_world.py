@@ -74,9 +74,7 @@ class BaseWorld:
             event["event_type"] in self.important_event_types
             and event["world_id"] == self.id
         ):
-            event_listener_name = self.event_handler.listeners[
-                event["event_type"]
-            ].name
+            event_listener_name = self.event_handler.listeners[event["event_type"]].name
             parsed_event = self.event_dict.get_event_class(
                 event["event_type"]
             ).parse_obj(event)
@@ -88,23 +86,45 @@ class BaseWorld:
         except Exception as e:
             print(f"Exception: {type(e).__name__}, {e}")
             import traceback
+
             traceback.print_exc()
 
     def launch(self):
         asyncio.run(self.alaunch())
 
     async def alaunch(self):
+        await self.world_socket_client.connect()
         executor = ThreadPoolExecutor()
 
         tasks = []
-        tasks.append(asyncio.wrap_future(executor.submit(self.run_async_function, self.attach_to_socket)))
+        tasks.append(
+            asyncio.wrap_future(
+                executor.submit(self.run_async_function, self.attach_to_socket)
+            )
+        )
 
         for agent in self.agents:
-            tasks.append(asyncio.wrap_future(executor.submit(self.run_async_function, agent.think)))
-            tasks.append(asyncio.wrap_future(executor.submit(self.run_async_function, agent.listening_antena.listen)))
+            await agent.world_socket_client.connect()
+            tasks.append(
+                asyncio.wrap_future(
+                    executor.submit(self.run_async_function, agent.think)
+                )
+            )
+            tasks.append(
+                asyncio.wrap_future(
+                    executor.submit(
+                        self.run_async_function, agent.listening_antena.listen
+                    )
+                )
+            )
 
         for obj in self.objects:
-            tasks.append(asyncio.wrap_future(executor.submit(self.run_async_function, obj.attach_to_world)))
+            await obj.world_socket_client.connect()
+            tasks.append(
+                asyncio.wrap_future(
+                    executor.submit(self.run_async_function, obj.attach_to_world)
+                )
+            )
 
         await asyncio.gather(*tasks)
 

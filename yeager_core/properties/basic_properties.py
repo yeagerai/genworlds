@@ -7,9 +7,7 @@ class Coordinates(BaseModel):
     y: float
 
     def distance_to(self, other: "Coordinates") -> float:
-        return (
-            (self.x - other.x) ** 2 + (self.y - other.y) ** 2
-        ) ** 0.5
+        return ((self.x - other.x) ** 2 + (self.y - other.y) ** 2) ** 0.5
 
 
 class Size(BaseModel):

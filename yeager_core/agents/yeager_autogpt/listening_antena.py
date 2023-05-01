@@ -23,6 +23,7 @@ class ListeningAntena:
         except Exception as e:
             print(f"Exception: {type(e).__name__}, {e}")
             import traceback
+
             traceback.print_exc()
 
     def get_last_events(self):

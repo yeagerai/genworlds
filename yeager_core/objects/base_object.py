@@ -61,9 +61,7 @@ class BaseObject:
             event["event_type"] in self.important_event_types
             and event["object_id"] == self.id
         ):
-            event_listener_name = self.event_handler.listeners[
-                event["event_type"]
-            ].name
+            event_listener_name = self.event_handler.listeners[event["event_type"]].name
             parsed_event = self.event_dict.get_event_class(
                 event["event_type"]
             ).parse_obj(event)
@@ -75,4 +73,5 @@ class BaseObject:
         except Exception as e:
             print(f"Exception: {type(e).__name__}, {e}")
             import traceback
+
             traceback.print_exc()
