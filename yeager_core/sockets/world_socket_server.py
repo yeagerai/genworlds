@@ -41,11 +41,11 @@ async def websocket_endpoint(websocket: WebSocket):
     except Exception as e:
         print(f"Exception: {type(e).__name__}, {e}")
         import traceback
+
         traceback.print_exc()
 
     finally:
         await websocket_manager.disconnect(websocket)
-
 
 
 # uvicorn world_socket_server:app --host 0.0.0.0 --port 7456

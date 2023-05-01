@@ -120,7 +120,6 @@ class YeagerAutoGPT:
         self.output_parser = AutoGPTOutputParser()
         self.feedback_tool = None  # HumanInputRun() if human_in_the_loop else None
 
-
     async def think(self):
         print("Thinking...")
         user_input = (

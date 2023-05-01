@@ -91,13 +91,10 @@ class BaseWorld:
         tasks = [
             self.attach_to_socket(),
             *[
-                asyncio.create_task(agent.listening_antena.listen()) for agent in self.agents
+                asyncio.create_task(agent.listening_antena.listen())
+                for agent in self.agents
             ],
-            *[
-                asyncio.create_task(agent.think()) for agent in self.agents
-            ],
-            *[
-                asyncio.create_task(obj.attach_to_world()) for obj in self.objects
-            ],
+            *[asyncio.create_task(agent.think()) for agent in self.agents],
+            *[asyncio.create_task(obj.attach_to_world()) for obj in self.objects],
         ]
         await asyncio.gather(*tasks)
