@@ -63,7 +63,6 @@ class AgentGetsWorldAgentsInRadiusEvent(Event):
     event_type = "agent_gets_world_agents_in_radius"
     description = "Get all agents in a radius around an agent."
     agent_id: str
-    world_id: str
     current_agent_position: Coordinates
     radius: int
 

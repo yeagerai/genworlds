@@ -1,5 +1,7 @@
 from __future__ import annotations
+from datetime import datetime
 from uuid import uuid4
+from time import sleep
 import asyncio
 from typing import List, Optional
 
@@ -52,15 +54,17 @@ class YeagerAutoGPT:
         event_handler: EventHandler,
         position: Coordinates,
         size: Size,
+        vision_radius: int,
         openai_api_key: str,
         feedback_tool: Optional[HumanInputRun] = None,
         additional_memories: Optional[List[VectorStoreRetriever]] = None,
     ):
         # Its own properties
-        self.id = uuid4()
+        self.id = str(uuid4())
         self.ai_name = ai_name
         self.description = description
         self.goals = goals
+        self.world_spawned_id = None
 
         # Event properties
         self.important_event_types = important_event_types
@@ -81,7 +85,7 @@ class YeagerAutoGPT:
         # Phisical world properties
         self.position = position
         self.size = size
-        self.vision_radius = 50
+        self.vision_radius = vision_radius
         self.world_socket_client = WorldSocketClient()
         self.listening_antena = ListeningAntena(
             self.world_socket_client, self.important_event_types
@@ -93,6 +97,31 @@ class YeagerAutoGPT:
                 name="move",
                 description="Moves the agent to a position.",
                 func=self.agent_move_to_position_action,
+            ),
+            Tool(
+                name="get_objects_in_radius",
+                description="Gets the objects in a radius.",
+                func=self.agent_gets_world_objects_in_radius_action,
+            ),
+            Tool(
+                name="get_agents_in_radius",
+                description="Gets the agents in a radius.",
+                func=self.agent_gets_world_agents_in_radius_action,
+            ),
+            Tool(
+                name="get_object_info",
+                description="Gets the info of an object.",
+                func=self.agent_gets_object_info_action,
+            ),
+            Tool(
+                name="get_agent_info",
+                description="Gets the info of an agent.",
+                func=self.agent_gets_agent_info_action,
+            ),
+            Tool(
+                name="interact_with_object",
+                description="Interacts with an object.",
+                func=self.agent_interacts_with_object_action,
             ),
         ]
 
@@ -109,6 +138,7 @@ class YeagerAutoGPT:
         prompt = AutoGPTPrompt(
             ai_name=self.ai_name,
             ai_role=self.description,
+            vision_radius=self.vision_radius,
             tools=self.actions,
             input_variables=["memory", "messages", "goals", "user_input"],
             token_counter=llm.get_num_tokens,
@@ -170,6 +200,7 @@ class YeagerAutoGPT:
             ## send result and assistant_reply to the socket
 
             # If there are any relevant events in the world for this agent, add them to memory
+            sleep(3)
             last_events = self.listening_antena.get_last_events()
             memory_to_add = (
                 f"Assistant Reply: {assistant_reply} "
@@ -189,15 +220,18 @@ class YeagerAutoGPT:
 
     async def agent_move_to_position_action(self, new_position: Coordinates):
         agent_new_position = AgentMoveToPositionEvent(
-            agent_id=str(self.id),
+            created_at=datetime.now(),
+            agent_id=self.id,
             new_position=new_position,
         )
         await self.world_socket_client.send_message(agent_new_position.json())
 
     async def agent_gets_world_objects_in_radius_action(self):
         agent_gets_world_objects_in_radius = AgentGetsWorldObjectsInRadiusEvent(
+            created_at=datetime.now(),
             agent_id=self.id,
-            position=self.position,
+            current_agent_position=self.position,
+            world_id=self.world_spawned_id,
             radius=self.vision_radius,
         )
         await self.world_socket_client.send_message(
@@ -206,6 +240,7 @@ class YeagerAutoGPT:
 
     async def agent_gets_world_agents_in_radius_action(self):
         agent_gets_world_agents_in_radius = AgentGetsWorldAgentsInRadiusEvent(
+            created_at=datetime.now(),
             agent_id=self.id,
             position=self.position,
             radius=self.vision_radius,
@@ -219,6 +254,7 @@ class YeagerAutoGPT:
         object_id: str,
     ):
         agent_gets_object_info = AgentGetsObjectInfoEvent(
+            created_at=datetime.now(),
             agent_id=self.id,
             object_id=object_id,
         )
@@ -229,6 +265,7 @@ class YeagerAutoGPT:
         agent_id: str,
     ):
         agent_gets_agent_info = AgentGetsAgentInfoEvent(
+            created_at=datetime.now(),
             agent_id=self.id,
             other_agent_id=agent_id,
         )
@@ -246,6 +283,7 @@ class YeagerAutoGPT:
         message: str,
     ):
         agent_speaks_with_agent = AgentSpeaksWithAgentEvent(
+            created_at=datetime.now(),
             agent_id=self.id,
             other_agent_id=other_agent_id,
             message=message,

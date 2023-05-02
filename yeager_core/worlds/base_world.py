@@ -46,7 +46,7 @@ class BaseWorld:
             ),
         )
 
-        self.id = uuid4()
+        self.id = str(uuid4())
         self.name = name
         self.description = description
         self.position = position
@@ -104,12 +104,8 @@ class BaseWorld:
         )
 
         for agent in self.agents:
+            agent.world_spawned_id = self.id
             await agent.world_socket_client.connect()
-            tasks.append(
-                asyncio.wrap_future(
-                    executor.submit(self.run_async_function, agent.think)
-                )
-            )
             tasks.append(
                 asyncio.wrap_future(
                     executor.submit(
@@ -117,8 +113,14 @@ class BaseWorld:
                     )
                 )
             )
+            tasks.append(
+                asyncio.wrap_future(
+                    executor.submit(self.run_async_function, agent.think)
+                )
+            )
 
         for obj in self.objects:
+            obj.world_spawned_id = self.id
             await obj.world_socket_client.connect()
             tasks.append(
                 asyncio.wrap_future(

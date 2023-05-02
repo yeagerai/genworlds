@@ -1,11 +1,13 @@
 import re
 from typing import Any, Callable, List
 from pydantic import BaseModel
+from datetime import datetime
 
 
 class Event(BaseModel):
-    description: str
     event_type: str
+    description: str
+    created_at: datetime
 
 
 class Listener:
@@ -31,10 +33,7 @@ class EventHandler:
 
 
 def capwords_to_snake_case(s):
-    # Split the string into words using a regular expression
     words = re.findall("[A-Z][a-z0-9]*", s)
-
-    # Convert the words to lowercase and join with underscores
     return "_".join([word.lower() for word in words])
 
 

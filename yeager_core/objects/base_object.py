@@ -27,6 +27,7 @@ class BaseObject:
         self.description = description
         self.position = position
         self.size = size
+        self.world_spawned_id = None
 
         self.world_socket_client = WorldSocketClient()
 

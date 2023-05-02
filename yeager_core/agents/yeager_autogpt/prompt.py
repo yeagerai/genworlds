@@ -15,6 +15,7 @@ from langchain.vectorstores.base import VectorStoreRetriever
 class AutoGPTPrompt(BaseChatPromptTemplate, BaseModel):
     ai_name: str
     ai_role: str
+    vision_radius: int
     tools: List[BaseTool]
     token_counter: Callable[[str], int]
     send_token_limit: int = 4196
@@ -32,6 +33,7 @@ class AutoGPTPrompt(BaseChatPromptTemplate, BaseModel):
             "You can move around the world, interact with objects, and talk to other agents.\n"
             "You have been spawned in a random location in the world, and you have to explore it.\n"
             "You live in a 2D world, so the coordinates are (x, y).\n"
+            f"Your vision radius is {self.vision_radius}, so you can see everything within {self.vision_radius} units of your position.\n"
         )
         # Construct full prompt
         full_prompt = (
