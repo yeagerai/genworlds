@@ -40,6 +40,7 @@ async def websocket_endpoint(websocket: WebSocket):
             data = await websocket.receive_text()
             print(data)
             await websocket_manager.send_update(data)
+            print("Update sent....")
     except WebSocketDisconnect as e:
         print(f"WebSocketDisconnect: {e.code}")
     except Exception as e:
@@ -48,7 +49,7 @@ async def websocket_endpoint(websocket: WebSocket):
 
         traceback.print_exc()
     finally:
-        pass
+        await websocket_manager.disconnect(websocket)
 
 
 # uvicorn world_socket_server:app --host 0.0.0.0 --port 7456

@@ -1,6 +1,7 @@
 from uuid import uuid4
 from typing import List
 import asyncio
+import concurrent.futures
 from concurrent.futures import ThreadPoolExecutor
 
 from yeager_core.agents.yeager_autogpt.agent import YeagerAutoGPT
@@ -81,6 +82,7 @@ class BaseWorld:
             self.event_handler.handle_event(parsed_event, event_listener_name)
 
     async def attach_to_socket(self):
+        print(f"The world {self.name} is listening...")
         try:
             await self.world_socket_client.message_handler(self.process_event)
         except Exception as e:
@@ -99,39 +101,42 @@ class BaseWorld:
         tasks = []
         tasks.append(
             asyncio.wrap_future(
-                executor.submit(self.run_async_function, self.attach_to_socket)
+                executor.submit(
+                    self.run_async_function_in_thread, self.attach_to_socket
+                )
             )
         )
 
         for agent in self.agents:
             agent.world_spawned_id = self.id
             await agent.world_socket_client.connect()
+            # tasks.append(
+            #     asyncio.wrap_future(
+            #         executor.submit(
+            #             self.run_async_function_in_thread, agent.listening_antena.listen
+            #         )
+            #     )
+            # )
             tasks.append(
                 asyncio.wrap_future(
-                    executor.submit(
-                        self.run_async_function, agent.listening_antena.listen
-                    )
-                )
-            )
-            tasks.append(
-                asyncio.wrap_future(
-                    executor.submit(self.run_async_function, agent.think)
+                    executor.submit(self.run_async_function_in_thread, agent.think)
                 )
             )
 
         for obj in self.objects:
             obj.world_spawned_id = self.id
             await obj.world_socket_client.connect()
-            tasks.append(
-                asyncio.wrap_future(
-                    executor.submit(self.run_async_function, obj.attach_to_world)
-                )
-            )
+            # tasks.append(
+            #     asyncio.wrap_future(
+            #         executor.submit(self.run_async_function_in_thread, obj.attach_to_world)
+            #     )
+            # )
 
         await asyncio.gather(*tasks)
 
-    def run_async_function(self, async_func):
+    def run_async_function_in_thread(self, async_func):
         loop = asyncio.new_event_loop()
+        asyncio.set_event_loop(loop)
         try:
             return loop.run_until_complete(async_func())
         finally:

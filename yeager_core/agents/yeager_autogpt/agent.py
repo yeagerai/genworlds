@@ -88,7 +88,10 @@ class YeagerAutoGPT:
         self.vision_radius = vision_radius
         self.world_socket_client = WorldSocketClient()
         self.listening_antena = ListeningAntena(
-            self.world_socket_client, self.important_event_types
+            self.world_socket_client,
+            self.important_event_types,
+            agent_name=self.ai_name,
+            agent_id=self.id,
         )
 
         # Agent actions
@@ -151,7 +154,7 @@ class YeagerAutoGPT:
         self.feedback_tool = None  # HumanInputRun() if human_in_the_loop else None
 
     async def think(self):
-        print("Thinking...")
+        print(f" The agent {self.ai_name} is thinking...")
         user_input = (
             "Determine which next command to use, "
             "and respond using the format specified above:"

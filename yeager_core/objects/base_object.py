@@ -69,6 +69,7 @@ class BaseObject:
             self.event_handler.handle_event(parsed_event, event_listener_name)
 
     async def attach_to_world(self):
+        print(f"The object {self.name} is listening...")
         try:
             await self.world_socket_client.message_handler(self.process_event)
         except Exception as e:
