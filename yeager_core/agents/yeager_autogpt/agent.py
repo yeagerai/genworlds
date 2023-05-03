@@ -2,7 +2,6 @@ from __future__ import annotations
 from datetime import datetime
 from uuid import uuid4
 from time import sleep
-import asyncio
 from typing import List, Optional
 
 from pydantic import ValidationError
@@ -86,9 +85,8 @@ class YeagerAutoGPT:
         self.position = position
         self.size = size
         self.vision_radius = vision_radius
-        self.world_socket_client = WorldSocketClient()
+        self.world_socket_client = WorldSocketClient(process_event=print)
         self.listening_antena = ListeningAntena(
-            self.world_socket_client,
             self.important_event_types,
             agent_name=self.ai_name,
             agent_id=self.id,
@@ -153,7 +151,7 @@ class YeagerAutoGPT:
         self.output_parser = AutoGPTOutputParser()
         self.feedback_tool = None  # HumanInputRun() if human_in_the_loop else None
 
-    async def think(self):
+    def think(self):
         print(f" The agent {self.ai_name} is thinking...")
         user_input = (
             "Determine which next command to use, "
@@ -170,7 +168,7 @@ class YeagerAutoGPT:
             )
 
             # Print Assistant thoughts
-            print(assistant_reply)
+            # print(assistant_reply) # Send the thoughts as events
             self.full_message_history.append(HumanMessage(content=user_input))
             self.full_message_history.append(AIMessage(content=assistant_reply))
 
@@ -182,7 +180,7 @@ class YeagerAutoGPT:
             if action.name in tools:
                 tool = tools[action.name]
                 try:
-                    observation = await tool.run(action.args)
+                    observation = tool.run(action.args)
                 except ValidationError as e:
                     observation = (
                         f"Validation Error in args: {str(e)}, args: {action.args}"
@@ -221,15 +219,15 @@ class YeagerAutoGPT:
             self.memory.add_documents([Document(page_content=memory_to_add)])
             self.full_message_history.append(SystemMessage(content=result))
 
-    async def agent_move_to_position_action(self, new_position: Coordinates):
+    def agent_move_to_position_action(self, new_position: Coordinates):
         agent_new_position = AgentMoveToPositionEvent(
             created_at=datetime.now(),
             agent_id=self.id,
             new_position=new_position,
         )
-        await self.world_socket_client.send_message(agent_new_position.json())
+        self.world_socket_client.send_message(agent_new_position.json())
 
-    async def agent_gets_world_objects_in_radius_action(self):
+    def agent_gets_world_objects_in_radius_action(self):
         agent_gets_world_objects_in_radius = AgentGetsWorldObjectsInRadiusEvent(
             created_at=datetime.now(),
             agent_id=self.id,
@@ -237,22 +235,18 @@ class YeagerAutoGPT:
             world_id=self.world_spawned_id,
             radius=self.vision_radius,
         )
-        await self.world_socket_client.send_message(
-            agent_gets_world_objects_in_radius.json()
-        )
+        self.world_socket_client.send_message(agent_gets_world_objects_in_radius.json())
 
-    async def agent_gets_world_agents_in_radius_action(self):
+    def agent_gets_world_agents_in_radius_action(self):
         agent_gets_world_agents_in_radius = AgentGetsWorldAgentsInRadiusEvent(
             created_at=datetime.now(),
             agent_id=self.id,
             position=self.position,
             radius=self.vision_radius,
         )
-        await self.world_socket_client.send_message(
-            agent_gets_world_agents_in_radius.json()
-        )
+        self.world_socket_client.send_message(agent_gets_world_agents_in_radius.json())
 
-    async def agent_gets_object_info_action(
+    def agent_gets_object_info_action(
         self,
         object_id: str,
     ):
@@ -261,9 +255,9 @@ class YeagerAutoGPT:
             agent_id=self.id,
             object_id=object_id,
         )
-        await self.world_socket_client.send_message(agent_gets_object_info.json())
+        self.world_socket_client.send_message(agent_gets_object_info.json())
 
-    async def agent_gets_agent_info_action(
+    def agent_gets_agent_info_action(
         self,
         agent_id: str,
     ):
@@ -272,15 +266,15 @@ class YeagerAutoGPT:
             agent_id=self.id,
             other_agent_id=agent_id,
         )
-        await self.world_socket_client.send_message(agent_gets_agent_info.json())
+        self.world_socket_client.send_message(agent_gets_agent_info.json())
 
-    async def agent_interacts_with_object_action(
+    def agent_interacts_with_object_action(
         self,
         created_interaction: str,
     ):
-        await self.world_socket_client.send_message(created_interaction.json())
+        self.world_socket_client.send_message(created_interaction.json())
 
-    async def agent_speaks_with_agent_action(
+    def agent_speaks_with_agent_action(
         self,
         other_agent_id: str,
         message: str,
@@ -291,4 +285,4 @@ class YeagerAutoGPT:
             other_agent_id=other_agent_id,
             message=message,
         )
-        await self.world_socket_client.send_message(agent_speaks_with_agent.json())
+        self.world_socket_client.send_message(agent_speaks_with_agent.json())

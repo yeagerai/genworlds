@@ -1,11 +1,13 @@
 import os
 from dotenv import load_dotenv
-
+import concurrent.futures
 from yeager_core.worlds.base_world import BaseWorld
 from yeager_core.properties.basic_properties import Coordinates, Size
 from yeager_core.events.base_event import EventDict, EventHandler
 from agents_creator_lab.objects.blackboard import Blackboard
 from yeager_core.agents.yeager_autogpt.agent import YeagerAutoGPT
+
+thread_pool_ref = concurrent.futures.ThreadPoolExecutor
 
 home_path = os.path.expanduser("~")
 load_dotenv(dotenv_path=os.path.join(home_path, ".yeagerai-sessions/.env"))
