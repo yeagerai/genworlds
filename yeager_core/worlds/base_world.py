@@ -29,7 +29,7 @@ class BaseWorld:
         self.important_event_types = important_event_types
         self.important_event_types.extend(
             [
-                "agent_gets_world_objects_in_radius",
+                "agent_gets_world_objects_in_radius_event",
             ]
         )
         self.event_dict = event_dict
@@ -37,7 +37,7 @@ class BaseWorld:
 
         self.event_handler = event_handler
         self.event_handler.register_listener(
-            event_type="agent_gets_world_objects_in_radius",
+            event_type="agent_gets_world_objects_in_radius_event",
             listener=Listener(
                 name="agent_gets_world_objects_in_radius_listener",
                 description="Listens for an agent requesting objects in radius.",
@@ -73,7 +73,7 @@ class BaseWorld:
             event["event_type"] in self.important_event_types
             and event["world_id"] == self.id
         ):
-            event_listener_name = self.event_handler.listeners[event["event_type"]].name
+            event_listener_name = event["event_type"]+"_listener"
             parsed_event = self.event_dict.get_event_class(
                 event["event_type"]
             ).parse_obj(event)

@@ -19,7 +19,7 @@ class WorldSocketClient:
         print(f"Connected to world socket server {self.uri}")
 
     def on_open(self, ws):
-        print(f"World socket client opened connection to {self.uri}")
+        print(f"World socket client opened connection to {self.uri}\n")
 
     def on_error(self, ws, error):
         print(f"World socket client error: {error}")
@@ -29,10 +29,10 @@ class WorldSocketClient:
 
     def on_message(self, ws, message):
         thread_name = threading.current_thread().name
-        print(f"{Fore.GREEN}[{thread_name}] World socket client received: {message}")
+        print(f"{Fore.GREEN}[{thread_name}] received: {message}")
         self.process_event(json.loads(message))
 
     def send_message(self, message):
         thread_name = threading.current_thread().name
         self.websocket.send(message)
-        print(f"{Fore.CYAN}[{thread_name}] World socket client sent: {message}")
+        print(f"{Fore.CYAN}[{thread_name}] sent: {message}")
