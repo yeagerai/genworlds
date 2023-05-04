@@ -4,14 +4,14 @@ from yeager_core.properties.basic_properties import Coordinates
 
 
 class AgentMoveToPositionEvent(Event):
-    event_type = "agent_move_to_position"
+    event_type = "agent_move_to_position_event"
     description = "Move an agent to a position."
     agent_id: str
     new_position: Coordinates
 
 
 class AgentGetsWorldObjectsInRadiusEvent(Event):
-    event_type = "agent_gets_world_objects_in_radius"
+    event_type = "agent_gets_world_objects_in_radius_event"
     description = "Get all objects in a radius around an agent."
     agent_id: str
     world_id: str
@@ -20,7 +20,7 @@ class AgentGetsWorldObjectsInRadiusEvent(Event):
 
 
 class WorldSendsObjectsInRadiusEvent(Event):
-    event_type = "world_sends_objects_in_radius"
+    event_type = "world_sends_objects_in_radius_event"
     description = "Send all objects in a radius around an agent."
     agent_id: str
     world_id: str
@@ -28,21 +28,21 @@ class WorldSendsObjectsInRadiusEvent(Event):
 
 
 class AgentGetsObjectInfoEvent(Event):
-    event_type = "agent_gets_object_info"
+    event_type = "agent_gets_object_info_event"
     description = "Get info about an object."
     agent_id: str
     object_id: str
 
 
 class AgentGetsAgentInfoEvent(Event):
-    event_type = "agent_gets_agent_info"
+    event_type = "agent_gets_agent_info_event"
     description = "Get info about an agent."
     agent_id: str
     target_agent_id: str
 
 
 class ObjectSendsInfoToAgentEvent(Event):
-    event_type = "object_sends_info_to_agent"
+    event_type = "object_sends_info_to_agent_event"
     description = "Send info about an object to an agent."
     agent_id: str
     object_id: str
@@ -52,7 +52,7 @@ class ObjectSendsInfoToAgentEvent(Event):
 
 
 class AgentInteractsWithObject(Event):
-    event_type = "agent_interacts_with_object"
+    event_type = "agent_interacts_with_object_event"
     description = "An agent interacts with an object."
     agent_id: str
     object_id: str
@@ -60,7 +60,7 @@ class AgentInteractsWithObject(Event):
 
 
 class AgentGetsWorldAgentsInRadiusEvent(Event):
-    event_type = "agent_gets_world_agents_in_radius"
+    event_type = "agent_gets_world_agents_in_radius_event"
     description = "Get all agents in a radius around an agent."
     agent_id: str
     current_agent_position: Coordinates
@@ -68,7 +68,7 @@ class AgentGetsWorldAgentsInRadiusEvent(Event):
 
 
 class AgentSpeaksWithAgentEvent(Event):
-    event_type = "agent_speaks_with_agent"
+    event_type = "agent_speaks_with_agent_event"
     description = "An agent speaks with another agent."
     agent_id: str
     other_agent_id: str

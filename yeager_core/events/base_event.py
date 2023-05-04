@@ -27,15 +27,19 @@ class EventHandler:
         self.listeners[event_type][listener.name] = listener
 
     def handle_event(self, event, listener_name):
-        if event["event_type"] in self.listeners:
-            if listener_name in self.listeners[event["event_type"]]:
-                self.listeners[event["event_type"]][listener_name].function(event)
+        if event.event_type in self.listeners:
+            if listener_name in self.listeners[event.event_type]:
+                self.listeners[event.event_type][listener_name].function(event)
 
 
 def capwords_to_snake_case(s):
     words = re.findall("[A-Z][a-z0-9]*", s)
     return "_".join([word.lower() for word in words])
 
+def snake_to_capwords(snake_str):
+    words = snake_str.split('_')
+    cap_words = [word.capitalize() for word in words]
+    return ''.join(cap_words)
 
 class EventDict:
     def __init__(self):

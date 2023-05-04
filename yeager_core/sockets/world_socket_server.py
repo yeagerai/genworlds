@@ -40,7 +40,6 @@ async def websocket_endpoint(websocket: WebSocket):
             data = await websocket.receive_text()
             print(data)
             await websocket_manager.send_update(data)
-            print("Update sent....")
     except WebSocketDisconnect as e:
         print(f"WebSocketDisconnect: {e.code}")
     except Exception as e:

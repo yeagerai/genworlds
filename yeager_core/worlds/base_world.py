@@ -1,8 +1,6 @@
+import threading
 from uuid import uuid4
 from typing import List
-import asyncio
-import concurrent.futures
-from concurrent.futures import ThreadPoolExecutor
 
 from yeager_core.agents.yeager_autogpt.agent import YeagerAutoGPT
 from yeager_core.objects.base_object import BaseObject
@@ -31,7 +29,7 @@ class BaseWorld:
         self.important_event_types = important_event_types
         self.important_event_types.extend(
             [
-                "agent_gets_world_objects_in_radius",
+                "agent_gets_world_objects_in_radius_event",
             ]
         )
         self.event_dict = event_dict
@@ -39,7 +37,7 @@ class BaseWorld:
 
         self.event_handler = event_handler
         self.event_handler.register_listener(
-            event_type="agent_gets_world_objects_in_radius",
+            event_type="agent_gets_world_objects_in_radius_event",
             listener=Listener(
                 name="agent_gets_world_objects_in_radius_listener",
                 description="Listens for an agent requesting objects in radius.",
@@ -52,11 +50,11 @@ class BaseWorld:
         self.description = description
         self.position = position
         self.size = size
-        self.world_socket_client = WorldSocketClient()
+        self.world_socket_client = WorldSocketClient(process_event=self.process_event)
         self.objects = objects
         self.agents = agents
 
-    async def agent_gets_world_objects_in_radius_listener(
+    def agent_gets_world_objects_in_radius_listener(
         self, event: AgentGetsWorldObjectsInRadiusEvent
     ):
         objects_in_radius = []
@@ -68,76 +66,42 @@ class BaseWorld:
             world_id=self.id,
             object_ids_in_radius=objects_in_radius,
         )
-        await self.world_socket_client.send_message(obj_info.json())
+        self.world_socket_client.send_message(obj_info.json())
 
-    async def process_event(self, event):
+    def process_event(self, event):
         if (
             event["event_type"] in self.important_event_types
             and event["world_id"] == self.id
         ):
-            event_listener_name = self.event_handler.listeners[event["event_type"]].name
+            event_listener_name = event["event_type"]+"_listener"
             parsed_event = self.event_dict.get_event_class(
                 event["event_type"]
             ).parse_obj(event)
             self.event_handler.handle_event(parsed_event, event_listener_name)
 
-    async def attach_to_socket(self):
-        print(f"The world {self.name} is listening...")
-        try:
-            await self.world_socket_client.message_handler(self.process_event)
-        except Exception as e:
-            print(f"Exception: {type(e).__name__}, {e}")
-            import traceback
-
-            traceback.print_exc()
-
     def launch(self):
-        asyncio.run(self.alaunch())
-
-    async def alaunch(self):
-        await self.world_socket_client.connect()
-        executor = ThreadPoolExecutor()
-
-        tasks = []
-        tasks.append(
-            asyncio.wrap_future(
-                executor.submit(
-                    self.run_async_function_in_thread, self.attach_to_socket
-                )
-            )
-        )
+        threading.Thread(
+            target=self.world_socket_client.websocket.run_forever,
+            name=f"World {self.name} Thread",
+        ).start()
 
         for agent in self.agents:
             agent.world_spawned_id = self.id
-            await agent.world_socket_client.connect()
-            # tasks.append(
-            #     asyncio.wrap_future(
-            #         executor.submit(
-            #             self.run_async_function_in_thread, agent.listening_antena.listen
-            #         )
-            #     )
-            # )
-            tasks.append(
-                asyncio.wrap_future(
-                    executor.submit(self.run_async_function_in_thread, agent.think)
-                )
-            )
+            threading.Thread(
+                target=agent.listening_antena.world_socket_client.websocket.run_forever,
+                name=f"Agent {agent.ai_name} Listening Thread",
+            ).start()
+            threading.Thread(
+                target=agent.world_socket_client.websocket.run_forever,
+                name=f"Agent {agent.ai_name} Speaking Thread",
+            ).start()
+            threading.Thread(
+                target=agent.think, name=f"Agent {agent.ai_name} Thinking Thread"
+            ).start()
 
         for obj in self.objects:
             obj.world_spawned_id = self.id
-            await obj.world_socket_client.connect()
-            # tasks.append(
-            #     asyncio.wrap_future(
-            #         executor.submit(self.run_async_function_in_thread, obj.attach_to_world)
-            #     )
-            # )
-
-        await asyncio.gather(*tasks)
-
-    def run_async_function_in_thread(self, async_func):
-        loop = asyncio.new_event_loop()
-        asyncio.set_event_loop(loop)
-        try:
-            return loop.run_until_complete(async_func())
-        finally:
-            loop.close()
+            threading.Thread(
+                target=obj.world_socket_client.websocket.run_forever,
+                name=f"Object {obj.name} Thread",
+            ).start()

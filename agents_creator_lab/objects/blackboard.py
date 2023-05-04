@@ -86,25 +86,25 @@ class Blackboard(BaseObject):
     def _delete_job(self, job_id: str):
         self.content = [job for job in self.content if job.id != job_id]
 
-    async def agent_reads_blackboard_listener(self, event: AgentReadsBlackboardEvent):
+    def agent_reads_blackboard_listener(self, event: AgentReadsBlackboardEvent):
         blackboard_content = BlackboardSendsContentEvent(
             agent_id=event.agent_id,
             object_id=self.id,
             blackboard_jobs=self.content,
         )
-        await self.world_socket_client.send_message(blackboard_content.json())
+        self.world_socket_client.send_message(blackboard_content.json())
 
-    async def agent_deletes_job_from_blackboard_listener(
+    def agent_deletes_job_from_blackboard_listener(
         self, event: AgentDeletesJobFromBlackboardEvent
     ):
         self._delete_job(event.job_id)
 
-    async def agent_adds_job_to_blackboard_listener(
+    def agent_adds_job_to_blackboard_listener(
         self, event: AgentAddsJobToBlackboardEvent
     ):
         self._add_job(event.new_job)
 
-    async def user_adds_job_to_blackboard_listener(
+    def user_adds_job_to_blackboard_listener(
         self, event: AgentAddsJobToBlackboardEvent
     ):
         self._add_job(event.new_job)

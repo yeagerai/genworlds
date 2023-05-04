@@ -29,7 +29,7 @@ class BaseObject:
         self.size = size
         self.world_spawned_id = None
 
-        self.world_socket_client = WorldSocketClient()
+        self.world_socket_client = WorldSocketClient(process_event=self.process_event)
 
         self.important_event_types = important_event_types
         self.important_event_types.extend(["agent_gets_object_info"])
@@ -47,7 +47,7 @@ class BaseObject:
             ),
         )
 
-    async def agent_gets_object_info_listener(self, event: AgentGetsObjectInfoEvent):
+    def agent_gets_object_info_listener(self, event: AgentGetsObjectInfoEvent):
         obj_info = ObjectSendsInfoToAgentEvent(
             agent_id=event.agent_id,
             object_id=self.id,
@@ -55,9 +55,9 @@ class BaseObject:
             object_description=self.description,
             possible_events=self.important_event_types,
         )
-        await self.world_socket_client.send_message(obj_info.json())
+        self.world_socket_client.send_message(obj_info.json())
 
-    async def process_event(self, event):
+    def process_event(self, event):
         if (
             event["event_type"] in self.important_event_types
             and event["object_id"] == self.id
@@ -67,13 +67,3 @@ class BaseObject:
                 event["event_type"]
             ).parse_obj(event)
             self.event_handler.handle_event(parsed_event, event_listener_name)
-
-    async def attach_to_world(self):
-        print(f"The object {self.name} is listening...")
-        try:
-            await self.world_socket_client.message_handler(self.process_event)
-        except Exception as e:
-            print(f"Exception: {type(e).__name__}, {e}")
-            import traceback
-
-            traceback.print_exc()
