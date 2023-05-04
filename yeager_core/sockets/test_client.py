@@ -7,7 +7,7 @@ from colorama import Fore
 
 class WorldSocketClient:
     def __init__(self) -> None:
-        self.uri = "ws://0.0.0.0:7456/ws"
+        self.uri = "ws://127.0.0.1:7456/ws"
         self.websocket = websocket.WebSocketApp(
             self.uri,
             on_open=self.on_open,
