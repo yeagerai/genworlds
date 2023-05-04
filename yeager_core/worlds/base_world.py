@@ -1,3 +1,4 @@
+from datetime import datetime
 import threading
 from uuid import uuid4
 from typing import List
@@ -39,7 +40,7 @@ class BaseWorld:
         self.event_handler.register_listener(
             event_type="agent_gets_world_objects_in_radius_event",
             listener=Listener(
-                name="agent_gets_world_objects_in_radius_listener",
+                name="agent_gets_world_objects_in_radius_event_listener",
                 description="Listens for an agent requesting objects in radius.",
                 function=self.agent_gets_world_objects_in_radius_listener,
             ),
@@ -64,6 +65,7 @@ class BaseWorld:
         obj_info = WorldSendsObjectsInRadiusEvent(
             agent_id=event.agent_id,
             world_id=self.id,
+            created_at=datetime.now(),
             object_ids_in_radius=objects_in_radius,
         )
         self.world_socket_client.send_message(obj_info.json())

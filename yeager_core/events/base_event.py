@@ -28,7 +28,7 @@ class EventHandler:
 
     def handle_event(self, event, listener_name):
         if event.event_type in self.listeners:
-            if listener_name in self.listeners[event.event_type]:
+            if listener_name in list(self.listeners[event.event_type].keys()):
                 self.listeners[event.event_type][listener_name].function(event)
 
 
