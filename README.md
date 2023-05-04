@@ -5,6 +5,25 @@ The pod that creates, ensembles, and deploys agents on demand.
 
 By now the `yeager_core` is included in this repo as a python module but will be moved out in the future.
 
+## Setup
+
+`conda install -c conda-forge faiss-cpu`
+https://github.com/facebookresearch/faiss/blob/main/INSTALL.md
+
+`pip install -r requirements.txt`
+
+### Set up environment variables
+
+Copy the contents of .env.example to `~/.yeagerai-sessions/.env` and fill in the values
+
+## Usage
+
+Run the server
+`uvicorn world_socket_server:app --host 0.0.0.0 --port 7456`
+
+Run the world from VSCode
+
+
 ## TODO List (Features)
 **Generative Agents missing features:**
 - it should have a master prompt with access to vectorial memories 🔲

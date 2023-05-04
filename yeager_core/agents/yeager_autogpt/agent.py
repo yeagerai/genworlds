@@ -11,6 +11,7 @@ from langchain.chat_models import ChatOpenAI
 from langchain.vectorstores import FAISS
 from langchain.docstore import InMemoryDocstore
 from langchain.agents import Tool
+from langchain.tools import StructuredTool
 from langchain.tools.human.tool import HumanInputRun
 from langchain.vectorstores.base import VectorStoreRetriever
 from langchain.embeddings import OpenAIEmbeddings
@@ -94,32 +95,32 @@ class YeagerAutoGPT:
 
         # Agent actions
         self.actions = [
-            Tool(
+            StructuredTool.from_function(
                 name="move",
                 description="Moves the agent to a position.",
                 func=self.agent_move_to_position_action,
             ),
-            Tool(
+            StructuredTool.from_function(
                 name="get_objects_in_radius",
                 description="Gets the objects in a radius.",
                 func=self.agent_gets_world_objects_in_radius_action,
             ),
-            Tool(
+            StructuredTool.from_function(
                 name="get_agents_in_radius",
                 description="Gets the agents in a radius.",
                 func=self.agent_gets_world_agents_in_radius_action,
             ),
-            Tool(
+            StructuredTool.from_function(
                 name="get_object_info",
                 description="Gets the info of an object.",
                 func=self.agent_gets_object_info_action,
             ),
-            Tool(
+            StructuredTool.from_function(
                 name="get_agent_info",
                 description="Gets the info of an agent.",
                 func=self.agent_gets_agent_info_action,
             ),
-            Tool(
+            StructuredTool.from_function(
                 name="interact_with_object",
                 description="Interacts with an object.",
                 func=self.agent_interacts_with_object_action,
@@ -144,6 +145,7 @@ class YeagerAutoGPT:
             input_variables=["memory", "messages", "goals", "user_input"],
             token_counter=llm.get_num_tokens,
         )
+        print(prompt.construct_full_prompt([]))
         self.chain = LLMChain(llm=llm, prompt=prompt)
 
         self.full_message_history: List[BaseMessage] = []
@@ -168,7 +170,7 @@ class YeagerAutoGPT:
             )
 
             # Print Assistant thoughts
-            # print(assistant_reply) # Send the thoughts as events
+            print(assistant_reply) # Send the thoughts as events
             self.full_message_history.append(HumanMessage(content=user_input))
             self.full_message_history.append(AIMessage(content=assistant_reply))
 
@@ -199,6 +201,7 @@ class YeagerAutoGPT:
                     f"commands and only respond in the specified JSON format."
                 )
             ## send result and assistant_reply to the socket
+            print(result)
 
             # If there are any relevant events in the world for this agent, add them to memory
             sleep(3)
