@@ -73,3 +73,13 @@ class AgentSpeaksWithAgentEvent(Event):
     agent_id: str
     other_agent_id: str
     message: str
+
+class WorldSendsSchemasEvent(Event):
+    event_type = "world_sends_schemas_event"
+    description = "The world sends the possible interactions to all the agents."
+    receiver_id = "ALL AGENTS"
+    world_id: str
+    world_name: str
+    world_description: str
+    schemas=List[str]
+    

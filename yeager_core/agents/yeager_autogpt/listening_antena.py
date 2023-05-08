@@ -1,7 +1,7 @@
 from typing import List
 
 from yeager_core.sockets.world_socket_client import WorldSocketClient
-
+from langchain.schema import Document
 
 class ListeningAntena:
     def __init__(
@@ -14,11 +14,15 @@ class ListeningAntena:
         self.important_event_types = important_event_types
         self.all_events: List = []
         self.last_events: List = []
+        self.schemas_as_docs : List = []
         self.agent_name = agent_name
         self.agent_id = agent_id
 
     def process_event(self, event):
-        if event["event_type"] in self.important_event_types:
+        if event["event_type"] == "world_sends_schemas_event":
+            for schema in event["schemas"]:
+                self.schemas_as_docs.append(Document(page_content=schema))
+        elif event["event_type"] in self.important_event_types:
             self.last_events.append(event)
             self.all_events.append(event)
 

@@ -11,6 +11,7 @@ from yeager_core.events.base_event import EventHandler, EventDict, Listener
 from yeager_core.events.basic_events import (
     AgentGetsWorldObjectsInRadiusEvent,
     WorldSendsObjectsInRadiusEvent,
+    WorldSendsSchemasEvent,
 )
 
 
@@ -51,7 +52,7 @@ class BaseWorld:
         self.description = description
         self.position = position
         self.size = size
-        self.world_socket_client = WorldSocketClient(process_event=self.process_event)
+        self.world_socket_client = WorldSocketClient(process_event=self.process_event, send_initial_event=self.world_sends_schemas)
         self.objects = objects
         self.agents = agents
 
@@ -69,6 +70,29 @@ class BaseWorld:
             object_ids_in_radius=objects_in_radius,
         )
         self.world_socket_client.send_message(obj_info.json())
+
+    def world_sends_schemas(self):
+        schemas = []
+        for obj in self.objects:
+            for event in obj.event_dict.event_classes.values():
+                schemas.append(event.schema_json(indent=2))
+
+        for agent in self.agents:
+            for event in agent.event_dict.event_classes.values():
+                schemas.append(event.schema_json(indent=2))
+        
+        for event in self.event_dict.event_classes.values():
+            schemas.append(event.schema_json(indent=2))
+
+        world_info = WorldSendsSchemasEvent(
+            world_id=self.id,
+            world_name=self.name,
+            world_description=self.description,
+            created_at=datetime.now(),
+            schemas=schemas,
+            receiver_id="ALL",
+        )        
+        self.world_socket_client.send_message(world_info.json())
 
     def process_event(self, event):
         if (

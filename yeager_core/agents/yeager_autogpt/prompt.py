@@ -1,5 +1,5 @@
 import time
-from typing import Any, Callable, List
+from typing import Any, Callable, List, Optional
 
 from pydantic import BaseModel
 
@@ -80,5 +80,10 @@ class AutoGPTPrompt(BaseChatPromptTemplate, BaseModel):
         input_message = HumanMessage(content=kwargs["user_input"])
         messages: List[BaseMessage] = [base_prompt, time_prompt, memory_message]
         messages += historical_messages
+        plan : Optional[str] = kwargs["plan"]
+        if plan:
+            useful_schemas = kwargs["schemas_memory"]
+            useful_schemas = [SystemMessage(content=schema) for schema in useful_schemas]
+            messages+=useful_schemas
         messages.append(input_message)
         return messages
