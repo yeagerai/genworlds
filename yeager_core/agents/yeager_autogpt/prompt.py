@@ -82,8 +82,8 @@ class AutoGPTPrompt(BaseChatPromptTemplate, BaseModel):
         messages += historical_messages
         plan : Optional[str] = kwargs["plan"]
         if plan:
-            useful_schemas = kwargs["schemas_memory"]
-            useful_schemas = [SystemMessage(content=schema) for schema in useful_schemas]
+            useful_schemas = kwargs["schemas"]
+            useful_schemas = [SystemMessage(content=schema.page_content) for schema in useful_schemas]
             messages+=useful_schemas
         messages.append(input_message)
         return messages

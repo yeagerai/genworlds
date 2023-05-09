@@ -81,5 +81,5 @@ class WorldSendsSchemasEvent(Event):
     world_id: str
     world_name: str
     world_description: str
-    schemas=List[str]
+    schemas:List[str]
     

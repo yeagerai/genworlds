@@ -2,6 +2,7 @@ from __future__ import annotations
 from datetime import datetime
 from uuid import uuid4
 from time import sleep
+import json
 from typing import List, Optional
 
 from pydantic import ValidationError
@@ -143,7 +144,7 @@ class YeagerAutoGPT:
             ai_role=self.description,
             vision_radius=self.vision_radius,
             tools=self.actions,
-            input_variables=["memory", "messages", "goals", "user_input", "schemas"],
+            input_variables=["memory", "messages", "goals", "user_input", "schemas", "plan"],
             token_counter=llm.get_num_tokens,
         )
         print(prompt.construct_full_prompt([]))
@@ -153,8 +154,8 @@ class YeagerAutoGPT:
         self.next_action_count = 0
         self.output_parser = AutoGPTOutputParser()
         self.feedback_tool = None  # HumanInputRun() if human_in_the_loop else None
-        self.schemas_memory = Chroma()
-        self.plan: Optional[str]
+        self.schemas_memory : Chroma
+        self.plan: Optional[str] = None
 
     def think(self):
         print(f" The agent {self.ai_name} is thinking...")
@@ -162,12 +163,14 @@ class YeagerAutoGPT:
             "Determine which next command to use, "
             "and respond using the format specified above:"
         )
-        sleep(3)
-        self.schemas_memory.from_documents(self.listening_antena.schemas_as_docs, self.embeddings_model)
+        sleep(20)
+        self.schemas_memory = Chroma.from_documents(self.listening_antena.schemas_as_docs, self.embeddings_model)
         while True:
             # Send message to AI, get response
             if self.plan:
-                useful_schemas = self.schemas_memory.similarity_search(self.plan, self.embeddings_model)
+                useful_schemas = self.schemas_memory.similarity_search(self.plan)
+            else:
+                useful_schemas = [""]
             assistant_reply = self.chain.run(
                 goals=self.goals,
                 messages=self.full_message_history,
@@ -176,7 +179,7 @@ class YeagerAutoGPT:
                 plan=self.plan,
                 user_input=user_input,
             )
-
+            self.plan = json.loads(assistant_reply)["thoughts"]["plan"]
             # Print Assistant thoughts
             print(assistant_reply) # Send the thoughts as events
             self.full_message_history.append(HumanMessage(content=user_input))
