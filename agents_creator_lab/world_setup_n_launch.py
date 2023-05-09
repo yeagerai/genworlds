@@ -1,11 +1,13 @@
 import os
 from dotenv import load_dotenv
 import concurrent.futures
+from yeager_core.simulation.simulation import Simulation
 from yeager_core.worlds.base_world import BaseWorld
 from yeager_core.properties.basic_properties import Coordinates, Size
 from yeager_core.events.base_event import EventDict, EventHandler
 from agents_creator_lab.objects.blackboard import Blackboard
 from yeager_core.agents.yeager_autogpt.agent import YeagerAutoGPT
+from yeager_core.worlds.world_2d.world_2d import World2D
 
 thread_pool_ref = concurrent.futures.ThreadPoolExecutor
 
@@ -27,8 +29,6 @@ researcher = YeagerAutoGPT(
     ai_name="Timmy",
     description="You are a researcher in the lab. You have to do all the jobs that are in the blackboard.",
     goals=["Finish all the jobs that are in the blackboard"],
-    position=Coordinates(x=0, y=0),
-    size=Size(width=5, height=5),
     vision_radius=100,
     important_event_types=[],
     event_dict=EventDict(),
@@ -36,17 +36,23 @@ researcher = YeagerAutoGPT(
     openai_api_key=openai_api_key,
 )
 
-world = BaseWorld(
+world = World2D(
     name="agents_creator_lab",
     description="This is a lab where agents can be created",
-    position=Coordinates(x=0, y=0),
-    size=Size(width=1000, height=1000),
     important_event_types=[],
     event_dict=EventDict(),
     event_handler=EventHandler(),
-    objects=[blackboard],
-    agents=[researcher],
+)
+
+simulation = Simulation(
+    name="agents_creator_lab",
+    description="This is a lab where agents can be created",
+    world=world,
+    objects=[
+        (blackboard, {"position": Coordinates(x=200, y=500), "size": Size(width=16, height=9)})
+    ],
+    agents=[(researcher, {"position": Coordinates(x=0, y=0), "size": Size(width=1, height=1)})],
 )
 
 # this attaches to the websocket all the objects and agents in the world
-world.launch()
+simulation.launch()

@@ -3,28 +3,19 @@ from yeager_core.events.base_event import Event
 from yeager_core.properties.basic_properties import Coordinates
 
 
-class AgentMoveToPositionEvent(Event):
-    event_type = "agent_move_to_position_event"
-    description = "Move an agent to a position."
-    agent_id: str
-    new_position: Coordinates
-
-
-class AgentGetsWorldObjectsInRadiusEvent(Event):
-    event_type = "agent_gets_world_objects_in_radius_event"
-    description = "Get all objects in a radius around an agent."
+class AgentGetsNearbyEntitiesEvent(Event):
+    event_type = "agent_gets_nearby_entities_event"
+    description = "Get all entities near an agent."
     agent_id: str
     world_id: str
-    current_agent_position: Coordinates
-    radius: int
 
 
-class WorldSendsObjectsInRadiusEvent(Event):
-    event_type = "world_sends_objects_in_radius_event"
-    description = "Send all objects in a radius around an agent."
+class WorldSendsNearbyEntitiesEvent(Event):
+    event_type = "world_sends_nearby_entities_event"
+    description = "Send all nearby entities to an agent."
     agent_id: str
     world_id: str
-    object_ids_in_radius: List[str]
+    nearby_entities: List
 
 
 class AgentGetsObjectInfoEvent(Event):
@@ -59,17 +50,21 @@ class AgentInteractsWithObject(Event):
     event: Event
 
 
-class AgentGetsWorldAgentsInRadiusEvent(Event):
-    event_type = "agent_gets_world_agents_in_radius_event"
-    description = "Get all agents in a radius around an agent."
-    agent_id: str
-    current_agent_position: Coordinates
-    radius: int
-
-
 class AgentSpeaksWithAgentEvent(Event):
     event_type = "agent_speaks_with_agent_event"
     description = "An agent speaks with another agent."
     agent_id: str
     other_agent_id: str
     message: str
+
+
+class EntityRequestWorldStateUpdateEvent(Event):
+    event_type = "entity_request_world_state_update_event"
+    description = "Request the latest world state update for an entity."
+    entity_id: str
+class EntityWorldStateUpdateEvent(Event):
+    event_type = "entity_word_state_update_event"
+    description = "Latest world state update for an entity."
+    entity_id: str
+    entity_world_state: str
+

@@ -24,8 +24,8 @@ class WorldSocketClient:
     def on_error(self, ws, error):
         print(f"World socket client error: {error}")
 
-    def on_close(self, ws):
-        print("World socket client closed connection")
+    def on_close(self, *args):
+        print("World socket client closed connection", args)
 
     def on_message(self, ws, message):
         thread_name = threading.current_thread().name
