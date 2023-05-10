@@ -22,7 +22,7 @@ class BaseObject:
         event_handler: EventHandler,
         important_event_types: List[str],
     ):
-        self.id = uuid4()
+        self.id = str(uuid4())
         self.name = name
         self.description = description
         self.position = position

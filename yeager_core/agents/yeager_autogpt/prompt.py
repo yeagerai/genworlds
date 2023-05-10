@@ -20,7 +20,7 @@ class AutoGPTPrompt(BaseChatPromptTemplate, BaseModel):
     token_counter: Callable[[str], int]
     send_token_limit: int = 4196
 
-    def construct_full_prompt(self, goals: List[str]) -> str:
+    def construct_full_prompt(self, agent_world_state: str, goals: List[str]) -> str:
         prompt_start = (
             "Your decisions must always be made independently "
             "without seeking user assistance.\n"
@@ -31,10 +31,11 @@ class AutoGPTPrompt(BaseChatPromptTemplate, BaseModel):
             "\n\n"
             "You are an agent that lives in a world with other agents and objects.\n"
             "You can move around the world, interact with objects, and talk to other agents.\n"
-            "You have been spawned in a random location in the world, and you have to explore it.\n"
-            "You live in a 2D world, so the coordinates are (x, y).\n"
-            f"Your vision radius is {self.vision_radius}, so you can see everything within {self.vision_radius} units of your position.\n"
         )
+
+        # Add agent world state
+        prompt_start += agent_world_state
+
         # Construct full prompt
         full_prompt = (
             f"You are {self.ai_name}, {self.ai_role}\n{prompt_start}\n\nGOALS:\n\n"
@@ -46,7 +47,7 @@ class AutoGPTPrompt(BaseChatPromptTemplate, BaseModel):
         return full_prompt
 
     def format_messages(self, **kwargs: Any) -> List[BaseMessage]:
-        base_prompt = SystemMessage(content=self.construct_full_prompt(kwargs["goals"]))
+        base_prompt = SystemMessage(content=self.construct_full_prompt(kwargs["agent_world_state"], kwargs["goals"]))
         time_prompt = SystemMessage(
             content=f"The current time and date is {time.strftime('%c')}"
         )

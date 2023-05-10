@@ -30,16 +30,15 @@ from yeager_core.agents.yeager_autogpt.output_parser import AutoGPTOutputParser
 from yeager_core.agents.yeager_autogpt.prompt import AutoGPTPrompt
 from yeager_core.agents.yeager_autogpt.prompt_generator import FINISH_NAME
 from yeager_core.sockets.world_socket_client import WorldSocketClient
-from yeager_core.agents.yeager_autogpt.listening_antena import ListeningAntena
+from yeager_core.agents.yeager_autogpt.listening_antenna import ListeningAntenna
 from yeager_core.events.base_event import EventHandler, EventDict
 from yeager_core.properties.basic_properties import Coordinates, Size
 from yeager_core.events.basic_events import (
-    AgentMoveToPositionEvent,
-    AgentGetsWorldObjectsInRadiusEvent,
-    AgentGetsWorldAgentsInRadiusEvent,
+    AgentGetsNearbyEntitiesEvent,
     AgentGetsObjectInfoEvent,
     AgentGetsAgentInfoEvent,
     AgentSpeaksWithAgentEvent,
+    EntityRequestWorldStateUpdateEvent,
 )
 
 
@@ -54,8 +53,6 @@ class YeagerAutoGPT:
         important_event_types: List[str],
         event_dict: EventDict,
         event_handler: EventHandler,
-        position: Coordinates,
-        size: Size,
         vision_radius: int,
         openai_api_key: str,
         feedback_tool: Optional[HumanInputRun] = None,
@@ -72,9 +69,8 @@ class YeagerAutoGPT:
         self.important_event_types = important_event_types
         important_event_types.extend(
             [
-                "agent_move_to_position",
-                "agent_gets_world_objects_in_radius",
-                "agent_gets_world_agents_in_radius",
+                "agent_gets_nearby_entities_event",
+                "world_sends_nearby_entities_event",
                 "agent_gets_object_info",
                 "agent_gets_agent_info",
                 "agent_interacts_with_object",
@@ -85,11 +81,9 @@ class YeagerAutoGPT:
         self.event_dict = event_dict
 
         # Phisical world properties
-        self.position = position
-        self.size = size
         self.vision_radius = vision_radius
         self.world_socket_client = WorldSocketClient(process_event=print)
-        self.listening_antena = ListeningAntena(
+        self.listening_antenna = ListeningAntenna(
             self.important_event_types,
             agent_name=self.ai_name,
             agent_id=self.id,
@@ -98,19 +92,9 @@ class YeagerAutoGPT:
         # Agent actions
         self.actions = [
             StructuredTool.from_function(
-                name="move",
-                description="Moves the agent to a position.",
-                func=self.agent_move_to_position_action,
-            ),
-            StructuredTool.from_function(
-                name="get_objects_in_radius",
-                description="Gets the objects in a radius.",
-                func=self.agent_gets_world_objects_in_radius_action,
-            ),
-            StructuredTool.from_function(
-                name="get_agents_in_radius",
-                description="Gets the agents in a radius.",
-                func=self.agent_gets_world_agents_in_radius_action,
+                name="agent_gets_nearby_entities_event",
+                description="Gets nearby entities",
+                func=self.agent_gets_nearby_entities_action,
             ),
             StructuredTool.from_function(
                 name="get_object_info",
@@ -144,10 +128,10 @@ class YeagerAutoGPT:
             ai_role=self.description,
             vision_radius=self.vision_radius,
             tools=self.actions,
-            input_variables=["memory", "messages", "goals", "user_input", "schemas", "plan"],
+            input_variables=["memory", "messages", "goals", "user_input", "schemas", "plan", "agent_world_state"],
             token_counter=llm.get_num_tokens,
         )
-        print(prompt.construct_full_prompt([]))
+        print(prompt.construct_full_prompt("Default world state", []))
         self.chain = LLMChain(llm=llm, prompt=prompt)
 
         self.full_message_history: List[BaseMessage] = []
@@ -165,7 +149,13 @@ class YeagerAutoGPT:
         )
         sleep(20)
         self.schemas_memory = Chroma.from_documents(self.listening_antena.schemas_as_docs, self.embeddings_model)
+        # Get the initial world state
+        self.agent_request_world_state_update_action()
+        sleep(1)
+
         while True:
+            agent_world_state = self.listening_antenna.get_agent_world_state()
+
             # Send message to AI, get response
             if self.plan:
                 useful_schemas = self.schemas_memory.similarity_search(self.plan)
@@ -178,6 +168,7 @@ class YeagerAutoGPT:
                 schemas=useful_schemas,
                 plan=self.plan,
                 user_input=user_input,
+                agent_world_state=agent_world_state,
             )
             self.plan = json.loads(assistant_reply)["thoughts"]["plan"]
             # Print Assistant thoughts
@@ -216,12 +207,14 @@ class YeagerAutoGPT:
 
             # If there are any relevant events in the world for this agent, add them to memory
             sleep(3)
-            last_events = self.listening_antena.get_last_events()
+            last_events = self.listening_antenna.get_last_events()
             memory_to_add = (
                 f"Assistant Reply: {assistant_reply} "
                 f"\nResult: {result} "
                 f"\nLast World Events: {last_events}"
             )
+
+            print(f"Adding to memory: {memory_to_add}")
 
             if self.feedback_tool is not None:
                 feedback = f"\n{self.feedback_tool.run('Input: ')}"
@@ -233,32 +226,14 @@ class YeagerAutoGPT:
             self.memory.add_documents([Document(page_content=memory_to_add)])
             self.full_message_history.append(SystemMessage(content=result))
 
-    def agent_move_to_position_action(self, new_position: Coordinates):
-        agent_new_position = AgentMoveToPositionEvent(
-            created_at=datetime.now(),
-            agent_id=self.id,
-            new_position=new_position,
-        )
-        self.world_socket_client.send_message(agent_new_position.json())
 
-    def agent_gets_world_objects_in_radius_action(self):
-        agent_gets_world_objects_in_radius = AgentGetsWorldObjectsInRadiusEvent(
+    def agent_gets_nearby_entities_action(self):
+        agent_gets_nearby_entities_event = AgentGetsNearbyEntitiesEvent(
             created_at=datetime.now(),
             agent_id=self.id,
-            current_agent_position=self.position,
             world_id=self.world_spawned_id,
-            radius=self.vision_radius,
         )
-        self.world_socket_client.send_message(agent_gets_world_objects_in_radius.json())
-
-    def agent_gets_world_agents_in_radius_action(self):
-        agent_gets_world_agents_in_radius = AgentGetsWorldAgentsInRadiusEvent(
-            created_at=datetime.now(),
-            agent_id=self.id,
-            position=self.position,
-            radius=self.vision_radius,
-        )
-        self.world_socket_client.send_message(agent_gets_world_agents_in_radius.json())
+        self.world_socket_client.send_message(agent_gets_nearby_entities_event.json())
 
     def agent_gets_object_info_action(
         self,
@@ -300,3 +275,10 @@ class YeagerAutoGPT:
             message=message,
         )
         self.world_socket_client.send_message(agent_speaks_with_agent.json())
+
+    def agent_request_world_state_update_action(self):
+        agent_request_world_state_update = EntityRequestWorldStateUpdateEvent(
+            created_at=datetime.now(),
+            entity_id=self.id,
+        )
+        self.world_socket_client.send_message(agent_request_world_state_update.json())
