@@ -2,6 +2,7 @@ from __future__ import annotations
 from datetime import datetime
 from uuid import uuid4
 from time import sleep
+import json
 from typing import List, Optional
 
 from pydantic import ValidationError
@@ -14,6 +15,7 @@ from langchain.agents import Tool
 from langchain.tools import StructuredTool
 from langchain.tools.human.tool import HumanInputRun
 from langchain.vectorstores.base import VectorStoreRetriever
+from langchain.vectorstores import Chroma
 from langchain.embeddings import OpenAIEmbeddings
 from langchain.chains.llm import LLMChain
 from langchain.schema import (
@@ -112,11 +114,11 @@ class YeagerAutoGPT:
         ]
 
         # Brain properties
-        embeddings_model = OpenAIEmbeddings(openai_api_key=openai_api_key)
+        self.embeddings_model = OpenAIEmbeddings(openai_api_key=openai_api_key)
         embedding_size = 1536
         index = faiss.IndexFlatL2(embedding_size)
         vectorstore = FAISS(
-            embeddings_model.embed_query, index, InMemoryDocstore({}), {}
+            self.embeddings_model.embed_query, index, InMemoryDocstore({}), {}
         )
         self.memory = vectorstore.as_retriever()
 
@@ -126,7 +128,7 @@ class YeagerAutoGPT:
             ai_role=self.description,
             vision_radius=self.vision_radius,
             tools=self.actions,
-            input_variables=["memory", "messages", "goals", "user_input", "agent_world_state"],
+            input_variables=["memory", "messages", "goals", "user_input", "schemas", "plan", "agent_world_state"],
             token_counter=llm.get_num_tokens,
         )
         print(prompt.construct_full_prompt("Default world state", []))
@@ -136,6 +138,8 @@ class YeagerAutoGPT:
         self.next_action_count = 0
         self.output_parser = AutoGPTOutputParser()
         self.feedback_tool = None  # HumanInputRun() if human_in_the_loop else None
+        self.schemas_memory : Chroma
+        self.plan: Optional[str] = None
 
     def think(self):
         print(f" The agent {self.ai_name} is thinking...")
@@ -143,6 +147,8 @@ class YeagerAutoGPT:
             "Determine which next command to use, "
             "and respond using the format specified above:"
         )
+        sleep(20)
+        self.schemas_memory = Chroma.from_documents(self.listening_antenna.schemas_as_docs, self.embeddings_model)
         # Get the initial world state
         self.agent_request_world_state_update_action()
         sleep(1)
@@ -151,14 +157,20 @@ class YeagerAutoGPT:
             agent_world_state = self.listening_antenna.get_agent_world_state()
 
             # Send message to AI, get response
+            if self.plan:
+                useful_schemas = self.schemas_memory.similarity_search(self.plan)
+            else:
+                useful_schemas = [""]
             assistant_reply = self.chain.run(
                 goals=self.goals,
                 messages=self.full_message_history,
                 memory=self.memory,
+                schemas=useful_schemas,
+                plan=self.plan,
                 user_input=user_input,
                 agent_world_state=agent_world_state,
             )
-
+            self.plan = json.loads(assistant_reply)["thoughts"]["plan"]
             # Print Assistant thoughts
             print(assistant_reply) # Send the thoughts as events
             self.full_message_history.append(HumanMessage(content=user_input))

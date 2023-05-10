@@ -6,7 +6,7 @@ from colorama import Fore
 
 
 class WorldSocketClient:
-    def __init__(self, process_event) -> None:
+    def __init__(self, process_event, send_initial_event=None) -> None:
         self.uri = "ws://127.0.0.1:7456/ws"
         self.websocket = websocket.WebSocketApp(
             self.uri,
@@ -16,10 +16,14 @@ class WorldSocketClient:
             on_close=self.on_close,
         )
         self.process_event = process_event
+        self.send_initial_event = send_initial_event
         print(f"Connected to world socket server {self.uri}")
 
     def on_open(self, ws):
         print(f"World socket client opened connection to {self.uri}\n")
+        if self.send_initial_event:
+            self.send_initial_event()
+            print(f"Initial event sent!\n")
 
     def on_error(self, ws, error):
         print(f"World socket client error: {error}")

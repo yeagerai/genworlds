@@ -2,14 +2,9 @@ from datetime import datetime
 import threading
 from uuid import uuid4
 from typing import Generic, List, Type, TypeVar
-import time
-
-from pydantic import BaseModel
-from yeager_core.agents import yeager_autogpt
 
 from yeager_core.agents.yeager_autogpt.agent import YeagerAutoGPT
 from yeager_core.objects.base_object import BaseObject
-from yeager_core.properties.basic_properties import Coordinates, Size
 from yeager_core.sockets.world_socket_client import WorldSocketClient
 from yeager_core.events.base_event import EventHandler, EventDict, Listener
 from yeager_core.events.basic_events import (
@@ -17,6 +12,7 @@ from yeager_core.events.basic_events import (
     EntityRequestWorldStateUpdateEvent,
     EntityWorldStateUpdateEvent,
     WorldSendsNearbyEntitiesEvent,
+    WorldSendsSchemasEvent,
 )
 from yeager_core.worlds.world_entity import EntityTypeEnum, WorldEntity
 
@@ -67,7 +63,7 @@ class BaseWorld(Generic[WorldEntityType]):
         self.id = str(uuid4())
         self.name = name
         self.description = description
-        self.world_socket_client = WorldSocketClient(process_event=self.process_event)
+        self.world_socket_client = WorldSocketClient(process_event=self.process_event, send_initial_event=self.world_sends_schemas)
 
 
     def get_agent_by_id(self, agent_id: str) -> WorldEntityType:
@@ -134,6 +130,29 @@ class BaseWorld(Generic[WorldEntityType]):
         self, event: EntityRequestWorldStateUpdateEvent
     ):
         self.emit_agent_world_state(agent_id=event.entity_id)
+
+    def world_sends_schemas(self):
+        schemas = []
+        for obj in self.objects:
+            for event in obj.event_dict.event_classes.values():
+                schemas.append(event.schema_json(indent=2))
+
+        for agent in self.agents:
+            for event in agent.event_dict.event_classes.values():
+                schemas.append(event.schema_json(indent=2))
+        
+        for event in self.event_dict.event_classes.values():
+            schemas.append(event.schema_json(indent=2))
+
+        world_info = WorldSendsSchemasEvent(
+            world_id=self.id,
+            world_name=self.name,
+            world_description=self.description,
+            created_at=datetime.now(),
+            schemas=schemas,
+            receiver_id="ALL",
+        )        
+        self.world_socket_client.send_message(world_info.json())
 
     def process_event(self, event):
         if (

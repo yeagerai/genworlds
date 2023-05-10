@@ -1,6 +1,5 @@
 from typing import List
 from yeager_core.events.base_event import Event
-from yeager_core.properties.basic_properties import Coordinates
 
 
 class AgentGetsNearbyEntitiesEvent(Event):
@@ -57,6 +56,15 @@ class AgentSpeaksWithAgentEvent(Event):
     other_agent_id: str
     message: str
 
+class WorldSendsSchemasEvent(Event):
+    event_type = "world_sends_schemas_event"
+    description = "The world sends the possible interactions to all the agents."
+    receiver_id = "ALL AGENTS"
+    world_id: str
+    world_name: str
+    world_description: str
+    schemas:List[str]
+    
 
 class EntityRequestWorldStateUpdateEvent(Event):
     event_type = "entity_request_world_state_update_event"
