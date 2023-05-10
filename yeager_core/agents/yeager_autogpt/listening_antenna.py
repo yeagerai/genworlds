@@ -3,7 +3,9 @@ from typing import List
 from yeager_core.sockets.world_socket_client import WorldSocketClient
 
 
-class ListeningAntena:
+class ListeningAntenna:
+    agent_world_state = "You have not yet learned about the world state."
+
     def __init__(
         self,
         important_event_types: List[str],
@@ -18,6 +20,9 @@ class ListeningAntena:
         self.agent_id = agent_id
 
     def process_event(self, event):
+        if event["event_type"] == "entity_word_state_update_event":
+            if event["entity_id"] == self.agent_id:
+                self.agent_world_state = event["entity_world_state"]
         if event["event_type"] in self.important_event_types:
             self.last_events.append(event)
             self.all_events.append(event)
@@ -29,3 +34,6 @@ class ListeningAntena:
 
     def get_all_events(self):
         return self.all_events
+    
+    def get_agent_world_state(self):
+        return self.agent_world_state
