@@ -148,7 +148,7 @@ class YeagerAutoGPT:
             "and respond using the format specified above:"
         )
         sleep(20)
-        self.schemas_memory = Chroma.from_documents(self.listening_antena.schemas_as_docs, self.embeddings_model)
+        self.schemas_memory = Chroma.from_documents(self.listening_antenna.schemas_as_docs, self.embeddings_model)
         # Get the initial world state
         self.agent_request_world_state_update_action()
         sleep(1)
