@@ -1,3 +1,4 @@
+import json
 import time
 from typing import Any, Callable, List, Optional
 
@@ -15,7 +16,6 @@ from langchain.vectorstores.base import VectorStoreRetriever
 class AutoGPTPrompt(BaseChatPromptTemplate, BaseModel):
     ai_name: str
     ai_role: str
-    vision_radius: int
     tools: List[BaseTool]
     token_counter: Callable[[str], int]
     send_token_limit: int = 4196
@@ -54,6 +54,23 @@ class AutoGPTPrompt(BaseChatPromptTemplate, BaseModel):
         used_tokens = self.token_counter(base_prompt.content) + self.token_counter(
             time_prompt.content
         )
+
+        nearby_entities = kwargs["nearby_entities"]
+        nearby_entities_prompt = f"There are the following entities near you:\n"
+        for entity in nearby_entities:
+            nearby_entities_prompt += f"{json.dumps(entity)}\n"
+        nearby_entities_message = SystemMessage(
+            content=nearby_entities_prompt
+        )
+
+        relevant_commands = kwargs["relevant_commands"]
+        relevant_commands_prompt = f"You can perform the following additional commands:\n"
+        for command in relevant_commands:
+            relevant_commands_prompt += f"{command}\n"
+        relevant_commands_message = SystemMessage(
+            content=relevant_commands_prompt
+        )
+
         memory: VectorStoreRetriever = kwargs["memory"]
         previous_messages = kwargs["messages"]
         relevant_docs = memory.get_relevant_documents(str(previous_messages[-10:]))
@@ -79,12 +96,8 @@ class AutoGPTPrompt(BaseChatPromptTemplate, BaseModel):
                 break
             historical_messages = [message] + historical_messages
         input_message = HumanMessage(content=kwargs["user_input"])
-        messages: List[BaseMessage] = [base_prompt, time_prompt, memory_message]
+        messages: List[BaseMessage] = [base_prompt, time_prompt, nearby_entities_message, relevant_commands_message, memory_message]
         messages += historical_messages
         plan : Optional[str] = kwargs["plan"]
-        if plan:
-            useful_schemas = kwargs["schemas"]
-            useful_schemas = [SystemMessage(content=schema.page_content) for schema in useful_schemas]
-            messages+=useful_schemas
         messages.append(input_message)
         return messages

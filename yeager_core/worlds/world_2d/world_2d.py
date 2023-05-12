@@ -1,7 +1,4 @@
-from typing import List, Type
 
-from pydantic import BaseModel
-from yeager_core.events.base_event import EventDict, EventHandler
 from yeager_core.properties.basic_properties import Coordinates, Size
 from yeager_core.worlds.base_world import BaseWorld
 from yeager_core.worlds.world_entity import WorldEntity
@@ -17,18 +14,12 @@ class World2D(BaseWorld[WorldEntity2D]):
         self,
         name: str,
         description: str,
-        event_dict: EventDict,
-        event_handler: EventHandler,
-        important_event_types: List[str],  
         vision_radius: float = 1000.0,
     ):
         super().__init__(
             world_entity_constructor=WorldEntity2D,
             name=name,
             description=description,
-            event_dict=event_dict,
-            event_handler=event_handler,
-            important_event_types=important_event_types,
         );
     
         self.vision_radius = vision_radius
@@ -51,7 +42,8 @@ class World2D(BaseWorld[WorldEntity2D]):
         agent_entity = self.get_agent_by_id(agent_id)
 
         world_state_prompt = (
-            f"You are an agent in a 2D world.\n"
+            f"You are an agent in a 2D world.\n"            
+            f"Your id is {agent_entity.id}.\n"
             f"Your coordinates are (x={agent_entity.position.x}, y={agent_entity.position.y}).\n"
             f"Your width is {agent_entity.size.width} and your height is {agent_entity.size.height}.\n"
         )

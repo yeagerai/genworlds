@@ -1,14 +1,12 @@
-from datetime import datetime
-import threading
 from uuid import uuid4
-from typing import Generic, List, Type, TypeVar
+from typing import Generic, Type, TypeVar
 
 from yeager_core.agents.yeager_autogpt.agent import YeagerAutoGPT
 from yeager_core.objects.base_object import BaseObject
-from yeager_core.sockets.world_socket_client import WorldSocketClient
-from yeager_core.events.base_event import EventHandler, EventDict, Listener
+from yeager_core.events.websocket_event_handler import WebsocketEventHandler
 from yeager_core.events.basic_events import (
     AgentGetsNearbyEntitiesEvent,
+    AgentSpeaksWithAgentEvent,
     EntityRequestWorldStateUpdateEvent,
     EntityWorldStateUpdateEvent,
     WorldSendsNearbyEntitiesEvent,
@@ -17,8 +15,9 @@ from yeager_core.events.basic_events import (
 from yeager_core.worlds.world_entity import EntityTypeEnum, WorldEntity
 
 WorldEntityType = TypeVar('WorldEntityType', bound=WorldEntity)
-class BaseWorld(Generic[WorldEntityType]):
+class BaseWorld(Generic[WorldEntityType], WebsocketEventHandler):
     entities: dict[str, WorldEntityType] = {}
+    entity_schemas: dict[str, dict] = {}
     world_entity_constructor: Type[WorldEntityType]
 
     def __init__(
@@ -26,44 +25,18 @@ class BaseWorld(Generic[WorldEntityType]):
         world_entity_constructor: Type[WorldEntityType],
         name: str,
         description: str,
-        event_dict: EventDict,
-        event_handler: EventHandler,
-        important_event_types: List[str],
     ):
-        self.world_entity_constructor = world_entity_constructor
-
-        self.important_event_types = important_event_types
-        self.important_event_types.extend(
-            [
-                "agent_gets_nearby_entities_event",
-                "entity_request_world_state_update_event",
-            ]
-        )
-        self.event_dict = event_dict
-        self.event_dict.register_events([AgentGetsNearbyEntitiesEvent, EntityRequestWorldStateUpdateEvent])
-
-        self.event_handler = event_handler
-        self.event_handler.register_listener(
-            event_type="agent_gets_nearby_entities_event",
-            listener=Listener(
-                name="agent_gets_nearby_entities_event_listener",
-                description="Listens for an agent requesting nearby objects",
-                function=self.agent_gets_nearby_entities_listener,
-            ),
-        )
-        self.event_handler.register_listener(
-            event_type="entity_request_world_state_update_event",
-            listener=Listener(
-                name="entity_request_world_state_update_event_listener",
-                description="Listens for an agent requesting their world state",
-                function=self.entity_request_world_state_update_event_listener,
-            ),
-        )
-
         self.id = str(uuid4())
         self.name = name
         self.description = description
-        self.world_socket_client = WorldSocketClient(process_event=self.process_event, send_initial_event=self.world_sends_schemas)
+        self.world_entity_constructor = world_entity_constructor
+
+        super().__init__(self.id)
+
+        self.register_event_listeners([
+            (AgentGetsNearbyEntitiesEvent, self.agent_gets_nearby_entities_listener),
+            (EntityRequestWorldStateUpdateEvent, self.entity_request_world_state_update_event_listener),
+        ])
 
 
     def get_agent_by_id(self, agent_id: str) -> WorldEntityType:
@@ -95,22 +68,22 @@ class BaseWorld(Generic[WorldEntityType]):
     def agent_gets_nearby_entities_listener(
         self, event: AgentGetsNearbyEntitiesEvent
     ):
-        # All entities
-        nearby_entities = self.get_nearby_entities(entity_id=event.agent_id)
+        self.emit_world_sends_nearby_entities(agent_id=event.agent_id)        
 
-        event = WorldSendsNearbyEntitiesEvent(
-            agent_id=event.agent_id,
-            world_id=self.id,
-            created_at=datetime.now(),
-            nearby_entities=nearby_entities,
+    def emit_world_sends_nearby_entities(self, agent_id: str):
+        nearby_entities = self.get_nearby_entities(agent_id)
+
+        self.send_event(WorldSendsNearbyEntitiesEvent,
+            target_id=agent_id,
+            nearby_entities=nearby_entities
         )
-        self.world_socket_client.send_message(event.json())
 
     def get_agent_world_state_prompt(self, agent_id: str) -> str:
         agent_entity = self.get_agent_by_id(agent_id)
 
         world_state_prompt = (
-            f"You are an agent in the world. You can do anything.\n"
+            f"You are an agent in the world.\n"
+            f"Your id is {agent_entity.id}.\n"
         )
 
         return world_state_prompt
@@ -118,80 +91,83 @@ class BaseWorld(Generic[WorldEntityType]):
     def emit_agent_world_state(self, agent_id):
         world_state_prompt = self.get_agent_world_state_prompt(agent_id=agent_id)
 
-        event = EntityWorldStateUpdateEvent(
-            created_at=datetime.now(),
-            entity_id=agent_id,
+        self.send_event(
+            EntityWorldStateUpdateEvent,
+            target_id=agent_id,
             entity_world_state=world_state_prompt,
         )
-
-        self.world_socket_client.send_message(event.json())
 
     def entity_request_world_state_update_event_listener(
         self, event: EntityRequestWorldStateUpdateEvent
     ):
-        self.emit_agent_world_state(agent_id=event.entity_id)
+        self.emit_agent_world_state(agent_id=event.sender_id)
+        self.world_sends_schemas()
+        self.emit_world_sends_nearby_entities(agent_id=event.sender_id) 
 
     def world_sends_schemas(self):
-        schemas = []
-        for obj in self.objects:
-            for event in obj.event_dict.event_classes.values():
-                schemas.append(event.schema_json(indent=2))
+        schemas = self.entity_schemas.copy()
+        # Add world schemas
+        events = {}
+        for (event_type, event) in self.event_classes.items():
+            events[event_type] = event.schema()
+        print("EVENTS")
+        print(events)
 
-        for agent in self.agents:
-            for event in agent.event_dict.event_classes.values():
-                schemas.append(event.schema_json(indent=2))
-        
-        for event in self.event_dict.event_classes.values():
-            schemas.append(event.schema_json(indent=2))
-
-        world_info = WorldSendsSchemasEvent(
-            world_id=self.id,
+        schemas['World'] = events      
+        self.send_event(
+            WorldSendsSchemasEvent,
             world_name=self.name,
             world_description=self.description,
-            created_at=datetime.now(),
             schemas=schemas,
-            receiver_id="ALL",
-        )        
-        self.world_socket_client.send_message(world_info.json())
-
-    def process_event(self, event):
-        if (
-            event["event_type"] in self.important_event_types
-            # and event["world_id"] == self.id
-        ):
-            event_listener_name = event["event_type"]+"_listener"
-            parsed_event = self.event_dict.get_event_class(
-                event["event_type"]
-            ).parse_obj(event)
-            self.event_handler.handle_event(parsed_event, event_listener_name)
-
+        )
 
     def register_agent(self, agent: YeagerAutoGPT, **kwargs: WorldEntityType):
+        class_name = agent.__class__.__name__
+
+        if (class_name not in self.entity_schemas):
+            events = {}
+
+            for event_class in agent.events:
+                events[event_class.__fields__['event_type'].default] = event_class.schema()
+
+            self.entity_schemas[class_name] = events
+
         entity: WorldEntityType = self.world_entity_constructor(
             id=agent.id,
             entity_type=EntityTypeEnum.AGENT,
+            entity_class=class_name,
             name=agent.ai_name,
             description=agent.description,
+            events=events,
             **kwargs,
         )
+
+        print("Registered agent", entity)
 
         self.entities[entity.id] = entity
 
     def register_object(self, obj: BaseObject, **kwargs: WorldEntityType):
+        class_name = obj.__class__.__name__
+
+        if (class_name not in self.entity_schemas):
+            events = {}
+            for (event_type, event) in obj.event_classes.items():
+                events[event_type] = event.schema()
+
+            self.entity_schemas[class_name] = events
+
         entity: WorldEntityType = self.world_entity_constructor(
             id=obj.id,
             entity_type=EntityTypeEnum.OBJECT,
+            entity_class=class_name,
             name=obj.name,
             description=obj.description,
             **kwargs,
         )
 
+        print("Registered object", entity)
+
         self.entities[entity.id] = entity
 
 
-    def launch(self):
-        threading.Thread(
-            target=self.world_socket_client.websocket.run_forever,
-            name=f"World {self.name} Thread",
-            daemon=True,
-        ).start()
+    

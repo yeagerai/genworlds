@@ -137,7 +137,7 @@ def get_prompt(tools: List[BaseTool]) -> str:
     )
     prompt_generator.add_constraint("No user assistance")
     prompt_generator.add_constraint(
-        'Exclusively use the commands listed in double quotes e.g. "command name"'
+    'Exclusively use the commands listed in double quotes e.g. "command_name". Include the class qualifier if specified e.g. "Cat:give_cuddles"'
     )
 
     # Add commands to the PromptGenerator object
@@ -145,14 +145,14 @@ def get_prompt(tools: List[BaseTool]) -> str:
         prompt_generator.add_tool(tool)
 
     # Add resources to the PromptGenerator object
-    prompt_generator.add_resource(
-        "Internet access for searches and information gathering."
-    )
+    # prompt_generator.add_resource(
+    #     "Internet access for searches and information gathering."
+    # )
     prompt_generator.add_resource("Long Term memory management.")
-    prompt_generator.add_resource(
-        "GPT-3.5 powered Agents for delegation of simple tasks."
-    )
-    prompt_generator.add_resource("File output.")
+    # prompt_generator.add_resource(
+    #     "GPT-3.5 powered Agents for delegation of simple tasks."
+    # )
+    # prompt_generator.add_resource("File output.")
 
     # Add performance evaluations to the PromptGenerator object
     prompt_generator.add_performance_evaluation(

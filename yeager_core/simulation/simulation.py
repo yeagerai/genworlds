@@ -1,18 +1,9 @@
-from datetime import datetime
 import threading
 from uuid import uuid4
 from typing import List
 import time
 
-from yeager_core.agents.yeager_autogpt.agent import YeagerAutoGPT
 from yeager_core.objects.base_object import BaseObject
-from yeager_core.properties.basic_properties import Coordinates, Size
-from yeager_core.sockets.world_socket_client import WorldSocketClient
-from yeager_core.events.base_event import EventHandler, EventDict, Listener
-from yeager_core.events.basic_events import (
-    AgentGetsNearbyEntitiesEvent,
-    WorldSendsNearbyEntitiesEvent,
-)
 from yeager_core.worlds.base_world import BaseWorld
 
 
@@ -45,7 +36,7 @@ class Simulation:
             self.world.register_object(obj, **world_properties)
 
         # Launch the world
-        self.world.launch()
+        self.world.launch_websocket_thread()
 
         time.sleep(1)
 
@@ -69,11 +60,7 @@ class Simulation:
 
         for (obj, world_properties) in self.objects:
             # start the object's threads
-            threading.Thread(
-                target=obj.world_socket_client.websocket.run_forever,
-                name=f"Object {obj.name} Thread",
-                daemon=True,
-            ).start()
+            obj.launch_websocket_thread()
 
 
         # Make the application terminate gracefully

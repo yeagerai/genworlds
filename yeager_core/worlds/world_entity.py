@@ -1,8 +1,8 @@
 
 from enum import Enum
-from typing import Any, TypeVar
 
 from pydantic import BaseModel
+
 
 class EntityTypeEnum(str, Enum):
     AGENT = 'AGENT'
@@ -12,5 +12,6 @@ class EntityTypeEnum(str, Enum):
 class WorldEntity(BaseModel):
     id: str
     entity_type: EntityTypeEnum
+    entity_class: str
     name: str
     description: str
