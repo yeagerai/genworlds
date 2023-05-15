@@ -23,7 +23,7 @@ podcast_host = YeagerAutoGPT(
     id="chamath",
     ai_name="Chamath Palihapitiya",
     description="The host of the All-in podcast",
-    goals=["Host an episode of the All-in podcast, discussing AI technology"],
+    goals=["Host an episode of the All-in podcast, discussing AI technology. Only the holder of the microphone can speak to the audience, if you don't have the microphone, wait to receive it from the previous speaker"],
     openai_api_key=openai_api_key,
 )
 
@@ -31,7 +31,7 @@ podcast_guest = YeagerAutoGPT(
     id="jason",	
     ai_name="Jason Calacanis",
     description="A co-host of the All-in podcast",
-    goals=["Participate an episode of the All-in podcast, discussing AI technology"],
+    goals=["Participate an episode of the All-in podcast, discussing AI technology. Only the holder of the microphone can speak to the audience, if you don't have the microphone, wait to receive it from the previous speaker"],
     openai_api_key=openai_api_key,
 )
 
