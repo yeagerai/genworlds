@@ -6,18 +6,20 @@ from yeager_core.objects.base_object import BaseObject
 from yeager_core.events.websocket_event_handler import WebsocketEventHandler
 from yeager_core.events.basic_events import (
     AgentGetsNearbyEntitiesEvent,
+    AgentGivesObjectToAgentEvent,
     AgentSpeaksWithAgentEvent,
     EntityRequestWorldStateUpdateEvent,
     EntityWorldStateUpdateEvent,
     WorldSendsNearbyEntitiesEvent,
     WorldSendsSchemasEvent,
 )
-from yeager_core.worlds.world_entity import EntityTypeEnum, WorldEntity
+from yeager_core.worlds.base_world_entity import EntityTypeEnum, BaseWorldEntity
 
-WorldEntityType = TypeVar('WorldEntityType', bound=WorldEntity)
+WorldEntityType = TypeVar('WorldEntityType', bound=BaseWorldEntity)
 class BaseWorld(Generic[WorldEntityType], WebsocketEventHandler):
-    entities: dict[str, WorldEntityType] = {}
-    entity_schemas: dict[str, dict] = {}
+    subconscious_event_classes: set[str] = {AgentGetsNearbyEntitiesEvent, EntityRequestWorldStateUpdateEvent}
+    entities: dict[str, WorldEntityType]
+    entity_schemas: dict[str, dict]
     world_entity_constructor: Type[WorldEntityType]
 
     def __init__(
@@ -25,17 +27,22 @@ class BaseWorld(Generic[WorldEntityType], WebsocketEventHandler):
         world_entity_constructor: Type[WorldEntityType],
         name: str,
         description: str,
+        id: str = None,
     ):
-        self.id = str(uuid4())
+        self.id = id if id else str(uuid4())
         self.name = name
         self.description = description
         self.world_entity_constructor = world_entity_constructor
 
         super().__init__(self.id)
 
+        self.entities = {}
+        self.entity_schemas = {}
+
         self.register_event_listeners([
             (AgentGetsNearbyEntitiesEvent, self.agent_gets_nearby_entities_listener),
             (EntityRequestWorldStateUpdateEvent, self.entity_request_world_state_update_event_listener),
+            (AgentGivesObjectToAgentEvent, self.agent_gives_object_to_agent_listener),
         ])
 
 
@@ -104,14 +111,31 @@ class BaseWorld(Generic[WorldEntityType], WebsocketEventHandler):
         self.world_sends_schemas()
         self.emit_world_sends_nearby_entities(agent_id=event.sender_id) 
 
+
+    def agent_gives_object_to_agent_listener(
+        self, event: AgentGivesObjectToAgentEvent
+    ):
+        if event.object_id not in self.entities:
+            raise Exception(f"Object with id {event.object_id} does not exist.")
+        
+        if event.recipient_agent_id not in self.entities:
+            raise Exception(f"Agent with id {event.recipient_agent_id} does not exist.")
+        
+        if self.entities[event.object_id].held_by != event.sender_id:
+            raise Exception(f"Object with id {event.object_id} is not held by agent with id {event.sender_id}.")
+
+        self.entities[event.object_id].held_by = event.recipient_agent_id 
+
+        self.emit_world_sends_nearby_entities(agent_id=event.agent_id)    
+        self.emit_world_sends_nearby_entities(agent_id=event.recipient_agent_id)    
+
     def world_sends_schemas(self):
         schemas = self.entity_schemas.copy()
         # Add world schemas
         events = {}
         for (event_type, event) in self.event_classes.items():
-            events[event_type] = event.schema()
-        print("EVENTS")
-        print(events)
+            if event not in self.subconscious_event_classes:
+                events[event_type] = event.schema()
 
         schemas['World'] = events      
         self.send_event(
@@ -138,7 +162,7 @@ class BaseWorld(Generic[WorldEntityType], WebsocketEventHandler):
             entity_class=class_name,
             name=agent.ai_name,
             description=agent.description,
-            events=events,
+            events=self.entity_schemas[class_name],
             **kwargs,
         )
 

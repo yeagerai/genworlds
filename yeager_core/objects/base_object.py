@@ -11,14 +11,15 @@ class BaseObject(WebsocketEventHandler):
         self,
         name: str,
         description: str,
+        id: str = None,
     ):
-        self.id = str(uuid4())
+        self.id = id if id else str(uuid4())
         self.name = name
         self.description = description
 
         super().__init__(self.id)
         self.register_event_listeners([
-            (AgentGetsObjectInfoEvent, self.agent_gets_object_info_listener)
+            # (AgentGetsObjectInfoEvent, self.agent_gets_object_info_listener)
         ])
 
     def agent_gets_object_info_listener(self, event: AgentGetsObjectInfoEvent):

@@ -19,10 +19,12 @@ class Blackboard(BaseObject):
         self,
         name: str,
         description: str,
+        id: str = None,
     ):
         super().__init__(
             name,
             description,
+            id=id,
         )
 
         self.register_event_listeners([

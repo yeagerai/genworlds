@@ -54,3 +54,9 @@ class EntityWorldStateUpdateEvent(Event):
     description = "Latest world state update for an entity."
     entity_world_state: str
 
+class AgentGivesObjectToAgentEvent(Event):
+    event_type = "agent_gives_object_to_agent_event"
+    description = "An agent gives an object to another agent."
+    object_id: str
+    recipient_agent_id: str
+

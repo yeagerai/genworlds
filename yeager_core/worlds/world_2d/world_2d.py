@@ -1,38 +1,46 @@
 
 from yeager_core.properties.basic_properties import Coordinates, Size
 from yeager_core.worlds.base_world import BaseWorld
-from yeager_core.worlds.world_entity import WorldEntity
+from yeager_core.worlds.base_world_entity import BaseWorldEntity
 
-class WorldEntity2D(WorldEntity):
-    position: Coordinates
-    size: Size
+class WorldEntity2D(BaseWorldEntity):
+    location: str = None
 
 class World2D(BaseWorld[WorldEntity2D]):
+
+    locations: list[str] = []
     
 
     def __init__(
         self,
         name: str,
         description: str,
-        vision_radius: float = 1000.0,
+        locations: list[str],
+        id: str = None,
     ):
         super().__init__(
             world_entity_constructor=WorldEntity2D,
             name=name,
             description=description,
+            id=id,
         );
     
-        self.vision_radius = vision_radius
-
+        self.locations = locations
 
     def get_nearby_entities(self, entity_id: str) -> WorldEntity2D:
         reference_entity = self.entities.get(entity_id)
         
-        nearby_entities = []
+        nearby_entities = []        
+        # Same location or in my inventory
         for entity in self.entities.values():
             if entity != reference_entity:
-                if reference_entity.position.distance_to(entity.position) <= self.vision_radius:
+                if entity.location == reference_entity.location or entity.held_by == reference_entity.id:
                     nearby_entities.append(entity)
+
+        # Add objects in inventory of nearby entities
+        for entity in self.entities.values():
+            if entity.held_by in [e.id for e in nearby_entities]:
+                nearby_entities.append(entity)
 
         # All entities
         return nearby_entities
@@ -43,9 +51,9 @@ class World2D(BaseWorld[WorldEntity2D]):
 
         world_state_prompt = (
             f"You are an agent in a 2D world.\n"            
-            f"Your id is {agent_entity.id}.\n"
-            f"Your coordinates are (x={agent_entity.position.x}, y={agent_entity.position.y}).\n"
-            f"Your width is {agent_entity.size.width} and your height is {agent_entity.size.height}.\n"
+            f"Your id is \"{agent_entity.id}\".\n"
+            f"Your location is \"{agent_entity.location}\".\n"
+            f"Available locations are \"{self.locations}\".\n"
         )
 
         return world_state_prompt

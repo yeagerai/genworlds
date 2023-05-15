@@ -9,9 +9,10 @@ class EntityTypeEnum(str, Enum):
     OBJECT = 'OBJECT'
     WORLD = 'WORLD'
 
-class WorldEntity(BaseModel):
+class BaseWorldEntity(BaseModel):
     id: str
     entity_type: EntityTypeEnum
     entity_class: str
     name: str
     description: str
+    held_by: str = None

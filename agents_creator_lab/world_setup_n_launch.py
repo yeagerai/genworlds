@@ -1,6 +1,7 @@
 import os
 from dotenv import load_dotenv
 import concurrent.futures
+from agents_creator_lab.objects.microphone import Microphone
 from yeager_core.simulation.simulation import Simulation
 from yeager_core.properties.basic_properties import Coordinates, Size
 from agents_creator_lab.objects.blackboard import Blackboard
@@ -13,31 +14,55 @@ home_path = os.path.expanduser("~")
 load_dotenv(dotenv_path=os.path.join(home_path, ".yeagerai-sessions/.env"))
 openai_api_key = os.getenv("OPENAI_API_KEY")
 
-blackboard = Blackboard(
-    name="blackboard",
-    description="The blackboard is a place where agents can read and write all the jobs they have to do while in the lab",
-)
+# blackboard = Blackboard(
+#     name="blackboard",
+#     description="The blackboard is a place where agents can read and write all the jobs they have to do while in the lab",
+# )
 
-researcher = YeagerAutoGPT(
-    ai_name="Timmy",
-    description="You are a researcher in the lab. You have to do all the jobs that are in the blackboard.",
-    goals=["Finish all the jobs that are in the blackboard"],
+podcast_host = YeagerAutoGPT(
+    id="chamath",
+    ai_name="Chamath Palihapitiya",
+    description="The host of the All-in podcast",
+    goals=["Host an episode of the All-in podcast, discussing AI technology"],
     openai_api_key=openai_api_key,
 )
 
+podcast_guest = YeagerAutoGPT(
+    id="jason",	
+    ai_name="Jason Calacanis",
+    description="A co-host of the All-in podcast",
+    goals=["Participate an episode of the All-in podcast, discussing AI technology"],
+    openai_api_key=openai_api_key,
+)
+
+
+microphone = Microphone(
+    id="microphone",
+    name="Microphone",
+    description="A podcast microphone that allows the holder of it to speak to the audience",
+    host=podcast_host.id
+)
+
+
+
 world = World2D(
-    name="agents_creator_lab",
-    description="This is a lab where agents can be created",
+    id="world",
+    name="roundtable",
+    description="This is a podcast studio, where you record the All-in podcast. There is a microphone, and only the holder of the microphone can speak to the audience",
+    locations=["roundtable"],
 )
 
 simulation = Simulation(
-    name="agents_creator_lab",
-    description="This is a lab where agents can be created",
+    name="roundable",
+    description="This is a podcast studio, where you record the All-in podcast. There is a microphone, and only the holder of the microphone can speak to the audience",
     world=world,
     objects=[
-        (blackboard, {"position": Coordinates(x=200, y=500), "size": Size(width=16, height=9)})
+        (microphone, {"held_by": podcast_host.id}),
     ],
-    agents=[(researcher, {"position": Coordinates(x=0, y=0), "size": Size(width=1, height=1)})],
+    agents=[
+        (podcast_host, {"location": "roundtable"}),
+        (podcast_guest, {"location": "roundtable"}),
+    ],
 )
 
 # this attaches to the websocket all the objects and agents in the world

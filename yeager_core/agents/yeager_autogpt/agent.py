@@ -45,7 +45,10 @@ from yeager_core.events.basic_events import (
 class YeagerAutoGPT:
     """Agent class for interacting with Auto-GPT."""
 
-    events: set = {AgentSpeaksWithAgentEvent}
+    # events: set = {AgentSpeaksWithAgentEvent}
+    events: set = {}
+
+    world_spawned_id: str
 
     def __init__(
         self,
@@ -55,9 +58,10 @@ class YeagerAutoGPT:
         openai_api_key: str,
         feedback_tool: Optional[HumanInputRun] = None,
         additional_memories: Optional[List[VectorStoreRetriever]] = None,
+        id: str = None,
     ):
         # Its own properties
-        self.id = str(uuid4())
+        self.id = id if id else str(uuid4())
         self.ai_name = ai_name
         self.description = description
         self.goals = goals
@@ -77,16 +81,16 @@ class YeagerAutoGPT:
             #     description="Gets nearby entities",
             #     func=self.agent_gets_nearby_entities_action,
             # ),
-            StructuredTool.from_function(
-                name="get_object_info",
-                description="Gets the info of an object.",
-                func=self.agent_gets_object_info_action,
-            ),
-            StructuredTool.from_function(
-                name="get_agent_info",
-                description="Gets the info of an agent.",
-                func=self.agent_gets_agent_info_action,
-            ),
+            # StructuredTool.from_function(
+            #     name="get_object_info",
+            #     description="Gets the info of an object.",
+            #     func=self.agent_gets_object_info_action,
+            # ),
+            # StructuredTool.from_function(
+            #     name="get_agent_info",
+            #     description="Gets the info of an agent.",
+            #     func=self.agent_gets_agent_info_action,
+            # ),
             # StructuredTool.from_function(
             #     name="interact_with_object",
             #     description="Interacts with an object.",
@@ -144,19 +148,36 @@ class YeagerAutoGPT:
                 entity_schemas = self.get_schemas()[entity["entity_class"]]
                 
                 for event_type, schema in entity_schemas.items():
-                    # event_type = parsed_schema['properties']['event_type']['default']
                     description = schema['properties']['description']['default']
 
                     args = {}
-                    # args_string = ""
                     for (property_name, property_details) in schema['properties'].items():
-                        if property_name not in ['event_type', 'description', 'created_at', 'sender_id']:
+                        if property_name not in ['event_type', 'description', 'created_at', 'sender_id',]:
                             args[property_name] = property_details
-                            # args_string += f"{property_name}: {property_details['type']}, "
 
                     # get_object_info: get_object_info(object_id: 'str') - Gets the info of an object., args json schema: {"object_id": {"title": "Object Id", "type": "string"}}
                     command = f"\"{entity['entity_class']}:{event_type}\" - {description}, args json schema: {json.dumps(args)}"
                     relevant_commands.append(command)
+
+            # Add world
+            entity_class = "World"
+            entity_schemas = self.get_schemas()[entity_class]
+                
+            for event_type, schema in entity_schemas.items():
+                if (event_type in self.listening_antenna.special_events):
+                    continue
+                
+                description = schema['properties']['description']['default']
+
+                args = {}
+                for (property_name, property_details) in schema['properties'].items():
+                    if property_name not in ['event_type', 'description', 'created_at', 'sender_id',]:
+                        args[property_name] = property_details
+                        # args_string += f"{property_name}: {property_details['type']}, "
+
+                # get_object_info: get_object_info(object_id: 'str') - Gets the info of an object., args json schema: {"object_id": {"title": "Object Id", "type": "string"}}
+                command = f"\"{entity_class}:{event_type}\" - {description}, args json schema: {json.dumps(args)}"
+                relevant_commands.append(command)
 
 
             # Send message to AI, get response
@@ -177,27 +198,29 @@ class YeagerAutoGPT:
             self.full_message_history.append(AIMessage(content=assistant_reply))
 
             # Get command name and arguments
-            action = self.output_parser.parse(assistant_reply)
-            tools = {t.name: t for t in self.actions}
-            if action.name == FINISH_NAME:
-                return action.args["response"]
-            elif action.name == "ERROR":
-                result = f"Error: {action.args}. "
-            elif action.name in tools:
-                tool = tools[action.name]
-                try:
-                    observation = tool.run(action.args)
-                except ValidationError as e:
-                    observation = (
-                        f"Validation Error in args: {str(e)}, args: {action.args}"
-                    )
-                except Exception as e:
-                    observation = (
-                        f"Error: {str(e)}, {type(e).__name__}, args: {action.args}"
-                    )
-                result = f"Command {tool.name} returned: {observation}"
-            else:
-                result = self.execute_event_action(action)
+            actions = self.output_parser.parse(assistant_reply)
+            result = ""
+            for action in actions:
+                tools = {t.name: t for t in self.actions}
+                if action.name == FINISH_NAME:
+                    return action.args["response"]
+                elif action.name == "ERROR":
+                    result += f"Error: {action.args}. \n"
+                elif action.name in tools:
+                    tool = tools[action.name]
+                    try:
+                        observation = tool.run(action.args)
+                    except ValidationError as e:
+                        observation = (
+                            f"Validation Error in args: {str(e)}, args: {action.args}"
+                        )
+                    except Exception as e:
+                        observation = (
+                            f"Error: {str(e)}, {type(e).__name__}, args: {action.args}"
+                        )
+                    result += f"Command {tool.name} returned: {observation} \n"
+                else:
+                    result += self.execute_event_action(action) + "\n"	
 
                 
             ## send result and assistant_reply to the socket
@@ -223,7 +246,6 @@ class YeagerAutoGPT:
 
             self.memory.add_documents([Document(page_content=memory_to_add)])
             self.full_message_history.append(SystemMessage(content=result))
-
 
     def get_agent_world_state(self):
         return self.listening_antenna.get_agent_world_state()
@@ -322,5 +344,6 @@ class YeagerAutoGPT:
         agent_request_world_state_update = EntityRequestWorldStateUpdateEvent(
             created_at=datetime.now(),
             sender_id=self.id,
+            target_id=self.world_spawned_id,
         )
         self.world_socket_client.send_message(agent_request_world_state_update.json())
