@@ -51,6 +51,7 @@ class World2D(BaseWorld[WorldEntity2D]):
 
         world_state_prompt = (
             f"You are an agent in a 2D world.\n"            
+            f"THe id of the world is \"{self.id}\".\n"
             f"Your id is \"{agent_entity.id}\".\n"
             f"Your location is \"{agent_entity.location}\".\n"
             f"Available locations are \"{self.locations}\".\n"

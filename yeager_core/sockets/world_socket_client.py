@@ -4,6 +4,8 @@ import json
 import websocket
 from colorama import Fore
 
+from yeager_core.utils.logging_factory import LoggingFactory
+
 
 class WorldSocketClient:
     def __init__(self, process_event, send_initial_event=None) -> None:
@@ -17,26 +19,27 @@ class WorldSocketClient:
         )
         self.process_event = process_event
         self.send_initial_event = send_initial_event
-        print(f"Connected to world socket server {self.uri}")
 
     def on_open(self, ws):
-        print(f"World socket client opened connection to {self.uri}\n")
+        self.logger().info(f"Connected to world socket server {self.uri}")
         if self.send_initial_event:
             self.send_initial_event()
-            print(f"Initial event sent!\n")
+            self.logger().debug(f"Initial event sent")
 
     def on_error(self, ws, error):
-        print(f"World socket client error: {error}")
+        self.logger().error("World socket client error", exc_info=error)
 
     def on_close(self, *args):
-        print("World socket client closed connection", args)
+        self.logger().info("World socket client closed connection", args)
 
     def on_message(self, ws, message):
-        thread_name = threading.current_thread().name
-        print(f"{Fore.GREEN}[{thread_name}] received: {message}")
-        self.process_event(json.loads(message))
+        self.logger().debug(f"Received: {message}")
+        if self.process_event:
+            self.process_event(json.loads(message))
 
-    def send_message(self, message):
-        thread_name = threading.current_thread().name
+    def send_message(self, message):        
         self.websocket.send(message)
-        print(f"{Fore.CYAN}[{thread_name}] sent: {message}")
+        self.logger().debug(f"Sent: {message}")
+
+    def logger(self):
+        return LoggingFactory.get_logger(threading.current_thread().name)

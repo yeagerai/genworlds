@@ -23,16 +23,18 @@ podcast_host = YeagerAutoGPT(
     id="chamath",
     ai_name="Chamath Palihapitiya",
     description="The host of the All-in podcast",
-    goals=["Host an episode of the All-in podcast, discussing AI technology. Only the holder of the microphone can speak to the audience, if you don't have the microphone, wait to receive it from the previous speaker"],
+    goals=["Host an episode of the All-in podcast, discussing AI technology. Only the holder of the microphone can speak to the audience, if you don't have the microphone in your inventory, wait to receive it from the previous speaker"],
     openai_api_key=openai_api_key,
+    interesting_events={"agent_speaks_into_microphone", "agent_gives_object_to_agent_event"},
 )
 
 podcast_guest = YeagerAutoGPT(
     id="jason",	
     ai_name="Jason Calacanis",
     description="A co-host of the All-in podcast",
-    goals=["Participate an episode of the All-in podcast, discussing AI technology. Only the holder of the microphone can speak to the audience, if you don't have the microphone, wait to receive it from the previous speaker"],
+    goals=["Participate an episode of the All-in podcast, discussing AI technology. Only the holder of the microphone can speak to the audience, if you don't have the microphone in your inventory, wait to receive it from the previous speaker"],
     openai_api_key=openai_api_key,
+    interesting_events={"agent_speaks_into_microphone", "agent_gives_object_to_agent_event"},
 )
 
 

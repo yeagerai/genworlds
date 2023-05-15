@@ -37,16 +37,15 @@ from yeager_core.events.basic_events import (
     AgentGetsNearbyEntitiesEvent,
     AgentGetsObjectInfoEvent,
     AgentGetsAgentInfoEvent,
+    AgentGivesObjectToAgentEvent,
     AgentSpeaksWithAgentEvent,
     EntityRequestWorldStateUpdateEvent,
 )
+from yeager_core.utils.logging_factory import LoggingFactory
 
 
 class YeagerAutoGPT:
     """Agent class for interacting with Auto-GPT."""
-
-    # events: set = {AgentSpeaksWithAgentEvent}
-    events: set = {}
 
     world_spawned_id: str
 
@@ -56,6 +55,7 @@ class YeagerAutoGPT:
         description: str,
         goals: List[str],
         openai_api_key: str,
+        interesting_events: set = {},
         feedback_tool: Optional[HumanInputRun] = None,
         additional_memories: Optional[List[VectorStoreRetriever]] = None,
         id: str = None,
@@ -65,11 +65,14 @@ class YeagerAutoGPT:
         self.ai_name = ai_name
         self.description = description
         self.goals = goals
+        self.interesting_events = interesting_events
 
-        self.world_socket_client = WorldSocketClient(process_event=print)
+        self.logger = LoggingFactory.get_logger(self.ai_name)
+
+        self.world_socket_client = WorldSocketClient(process_event=None)
 
         self.listening_antenna = ListeningAntenna(
-            map(lambda e: e.__fields__['event_type'].default, self.events),
+            self.interesting_events,
             agent_name=self.ai_name,
             agent_id=self.id,
         )
@@ -112,7 +115,7 @@ class YeagerAutoGPT:
             ai_name=self.ai_name,
             ai_role=self.description,
             tools=self.actions,
-            input_variables=["memory", "messages", "goals", "user_input", "nearby_entities", "relevant_commands", "plan", "agent_world_state"],
+            input_variables=["memory", "messages", "goals", "user_input", "nearby_entities", "inventory", "relevant_commands", "plan", "agent_world_state"],
             token_counter=llm.get_num_tokens,
         )
         self.chain = LLMChain(llm=llm, prompt=prompt, verbose=True)
@@ -125,7 +128,7 @@ class YeagerAutoGPT:
         self.plan: Optional[str] = None
 
     def think(self):
-        print(f" The agent {self.ai_name} is thinking...")
+        self.logger.info(f" The agent {self.ai_name} is thinking...")
         user_input = (
             "Determine which next command to use, "
             "and respond using the format specified above:"
@@ -166,7 +169,7 @@ class YeagerAutoGPT:
             for event_type, schema in entity_schemas.items():
                 if (event_type in self.listening_antenna.special_events):
                     continue
-                
+
                 description = schema['properties']['description']['default']
 
                 args = {}
@@ -185,7 +188,8 @@ class YeagerAutoGPT:
                 goals=self.goals,
                 messages=self.full_message_history,
                 memory=self.memory,
-                nearby_entities=nearby_entities,
+                nearby_entities=list(filter(lambda e: (e['held_by'] != self.id), nearby_entities)),
+                inventory=list(filter(lambda e: (e['held_by'] == self.id), nearby_entities)),
                 relevant_commands=relevant_commands,
                 plan=self.plan,
                 user_input=user_input,
@@ -193,7 +197,7 @@ class YeagerAutoGPT:
             )
             self.plan = json.loads(assistant_reply)["thoughts"]["plan"]
             # Print Assistant thoughts
-            print(assistant_reply) # Send the thoughts as events
+            self.logger.info(assistant_reply) # Send the thoughts as events
             self.full_message_history.append(HumanMessage(content=user_input))
             self.full_message_history.append(AIMessage(content=assistant_reply))
 
@@ -224,7 +228,7 @@ class YeagerAutoGPT:
 
                 
             ## send result and assistant_reply to the socket
-            print(result)
+            self.logger.info(result)
 
             # If there are any relevant events in the world for this agent, add them to memory
             sleep(3)
@@ -235,12 +239,12 @@ class YeagerAutoGPT:
                 f"\nLast World Events: {last_events}"
             )
 
-            print(f"Adding to memory: {memory_to_add}")
+            self.logger.debug(f"Adding to memory: {memory_to_add}")
 
             if self.feedback_tool is not None:
                 feedback = f"\n{self.feedback_tool.run('Input: ')}"
                 if feedback in {"q", "stop"}:
-                    print("EXITING")
+                    self.logger.info("EXITING")
                     return "EXITING"
                 memory_to_add += feedback
 
@@ -269,7 +273,7 @@ class YeagerAutoGPT:
             }
             event.update(action.args)
 
-            print(event)
+            self.logger.debug(event)
 
             event_schema = self.get_schemas()[class_name][event_type]
             validate(event, event_schema)

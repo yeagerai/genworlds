@@ -56,16 +56,31 @@ class AutoGPTPrompt(BaseChatPromptTemplate, BaseModel):
             time_prompt.content
         )
 
+        inventory = kwargs["inventory"]
+        if len(inventory) > 0:
+            inventory_prompt = f"You have the following items in your inventory:\n"
+            for entity in inventory:
+                inventory_prompt += f"{json.dumps(entity)}\n"
+        else:
+            inventory_prompt = f"You have no items in your inventory.\n"
+        inventory_message = SystemMessage(
+            content=inventory_prompt
+        )
+
+
         nearby_entities = kwargs["nearby_entities"]
-        nearby_entities_prompt = f"There are the following entities near you:\n"
-        for entity in nearby_entities:
-            nearby_entities_prompt += f"{json.dumps(entity)}\n"
+        if len(nearby_entities) > 0:
+            nearby_entities_prompt = f"There are the following entities near you:\  n"
+            for entity in nearby_entities:
+                nearby_entities_prompt += f"{json.dumps(entity)}\n"
+        else:
+            nearby_entities_prompt = f"There are no entities near you.\n"
         nearby_entities_message = SystemMessage(
             content=nearby_entities_prompt
         )
 
         relevant_commands = kwargs["relevant_commands"]
-        relevant_commands_prompt = f"You can perform the following additional commands:\n"
+        relevant_commands_prompt = f"You can perform the following additional commands with the entities nearby. \"target_id\" is the id of the entity that provides the command:\n"
         for command in relevant_commands:
             relevant_commands_prompt += f"{command}\n"
         relevant_commands_message = SystemMessage(
@@ -97,7 +112,7 @@ class AutoGPTPrompt(BaseChatPromptTemplate, BaseModel):
                 break
             historical_messages = [message] + historical_messages
         input_message = HumanMessage(content=kwargs["user_input"])
-        messages: List[BaseMessage] = [base_prompt, time_prompt, nearby_entities_message, relevant_commands_message, memory_message]
+        messages: List[BaseMessage] = [base_prompt, time_prompt, inventory_message, nearby_entities_message, relevant_commands_message, memory_message]
         messages += historical_messages
         plan : Optional[str] = kwargs["plan"]
         messages.append(input_message)

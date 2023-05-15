@@ -126,7 +126,7 @@ class BaseWorld(Generic[WorldEntityType], WebsocketEventHandler):
 
         self.entities[event.object_id].held_by = event.recipient_agent_id 
 
-        self.emit_world_sends_nearby_entities(agent_id=event.agent_id)    
+        self.emit_world_sends_nearby_entities(agent_id=event.sender_id)    
         self.emit_world_sends_nearby_entities(agent_id=event.recipient_agent_id)    
 
     def world_sends_schemas(self):
@@ -151,8 +151,8 @@ class BaseWorld(Generic[WorldEntityType], WebsocketEventHandler):
         if (class_name not in self.entity_schemas):
             events = {}
 
-            for event_class in agent.events:
-                events[event_class.__fields__['event_type'].default] = event_class.schema()
+            # for event_class in agent.interesting_events:
+            #     events[event_class.__fields__['event_type'].default] = event_class.schema()
 
             self.entity_schemas[class_name] = events
 
