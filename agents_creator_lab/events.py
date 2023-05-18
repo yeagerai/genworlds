@@ -1,5 +1,5 @@
 from typing import List
-from yeager_core.events.websocket_event_handler import Event
+from genworlds.events.websocket_event_handler import Event
 from agents_creator_lab.objects.job import Job
 
 

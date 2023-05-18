@@ -1,6 +1,6 @@
 from uuid import uuid4
-from yeager_core.events.websocket_event_handler import WebsocketEventHandler
-from yeager_core.events.basic_events import (
+from genworlds.events.websocket_event_handler import WebsocketEventHandler
+from genworlds.events.basic_events import (
     AgentGetsObjectInfoEvent,
     ObjectSendsInfoToAgentEvent,
 )
@@ -11,14 +11,15 @@ class BaseObject(WebsocketEventHandler):
         self,
         name: str,
         description: str,
+        id: str = None,
     ):
-        self.id = str(uuid4())
+        self.id = id if id else str(uuid4())
         self.name = name
         self.description = description
 
         super().__init__(self.id)
         self.register_event_listeners([
-            (AgentGetsObjectInfoEvent, self.agent_gets_object_info_listener)
+            # (AgentGetsObjectInfoEvent, self.agent_gets_object_info_listener)
         ])
 
     def agent_gets_object_info_listener(self, event: AgentGetsObjectInfoEvent):

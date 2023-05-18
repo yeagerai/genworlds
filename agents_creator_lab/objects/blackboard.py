@@ -1,7 +1,7 @@
 from typing import List
 
-from yeager_core.worlds.base_world import BaseObject
-from yeager_core.objects.base_object import BaseObject
+from genworlds.worlds.base_world import BaseObject
+from genworlds.objects.base_object import BaseObject
 from agents_creator_lab.events import (
     AgentReadsBlackboardEvent,
     AgentDeletesJobFromBlackboardEvent,
@@ -19,10 +19,12 @@ class Blackboard(BaseObject):
         self,
         name: str,
         description: str,
+        id: str = None,
     ):
         super().__init__(
             name,
             description,
+            id=id,
         )
 
         self.register_event_listeners([

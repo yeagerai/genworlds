@@ -1,4 +1,4 @@
-from yeager_core.events.websocket_event_handler import Event
+from genworlds.events.websocket_event_handler import Event
 
 
 class AgentGetsNearbyEntitiesEvent(Event):
@@ -53,4 +53,10 @@ class EntityWorldStateUpdateEvent(Event):
     event_type = "entity_world_state_update_event"
     description = "Latest world state update for an entity."
     entity_world_state: str
+
+class AgentGivesObjectToAgentEvent(Event):
+    event_type = "agent_gives_object_to_agent_event"
+    description = "An agent gives an object to another agent."
+    object_id: str
+    recipient_agent_id: str
 
