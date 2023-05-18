@@ -60,7 +60,7 @@ The BaseWorld class can be extended to introduce new world properties, for examp
 world = World2D(
     id="world",
     name="roundtable",
-    description="This is a podcast studio, where you record the All-in podcast. There is a microphone, and only the holder of the microphone can speak to the audience",
+    description="This is a podcast studio, where you record the Roundtable podcast. There is a microphone, and only the holder of the microphone can speak to the audience",
     locations=["roundtable"],
 )
 ```
@@ -72,6 +72,24 @@ Agents are the entities that interact with the world. They have a set of goals a
 They interact with the world through a websocket server, which is started by the world, by sending events.
 
 Agents dynamically learn about the world and objects around them, and figure out how they can use them to accomplish their goals.
+
+```
+podcast_host = YeagerAutoGPT(
+    id="maria",
+    ai_name="Maria",
+    description="The host of the podcast",
+    goals=[(
+        "Host an episode of the Roundtable podcast, discussing AI technology. \n",
+        "Only the holder of the microphone can speak to the audience, if you don't have the microphone in your inventory, wait to receive it from the previous speaker. \n",
+        "Don't repeat yourself, respond to questions and points made by other co-hosts to advance the conversation. \n",
+        "Don't hog the microphone for a long time, make sure to give it to other participants. \n",
+    )],
+    openai_api_key=openai_api_key,
+    interesting_events={"agent_speaks_into_microphone", "agent_gives_object_to_agent_event"},
+)
+```
+
+`interesting_events` are the events that will be fed to the agent's prompt, allowing them to pay attention to things that are happening in the world.
 
 #### Custom memories 
 
@@ -91,6 +109,15 @@ Objects are the entities that agents can interact with. They define a set of eve
 The agents dynamically learn about nearby objects, and figure out how to use them based on the events they define.
 
 Objects can also be held in inventory by the agents.
+
+```
+microphone = Microphone(
+    id="microphone",
+    name="Microphone",
+    description="A podcast microphone that allows the holder of it to speak to the audience",
+    host=podcast_host.id
+)
+```
 
 ## Development
 
