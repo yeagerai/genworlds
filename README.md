@@ -1,5 +1,4 @@
-# 🧬🌍 GenWorlds
-[WARNING: ULTRA-BETA]
+# 🧬🌍 GenWorlds - Beta
 
 ## About
 
