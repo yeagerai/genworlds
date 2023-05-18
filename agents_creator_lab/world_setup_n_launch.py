@@ -26,7 +26,7 @@ podcast_host = YeagerAutoGPT(
     ai_name="Maria",
     description="The host of the podcast",
     goals=[(
-        "Host an episode of the a podcast, discussing AI technology. \n",
+        "Host an episode of the Roundtable podcast, discussing AI technology. \n",
         "Only the holder of the microphone can speak to the audience, if you don't have the microphone in your inventory, wait to receive it from the previous speaker. \n",
         "Don't repeat yourself, respond to questions and points made by other co-hosts to advance the conversation. \n",
         "Don't hog the microphone for a long time, make sure to give it to other participants. \n",
@@ -40,7 +40,7 @@ podcast_guest = YeagerAutoGPT(
     ai_name="Jimmy",
     description="A co-host of the podcast",
     goals=[(
-        "Participate an episode of a podcast, discussing AI technology. \n",
+        "Participate an episode of the Roundtable podcast, discussing AI technology. \n",
         "Only the holder of the microphone can speak to the audience, if you don't have the microphone in your inventory, wait to receive it from the previous speaker. \n",
         "Don't repeat yourself, respond to questions and points made by other co-hosts to advance the conversation. \n",
         "Don't hog the microphone for a long time, make sure to give it to other participants. \n",
@@ -62,13 +62,13 @@ microphone = Microphone(
 world = World2D(
     id="world",
     name="roundtable",
-    description="This is a podcast studio, where you record the podcast. There is a microphone, and only the holder of the microphone can speak to the audience",
+    description="This is a podcast studio, where you record the Roundtable podcast. There is a microphone, and only the holder of the microphone can speak to the audience",
     locations=["roundtable"],
 )
 
 simulation = Simulation(
     name="roundable",
-    description="This is a podcast studio, where you record the podcast. There is a microphone, and only the holder of the microphone can speak to the audience",
+    description="This is a podcast studio, where you record the Roundtable podcast. There is a microphone, and only the holder of the microphone can speak to the audience",
     world=world,
     objects=[
         (microphone, {"held_by": podcast_host.id}),
