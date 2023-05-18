@@ -11,18 +11,17 @@ Agents can also be pre-loaded with a series of memories, to give them personalit
 
 The agents interact with the world through a websocket server, making it easy to build various UIs for them, and enabling scalability in the future.
 
-It uses [langchain](https://python.langchain.com/en/latest/index.html) and [AutoGPT](https://github.com/Significant-Gravitas/Auto-GPT) under the hood.
+We use [langchain](https://python.langchain.com/en/latest/index.html) and [AutoGPT](https://github.com/Significant-Gravitas/Auto-GPT) under the hood.
 
 ## Installation
 
 `pip install genworlds`
 
 ## Usage
+Importing the framework:
 
 ```
 import genworlds
-
-## TODO: set openai api key
 
 ```
 
@@ -56,6 +55,15 @@ The world keeps track of all the agents and objects, and world properties such a
 The world updates all of the agents about their world state, nearby entities and events they can use to interact with the world.
 
 The BaseWorld class can be extended to introduce new world properties, for example the Wolrd2D in the examples introduces a location property.
+
+```
+world = World2D(
+    id="world",
+    name="roundtable",
+    description="This is a podcast studio, where you record the All-in podcast. There is a microphone, and only the holder of the microphone can speak to the audience",
+    locations=["roundtable"],
+)
+```
 
 ### Agents
 

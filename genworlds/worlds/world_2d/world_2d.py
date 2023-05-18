@@ -1,7 +1,7 @@
 
-from yeager_core.properties.basic_properties import Coordinates, Size
-from yeager_core.worlds.base_world import BaseWorld
-from yeager_core.worlds.base_world_entity import BaseWorldEntity
+from genworlds.properties.basic_properties import Coordinates, Size
+from genworlds.worlds.base_world import BaseWorld
+from genworlds.worlds.base_world_entity import BaseWorldEntity
 
 class WorldEntity2D(BaseWorldEntity):
     location: str = None

@@ -1,4 +1,4 @@
-from yeager_core.events.websocket_event_handler import Event
+from genworlds.events.websocket_event_handler import Event
 
 
 class AgentGetsNearbyEntitiesEvent(Event):

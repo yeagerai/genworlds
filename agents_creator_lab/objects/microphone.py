@@ -1,8 +1,8 @@
 from typing import List
-from yeager_core.events.websocket_event_handler import Event
+from genworlds.events.websocket_event_handler import Event
 
-from yeager_core.worlds.base_world import BaseObject
-from yeager_core.objects.base_object import BaseObject
+from genworlds.worlds.base_world import BaseObject
+from genworlds.objects.base_object import BaseObject
 
 
 

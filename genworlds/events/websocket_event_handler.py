@@ -3,7 +3,7 @@ from typing import Callable, List, Optional
 from pydantic import BaseModel
 from datetime import datetime
 
-from yeager_core.sockets.world_socket_client import WorldSocketClient
+from genworlds.sockets.world_socket_client import WorldSocketClient
 class Event(BaseModel):
     event_type: str
     description: str

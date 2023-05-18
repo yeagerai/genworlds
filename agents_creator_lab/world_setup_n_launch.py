@@ -2,11 +2,11 @@ import os
 from dotenv import load_dotenv
 import concurrent.futures
 from agents_creator_lab.objects.microphone import Microphone
-from yeager_core.simulation.simulation import Simulation
-from yeager_core.properties.basic_properties import Coordinates, Size
+from genworlds.simulation.simulation import Simulation
+from genworlds.properties.basic_properties import Coordinates, Size
 from agents_creator_lab.objects.blackboard import Blackboard
-from yeager_core.agents.yeager_autogpt.agent import YeagerAutoGPT
-from yeager_core.worlds.world_2d.world_2d import World2D
+from genworlds.agents.yeager_autogpt.agent import YeagerAutoGPT
+from genworlds.worlds.world_2d.world_2d import World2D
 
 thread_pool_ref = concurrent.futures.ThreadPoolExecutor
 
@@ -19,12 +19,14 @@ openai_api_key = os.getenv("OPENAI_API_KEY")
 #     description="The blackboard is a place where agents can read and write all the jobs they have to do while in the lab",
 # )
 
+ABS_PATH = os.path.dirname(os.path.abspath(__file__))
+
 podcast_host = YeagerAutoGPT(
-    id="chamath",
-    ai_name="Chamath Palihapitiya",
-    description="The host of the All-in podcast",
+    id="maria",
+    ai_name="Maria",
+    description="The host of the podcast",
     goals=[(
-        "Host an episode of the All-in podcast, discussing AI technology. \n",
+        "Host an episode of the a podcast, discussing AI technology. \n",
         "Only the holder of the microphone can speak to the audience, if you don't have the microphone in your inventory, wait to receive it from the previous speaker. \n",
         "Don't repeat yourself, respond to questions and points made by other co-hosts to advance the conversation. \n",
         "Don't hog the microphone for a long time, make sure to give it to other participants. \n",
@@ -34,11 +36,11 @@ podcast_host = YeagerAutoGPT(
 )
 
 podcast_guest = YeagerAutoGPT(
-    id="jason",	
-    ai_name="Jason Calacanis",
-    description="A co-host of the All-in podcast",
+    id="jimmy",
+    ai_name="Jimmy",
+    description="A co-host of the podcast",
     goals=[(
-        "Participate an episode of the All-in podcast, discussing AI technology. \n",
+        "Participate an episode of a podcast, discussing AI technology. \n",
         "Only the holder of the microphone can speak to the audience, if you don't have the microphone in your inventory, wait to receive it from the previous speaker. \n",
         "Don't repeat yourself, respond to questions and points made by other co-hosts to advance the conversation. \n",
         "Don't hog the microphone for a long time, make sure to give it to other participants. \n",
@@ -60,13 +62,13 @@ microphone = Microphone(
 world = World2D(
     id="world",
     name="roundtable",
-    description="This is a podcast studio, where you record the All-in podcast. There is a microphone, and only the holder of the microphone can speak to the audience",
+    description="This is a podcast studio, where you record the podcast. There is a microphone, and only the holder of the microphone can speak to the audience",
     locations=["roundtable"],
 )
 
 simulation = Simulation(
     name="roundable",
-    description="This is a podcast studio, where you record the All-in podcast. There is a microphone, and only the holder of the microphone can speak to the audience",
+    description="This is a podcast studio, where you record the podcast. There is a microphone, and only the holder of the microphone can speak to the audience",
     world=world,
     objects=[
         (microphone, {"held_by": podcast_host.id}),

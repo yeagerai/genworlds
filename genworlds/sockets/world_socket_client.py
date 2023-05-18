@@ -4,7 +4,7 @@ import json
 import websocket
 from colorama import Fore
 
-from yeager_core.utils.logging_factory import LoggingFactory
+from genworlds.utils.logging_factory import LoggingFactory
 
 
 class WorldSocketClient:

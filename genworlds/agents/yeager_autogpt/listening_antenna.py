@@ -1,4 +1,4 @@
-from yeager_core.sockets.world_socket_client import WorldSocketClient
+from genworlds.sockets.world_socket_client import WorldSocketClient
 from langchain.schema import Document
 
 class ListeningAntenna:

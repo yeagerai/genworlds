@@ -1,6 +1,6 @@
 from uuid import uuid4
-from yeager_core.events.websocket_event_handler import WebsocketEventHandler
-from yeager_core.events.basic_events import (
+from genworlds.events.websocket_event_handler import WebsocketEventHandler
+from genworlds.events.basic_events import (
     AgentGetsObjectInfoEvent,
     ObjectSendsInfoToAgentEvent,
 )

@@ -27,13 +27,13 @@ from langchain.schema import (
     SystemMessage,
 )
 
-from yeager_core.agents.yeager_autogpt.output_parser import AutoGPTAction, AutoGPTOutputParser
-from yeager_core.agents.yeager_autogpt.prompt import AutoGPTPrompt
-from yeager_core.agents.yeager_autogpt.prompt_generator import FINISH_NAME
-from yeager_core.sockets.world_socket_client import WorldSocketClient
-from yeager_core.agents.yeager_autogpt.listening_antenna import ListeningAntenna
-from yeager_core.properties.basic_properties import Coordinates, Size
-from yeager_core.events.basic_events import (
+from genworlds.agents.yeager_autogpt.output_parser import AutoGPTAction, AutoGPTOutputParser
+from genworlds.agents.yeager_autogpt.prompt import AutoGPTPrompt
+from genworlds.agents.yeager_autogpt.prompt_generator import FINISH_NAME
+from genworlds.sockets.world_socket_client import WorldSocketClient
+from genworlds.agents.yeager_autogpt.listening_antenna import ListeningAntenna
+from genworlds.properties.basic_properties import Coordinates, Size
+from genworlds.events.basic_events import (
     AgentGetsNearbyEntitiesEvent,
     AgentGetsObjectInfoEvent,
     AgentGetsAgentInfoEvent,
@@ -41,13 +41,16 @@ from yeager_core.events.basic_events import (
     AgentSpeaksWithAgentEvent,
     EntityRequestWorldStateUpdateEvent,
 )
-from yeager_core.utils.logging_factory import LoggingFactory
+from genworlds.utils.logging_factory import LoggingFactory
+
+import chromadb
 
 
 class YeagerAutoGPT:
     """Agent class for interacting with Auto-GPT."""
 
     world_spawned_id: str
+    personality_db = None
 
     def __init__(
         self,
@@ -59,6 +62,8 @@ class YeagerAutoGPT:
         feedback_tool: Optional[HumanInputRun] = None,
         additional_memories: Optional[List[VectorStoreRetriever]] = None,
         id: str = None,
+        personality_db_path: str = None,
+        personality_db_collection_name: str = None,
     ):
         # Its own properties
         self.id = id if id else str(uuid4())
@@ -115,7 +120,7 @@ class YeagerAutoGPT:
             ai_name=self.ai_name,
             ai_role=self.description,
             tools=self.actions,
-            input_variables=["memory", "messages", "goals", "user_input", "nearby_entities", "inventory", "relevant_commands", "plan", "agent_world_state"],
+            input_variables=["memory", "personality_db", "messages", "goals", "user_input", "nearby_entities", "inventory", "relevant_commands", "plan", "agent_world_state"],
             token_counter=llm.get_num_tokens,
         )
         self.chain = LLMChain(llm=llm, prompt=prompt, verbose=True)
@@ -127,6 +132,23 @@ class YeagerAutoGPT:
         self.schemas_memory : Chroma
         self.plan: Optional[str] = None
 
+        self.personality_db_path = personality_db_path
+        if self.personality_db_path:
+            client_settings = chromadb.config.Settings(
+                chroma_db_impl="duckdb+parquet",
+                persist_directory=self.personality_db_path,
+                anonymized_telemetry=False
+            )
+
+            self.personality_db = Chroma(
+                collection_name=personality_db_collection_name,
+                embedding_function=self.embeddings_model,
+                client_settings=client_settings,
+                persist_directory=self.personality_db_path,
+            )
+            # self.personality_db.persist()
+            self.logger.info("Testing DB", self.personality_db.similarity_search("hello"))
+
     def think(self):
         self.logger.info(f" The agent {self.ai_name} is thinking...")
         user_input = (
@@ -136,7 +158,7 @@ class YeagerAutoGPT:
         # Get the initial world state
         self.agent_request_world_state_update_action()
 
-        sleep(10)
+        sleep(5)
         # self.schemas_memory = Chroma.from_documents(self.listening_antenna.schemas_as_docs, self.embeddings_model)
 
         while True:
@@ -188,6 +210,7 @@ class YeagerAutoGPT:
                 goals=self.goals,
                 messages=self.full_message_history,
                 memory=self.memory,
+                personality_db=self.personality_db,
                 nearby_entities=list(filter(lambda e: (e['held_by'] != self.id), nearby_entities)),
                 inventory=list(filter(lambda e: (e['held_by'] == self.id), nearby_entities)),
                 relevant_commands=relevant_commands,

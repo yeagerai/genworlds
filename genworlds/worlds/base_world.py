@@ -1,10 +1,10 @@
 from uuid import uuid4
 from typing import Generic, Type, TypeVar
 
-from yeager_core.agents.yeager_autogpt.agent import YeagerAutoGPT
-from yeager_core.objects.base_object import BaseObject
-from yeager_core.events.websocket_event_handler import WebsocketEventHandler
-from yeager_core.events.basic_events import (
+from genworlds.agents.yeager_autogpt.agent import YeagerAutoGPT
+from genworlds.objects.base_object import BaseObject
+from genworlds.events.websocket_event_handler import WebsocketEventHandler
+from genworlds.events.basic_events import (
     AgentGetsNearbyEntitiesEvent,
     AgentGivesObjectToAgentEvent,
     AgentSpeaksWithAgentEvent,
@@ -13,7 +13,7 @@ from yeager_core.events.basic_events import (
     WorldSendsNearbyEntitiesEvent,
     WorldSendsSchemasEvent,
 )
-from yeager_core.worlds.base_world_entity import EntityTypeEnum, BaseWorldEntity
+from genworlds.worlds.base_world_entity import EntityTypeEnum, BaseWorldEntity
 
 WorldEntityType = TypeVar('WorldEntityType', bound=BaseWorldEntity)
 class BaseWorld(Generic[WorldEntityType], WebsocketEventHandler):

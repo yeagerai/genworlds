@@ -4,13 +4,14 @@ from typing import Any, Callable, List, Optional
 
 from pydantic import BaseModel
 
-from yeager_core.agents.yeager_autogpt.prompt_generator import get_prompt
+from genworlds.agents.yeager_autogpt.prompt_generator import get_prompt
 from langchain.prompts.chat import (
     BaseChatPromptTemplate,
 )
 from langchain.schema import BaseMessage, HumanMessage, SystemMessage
 from langchain.tools.base import BaseTool
 from langchain.vectorstores.base import VectorStoreRetriever
+from langchain.vectorstores import Chroma
 
 
 class AutoGPTPrompt(BaseChatPromptTemplate, BaseModel):
@@ -48,10 +49,15 @@ class AutoGPTPrompt(BaseChatPromptTemplate, BaseModel):
         return full_prompt
 
     def format_messages(self, **kwargs: Any) -> List[BaseMessage]:
+        messages: List[BaseMessage] = []
+
         base_prompt = SystemMessage(content=self.construct_full_prompt(kwargs["agent_world_state"], kwargs["goals"]))
+        messages.append(base_prompt)
+
         time_prompt = SystemMessage(
             content=f"The current time and date is {time.strftime('%c')}"
         )
+        messages.append(time_prompt)
         used_tokens = self.token_counter(base_prompt.content) + self.token_counter(
             time_prompt.content
         )
@@ -66,6 +72,8 @@ class AutoGPTPrompt(BaseChatPromptTemplate, BaseModel):
         inventory_message = SystemMessage(
             content=inventory_prompt
         )
+        messages.append(inventory_message)
+        used_tokens += self.token_counter(inventory_message.content)
 
 
         nearby_entities = kwargs["nearby_entities"]
@@ -78,6 +86,8 @@ class AutoGPTPrompt(BaseChatPromptTemplate, BaseModel):
         nearby_entities_message = SystemMessage(
             content=nearby_entities_prompt
         )
+        messages.append(nearby_entities_message)
+        used_tokens += self.token_counter(nearby_entities_message.content)
 
         relevant_commands = kwargs["relevant_commands"]
         relevant_commands_prompt = f"You can perform the following additional commands with the entities nearby. \"target_id\" is the id of the entity that provides the command:\n"
@@ -86,6 +96,21 @@ class AutoGPTPrompt(BaseChatPromptTemplate, BaseModel):
         relevant_commands_message = SystemMessage(
             content=relevant_commands_prompt
         )
+        messages.append(relevant_commands_message)
+        used_tokens += self.token_counter(relevant_commands_message.content)
+
+        personality_db: Chroma = kwargs["personality_db"]
+        if personality_db is not None:
+            previous_messages = kwargs["messages"]
+            past_statements = list(map(lambda d: d.page_content, personality_db.similarity_search(str(previous_messages[-10:]))))
+            if(len(past_statements) > 0):
+
+                past_statements_format = (
+                    f"You have said the following things in the past on this topic:\n{past_statements}\n\n"
+                )
+                personality_message = SystemMessage(content=past_statements_format)
+                messages.append(personality_message)
+                used_tokens += len(personality_message.content)
 
         memory: VectorStoreRetriever = kwargs["memory"]
         previous_messages = kwargs["messages"]
@@ -104,7 +129,9 @@ class AutoGPTPrompt(BaseChatPromptTemplate, BaseModel):
             f"from your past:\n{relevant_memory}\n\n"
         )
         memory_message = SystemMessage(content=content_format)
+        messages.append(memory_message)
         used_tokens += len(memory_message.content)
+
         historical_messages: List[BaseMessage] = []
         for message in previous_messages[-10:][::-1]:
             message_tokens = self.token_counter(message.content)
@@ -112,8 +139,9 @@ class AutoGPTPrompt(BaseChatPromptTemplate, BaseModel):
                 break
             historical_messages = [message] + historical_messages
         input_message = HumanMessage(content=kwargs["user_input"])
-        messages: List[BaseMessage] = [base_prompt, time_prompt, inventory_message, nearby_entities_message, relevant_commands_message, memory_message]
+
         messages += historical_messages
         plan : Optional[str] = kwargs["plan"]
+
         messages.append(input_message)
         return messages

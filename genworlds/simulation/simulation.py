@@ -3,8 +3,8 @@ from uuid import uuid4
 from typing import List
 import time
 
-from yeager_core.objects.base_object import BaseObject
-from yeager_core.worlds.base_world import BaseWorld
+from genworlds.objects.base_object import BaseObject
+from genworlds.worlds.base_world import BaseWorld
 
 
 class Simulation:
