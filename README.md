@@ -1,4 +1,4 @@
-# The yAgents Research Pod
+# 🧬🌍 GenWorlds
 [WARNING: ULTRA-BETA]
 
 ## About
