@@ -21,7 +21,6 @@ Importing the framework:
 
 ```
 import genworlds
-
 ```
 
 See examples for more details.
@@ -141,4 +140,4 @@ As the framework is in alpha, expect large changes to the codebase.
 
 ## License
 
-MIT
+GenWorlds is released under the MIT License. Please see the [LICENSE file](https://github.com/yeagerai/genworlds/blob/main/LICENSE) for more information.

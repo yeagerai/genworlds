@@ -1,10 +1,10 @@
 import os
 from dotenv import load_dotenv
 import concurrent.futures
-from agents_creator_lab.objects.microphone import Microphone
+from roundtable.objects.microphone import Microphone
 from genworlds.simulation.simulation import Simulation
 from genworlds.properties.basic_properties import Coordinates, Size
-from agents_creator_lab.objects.blackboard import Blackboard
+from roundtable.objects.blackboard import Blackboard
 from genworlds.agents.yeager_autogpt.agent import YeagerAutoGPT
 from genworlds.worlds.world_2d.world_2d import World2D
 
