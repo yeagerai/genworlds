@@ -1,22 +1,46 @@
-# 🧬🌍 GenWorlds - Beta
+# 🧬🌍 GenWorlds - The Collaborative AI Agent Framework
 
-## About
+[![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](https://opensource.org/license/mit/) 
+[![](https://dcbadge.vercel.app/api/server/VpfmXEMN66?compact=true&style=flat)](https://discord.gg/VpfmXEMN66) 
+[![Twitter](https://img.shields.io/twitter/url/https/twitter.com/yeagerai.svg?style=social&label=Follow%20%40YeagerAI)](https://twitter.com/yeagerai) 
+[![GitHub star chart](https://img.shields.io/github/stars/yeagerai/genworlds?style=social)](https://star-history.com/#yeagerai/genworlds)
 
-GenWorlds is a framework for building reliable multi-agent systems. 
 
-Agents can inhabit different kinds of worlds, interact with each other asynchronously, use different kinds of objects and form memories.
+## ⚠️ Warnings!
 
-Agents can also be pre-loaded with a series of memories, to give them personality and help them become subject-matter experts.
+- **GenWorlds is under active development**
+- **OpenAI API Access Required**
+- **Using GenWorlds can be costly**
+- **GenWorlds is not tested for Windows**
 
-The agents interact with the world through a websocket server, making it easy to build various UIs for them, and enabling scalability in the future.
 
-We use [langchain](https://python.langchain.com/en/latest/index.html) and [AutoGPT](https://github.com/Significant-Gravitas/Auto-GPT) under the hood.
+# About
+GenWorlds is an open-source framework for building reliable multi-agent systems. 
 
-## Installation
+Drawing inspiration from the seminal research paper ["Generative Agents: Interactive Simulacra of Human Behavior"](https://arxiv.org/abs/2304.03442) by Stanford and Google researchers, GenWorlds provides a platform for creating flexible, scalable, and interactive environments where AI agents can exist, communicate asynchronously, interact with diverse objects, and form new memories.
+
+Agents can also be pre-loaded with a series of memories that give them personality and helps them become subject-matter experts. This feature allows for nuanced and sophisticated interactions and behaviors. These agents communicate with the world through a WebSocket server, promoting ease of UI construction and future scalability. 
+
+The current version of GenWorlds is powered by [OpenAI's GPT4](https://openai.com/product/gpt-4), [Langchain](https://python.langchain.com/en/latest/index.html), [Chroma](https://www.trychroma.com/), and was inspired by [AutoGPT](https://github.com/Significant-Gravitas/Auto-GPT).
+
+## 🚀 Key Features
+
+- 🌐 **Customizable Interactive Environments:** Design unique GenWorld environments, tailored to your project's needs, filled with interactive objects and potential actions for your agents.
+
+- 🎯 **Goal-Oriented Generative Autonomous Agents:** Utilize AI agents powered by Langchain that are driven by specific objectives and can be easily extended and programmed to simulate complex behaviors and solve intricate problems.
+
+- 🧩 **Shared Objects:** Populate your world with shared objects, creating opportunities for your agents to interact with their environment and achieve their goals.
+
+- 💡 **Dynamic Memory Management:** Equip your agents with the ability to store, recall, and learn from past experiences, enhancing their decision-making and interaction capabilities.
+
+- ⚡ **Scalability:** Benefit from threading and WebSocket communication for real-time interaction between agents, ensuring the platform can easily scale up as your needs grow.
+
+
+# Installation
 
 `pip install genworlds`
 
-## Usage
+# Usage
 Importing the framework:
 
 ```
@@ -26,7 +50,7 @@ import genworlds
 
 See examples for more details.
 
-### Set up a simulations
+## Set up a simulations
 
 A simulation consists of a world, a set of agents, and a set of objects.
 
@@ -47,13 +71,12 @@ simulation = Simulation(
 
 Running `simulation.launch()` will start the simulation - start all of the threads for the agents, objects and world.
 
-### World
+## World
+The 'World' in GenWorlds serves as the setting for all the action. It keeps track of all the agents, objects, and world properties such as agent inventories. 
 
-The world keeps track of all the agents and objects, and world properties such as agent inventories.
+The World ensures every agent is informed about the world state, entities nearby, and the events that are available to them to interact with the world.
 
-The world updates all of the agents about their world state, nearby entities and events they can use to interact with the world.
-
-The BaseWorld class can be extended to introduce new world properties, for example the Wolrd2D in the examples introduces a location property.
+The BaseWorld class has been designed with extensibility in mind, enabling the introduction of new world properties. An example of this is the World2D class in our examples, which introduces a location property, adding a spatial dimension to the world.
 
 ```
 world = World2D(
@@ -64,13 +87,11 @@ world = World2D(
 )
 ```
 
-### Agents
+## Agents
 
 Agents are the entities that interact with the world. They have a set of goals and try to accomplish them by planning a series of actions.
 
-They interact with the world through a websocket server, which is started by the world, by sending events.
-
-Agents dynamically learn about the world and objects around them, and figure out how they can use them to accomplish their goals.
+The agents interact with their environment by sending events through a WebSocket server initiated by the world. They dynamically learn about the world and the objects around them, figuring out how to utilize these objects to achieve their goals.
 
 ```
 podcast_host = YeagerAutoGPT(
@@ -90,24 +111,40 @@ podcast_host = YeagerAutoGPT(
 
 `interesting_events` are the events that will be fed to the agent's prompt, allowing them to pay attention to things that are happening in the world.
 
-#### Custom memories 
+### Custom memories 
 
-Agents can be pre-loaded with prepared memories that will be loaded in their prompt based on the relevance to their current goals. These can be used to give agents personality and make them subject-matter experts.
+Each agent can be pre-loaded with unique memories, enhancing its unique personality traits and subject matter expertise. These memories are injected on their prompts based on their relevance to the agent's current goals, allowing for more focused and reliable interactions.
 
-The custom memories are a Chroma vector database, and you can set it up by passing the following two parameters to the agent constructor:
-    
-    ```
-    personality_db_path="/path/to/db",
-    personality_db_collection_name="jimmy-sentences",
-    ```
+Setting up these custom memories is straightforward with the [Chroma](https://www.trychroma.com/) vector database. Just pass the following parameters to the agent constructor:
 
-### Objects
+```
+personality_db_path="/path/to/db",
+personality_db_collection_name="jimmy-sentences",
+```
 
-Objects are the entities that agents can interact with. They define a set of events that the agents can use to interact with them to accomplish their goals.
+### Agent Mental Model
 
-The agents dynamically learn about nearby objects, and figure out how to use them based on the events they define.
+The Generative Agents within GenWorlds follow a specific mental model at each step of their interaction with the world:
 
-Objects can also be held in inventory by the agents.
+1. **Reviewing the world state and surrounding entities:** The agent assesses the environment it's in and the entities present around it to understand the context before planning any actions.
+   
+2. **Reviewing new events:** The agent evaluates any new occurrences. These could be actions taken by other agents or changes in the world state due to object interactions.
+   
+3. **Remembering past events and relevant information:** Using its stored memories, the agent recalls past experiences and data that might affect its current decision-making process.
+   
+4. **Updating the plan and deciding actions:** Based on the world state, new events, and past memories, the agent updates its action plan and decides on the next actions. These could involve interacting with the world, other agents, or objects. Importantly, an agent can execute multiple actions in one step, improving overall efficiency.
+   
+5. **Executing the actions:** Finally, the agent implements its plan, influencing the world state and potentially triggering responses from other agents.
+   
+This interactive process fosters the emergence of complex, autonomous behavior, making each agent an active participant in the GenWorld.
+
+While we are currently focused on enhancing each of these steps, we foresee potential developments in the short-medium term. For instance, we're exploring the value and nature of "reflection" as an aspect of an agent's mental model. This would enable the agent to draw new conclusions from a set of recent memories and maintain high-level goals. We're also considering improvements to the communication systems between agents to facilitate more effective collaboration.
+
+## Objects
+
+Objects are the entities that agents interact with. Each object defines a set of events that the agents can use to interact with them to accomplish their goals.
+
+Agents dynamically learn about nearby objects, and figure out how to use them based on the events that these objects define. Furthermore, objects can be held in an agent's inventory, providing an added layer of interaction.
 
 ```
 microphone = Microphone(
@@ -118,9 +155,10 @@ microphone = Microphone(
 )
 ```
 
-## Development
+# Development
 
 Run the server
+
 `uvicorn world_socket_server:app --host 0.0.0.0 --port 7456`
 
 Run the world from VSCode
@@ -133,12 +171,23 @@ https://github.com/facebookresearch/faiss/blob/main/INSTALL.md
 `pip install -r requirements.txt`
 
 
-## Contributing
+# Contributing  
 
-As an open-source project in a rapidly developing field, we are extremely open to contributions, whether it be in the form of a new feature, improved infrastructure, or better documentation.
+As an open-source project in a rapidly developing field, we are extremely open to contributions, whether it be in the form of a new feature, improved infrastructure, or better documentation. Please read our CONTRIBUTING for guidelines on how to submit your contributions.
 
 As the framework is in alpha, expect large changes to the codebase.
 
-## License
+# License
 
-MIT
+🧬🌍 GenWorlds is released under the MIT License. Please see the LICENSE file for more information. 
+
+# Disclaimer
+This software is provided 'as-is', without any guarantees or warranties. By using GenWorlds, you agree to assume all associated risks, including but not limited to data loss, system issues, or any unforeseen challenges.
+
+The developers and contributors of GenWorlds are not responsible for any damages, losses, or consequences that may arise from its use. You alone are responsible for any decisions and actions taken based on the information or results produced by GenWorlds.
+
+Be mindful that usage of AI models, like GPT-4, can be costly due to their token usage. By using GenWorlds, you acknowledge that you are responsible for managing your own token usage and related costs.
+
+As an autonomous system, GenWorlds may produce content or execute actions that may not align with real-world business practices or legal requirements. You are responsible for ensuring all actions or decisions align with all applicable laws, regulations, and ethical standards.
+
+By using GenWorlds, you agree to indemnify, defend, and hold harmless the developers, contributors, and any associated parties from any claims, damages, losses, liabilities, costs, and expenses (including attorney's fees) that might arise from your use of this software or violation of these terms.
