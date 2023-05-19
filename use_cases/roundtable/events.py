@@ -1,6 +1,6 @@
 from typing import List
 from genworlds.events.websocket_event_handler import Event
-from agents_creator_lab.objects.job import Job
+from use_cases.roundtable.objects.job import Job
 
 
 class AgentReadsBlackboardEvent(Event):

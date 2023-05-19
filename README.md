@@ -45,7 +45,6 @@ Importing the framework:
 
 ```
 import genworlds
-
 ```
 
 See examples for more details.
