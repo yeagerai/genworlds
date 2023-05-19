@@ -6,13 +6,12 @@ setup(
     description="GenWorlds by YeagerAI: Pioneering AI-based simulations based on collaborative autonomous agents.",
     author="YeagerAI LLC",
     author_email="jm@yeager.ai",
-    packages=["genworlds"],
+    packages=["genworlds", "genworlds.sockets"],
     install_requires=[
         "chromadb==0.3.21",
         "click==8.1.3",
         "colorama==0.4.6",
         "colorlog==6.7.0",
-        "faiss-cpu==1.7.3",
         "fastapi==0.88.0",
         "fastjsonschema==2.16.3",
         "jsonschema==4.17.3",
@@ -40,4 +39,9 @@ setup(
         "Topic :: Software Development :: Libraries :: Application Frameworks",
         "Topic :: Software Development :: Libraries :: Python Modules",
     ],
+    entry_points={
+        'console_scripts': [
+            'genworlds-start-socket = genworlds.sockets.world_socket_server:start_from_command_line',
+        ],
+    },
 )
