@@ -91,9 +91,10 @@ genworlds-start-socket
 ```
 
 The default port is 7456, but you can change it with the `--port` argument.
+You can also set the host with the `--host` argument.
 
 ```bash
-genworlds-start-socket --port 1234
+genworlds-start-socket --port 1234 --host 0.0.0.0
 ```
 
 ## Set up a simulations
