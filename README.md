@@ -11,7 +11,6 @@
 - **GenWorlds is under active development**
 - **OpenAI API Access Required**
 - **Using GenWorlds can be costly**
-- **GenWorlds is not tested for Windows**
 
 
 # About

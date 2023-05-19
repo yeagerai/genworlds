@@ -1,5 +1,6 @@
 from __future__ import annotations
 from datetime import datetime
+import threading
 from uuid import uuid4
 from time import sleep
 import json
@@ -32,7 +33,6 @@ from genworlds.agents.yeager_autogpt.prompt import AutoGPTPrompt
 from genworlds.agents.yeager_autogpt.prompt_generator import FINISH_NAME
 from genworlds.sockets.world_socket_client import WorldSocketClient
 from genworlds.agents.yeager_autogpt.listening_antenna import ListeningAntenna
-from genworlds.properties.basic_properties import Coordinates, Size
 from genworlds.events.basic_events import (
     AgentGetsNearbyEntitiesEvent,
     AgentGetsObjectInfoEvent,
@@ -64,6 +64,7 @@ class YeagerAutoGPT:
         id: str = None,
         personality_db_path: str = None,
         personality_db_collection_name: str = None,
+        websocket_url: str = "ws://127.0.0.1:7456/ws",
     ):
         # Its own properties
         self.id = id if id else str(uuid4())
@@ -74,37 +75,17 @@ class YeagerAutoGPT:
 
         self.logger = LoggingFactory.get_logger(self.ai_name)
 
-        self.world_socket_client = WorldSocketClient(process_event=None)
+        self.world_socket_client = WorldSocketClient(process_event=None, url=websocket_url)
 
         self.listening_antenna = ListeningAntenna(
             self.interesting_events,
             agent_name=self.ai_name,
             agent_id=self.id,
+            websocket_url=websocket_url,
         )
 
         # Agent actions
-        self.actions = [
-            # StructuredTool.from_function(
-            #     name="agent_gets_nearby_entities_event",
-            #     description="Gets nearby entities",
-            #     func=self.agent_gets_nearby_entities_action,
-            # ),
-            # StructuredTool.from_function(
-            #     name="get_object_info",
-            #     description="Gets the info of an object.",
-            #     func=self.agent_gets_object_info_action,
-            # ),
-            # StructuredTool.from_function(
-            #     name="get_agent_info",
-            #     description="Gets the info of an agent.",
-            #     func=self.agent_gets_agent_info_action,
-            # ),
-            # StructuredTool.from_function(
-            #     name="interact_with_object",
-            #     description="Interacts with an object.",
-            #     func=self.agent_interacts_with_object_action,
-            # ),
-        ]
+        self.actions = []
 
         # Brain properties
         self.embeddings_model = OpenAIEmbeddings(openai_api_key=openai_api_key)
@@ -159,17 +140,25 @@ class YeagerAutoGPT:
         self.agent_request_world_state_update_action()
 
         sleep(5)
-        # self.schemas_memory = Chroma.from_documents(self.listening_antenna.schemas_as_docs, self.embeddings_model)
 
         while True:
             agent_world_state = self.listening_antenna.get_agent_world_state()
-             # if self.plan:
-            #     # useful_schemas = self.schemas_memory.similarity_search(self.plan)
-            # else:
-            #     useful_schemas = [""]
-            nearby_entities = self.listening_antenna.get_nearby_entities() # TODO: Vector similarity
+            nearby_entities = self.listening_antenna.get_nearby_entities() 
+
+            if len(nearby_entities) > 0:
+                nearby_entities_store = Chroma.from_texts(list(map(json.dumps, nearby_entities)), self.embeddings_model)
+
+                if self.plan:
+                    useful_nearby_entities = nearby_entities_store.similarity_search(self.plan)
+                else:
+                    useful_nearby_entities = nearby_entities_store.similarity_search(json.dumps(self.goals))
+
+                useful_nearby_entities = list(map(lambda d: json.loads(d.page_content), useful_nearby_entities))
+            else:
+                useful_nearby_entities = []
+
             relevant_commands = []
-            for entity in nearby_entities:
+            for entity in useful_nearby_entities:
                 entity_schemas = self.get_schemas()[entity["entity_class"]]
                 
                 for event_type, schema in entity_schemas.items():
@@ -374,3 +363,22 @@ class YeagerAutoGPT:
             target_id=self.world_spawned_id,
         )
         self.world_socket_client.send_message(agent_request_world_state_update.json())
+
+
+    def launch_threads(self):
+        threading.Thread(
+                target=self.listening_antenna.world_socket_client.websocket.run_forever,
+                name=f"Agent {self.ai_name} Listening Thread",
+                daemon=True,
+            ).start()
+        threading.Thread(
+            target=self.world_socket_client.websocket.run_forever,
+            name=f"Agent {self.ai_name} Speaking Thread",
+            daemon=True,
+        ).start()
+        threading.Thread(
+            target=self.think, 
+            name=f"Agent {self.ai_name} Thinking Thread",
+            daemon=True,
+        ).start()
+        self.logger.info("Threads launched")

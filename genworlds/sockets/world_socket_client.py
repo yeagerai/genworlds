@@ -8,10 +8,10 @@ from genworlds.utils.logging_factory import LoggingFactory
 
 
 class WorldSocketClient:
-    def __init__(self, process_event, send_initial_event=None) -> None:
-        self.uri = "ws://127.0.0.1:7456/ws"
+    def __init__(self, process_event, url:str = "ws://127.0.0.1:7456/ws", send_initial_event = None) -> None:
+        self.url = url
         self.websocket = websocket.WebSocketApp(
-            self.uri,
+            self.url,
             on_open=self.on_open,
             on_message=self.on_message,
             on_error=self.on_error,
@@ -21,7 +21,7 @@ class WorldSocketClient:
         self.send_initial_event = send_initial_event
 
     def on_open(self, ws):
-        self.logger().info(f"Connected to world socket server {self.uri}")
+        self.logger().info(f"Connected to world socket server {self.url}")
         if self.send_initial_event:
             self.send_initial_event()
             self.logger().debug(f"Initial event sent")

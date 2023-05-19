@@ -1,26 +1,17 @@
 import os
+from dotenv import load_dotenv
 import concurrent.futures
 
-from dotenv import load_dotenv
 
 from genworlds.simulation.simulation import Simulation
-from genworlds.properties.basic_properties import Coordinates, Size
 from genworlds.agents.yeager_autogpt.agent import YeagerAutoGPT
 from genworlds.worlds.world_2d.world_2d import World2D
-
 from use_cases.roundtable.objects.microphone import Microphone
-from use_cases.roundtable.objects.blackboard import Blackboard
 
 thread_pool_ref = concurrent.futures.ThreadPoolExecutor
 
-home_path = os.path.expanduser("~")
-load_dotenv(dotenv_path=os.path.join(home_path, ".yeagerai-sessions/.env"))
+load_dotenv(dotenv_path=".env")
 openai_api_key = os.getenv("OPENAI_API_KEY")
-
-# blackboard = Blackboard(
-#     name="blackboard",
-#     description="The blackboard is a place where agents can read and write all the jobs they have to do while in the lab",
-# )
 
 ABS_PATH = os.path.dirname(os.path.abspath(__file__))
 
