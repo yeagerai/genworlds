@@ -39,12 +39,19 @@ The current version of GenWorlds is powered by [OpenAI's GPT4](https://openai.co
 Currently it needs to be run in a [Conda](https://docs.conda.io/en/latest/) environment, because some of the dependencies can only be installed with conda.
 
 # Installation
+## Conda
+Before installing the package with pip, you need to set up your conda environment.
+
+First, set up a new conda environment:
 
 ```bash
-pip install genworlds
+conda create -n genworlds python=3.8
+conda activate genworlds
 ```
 
-## FAISS
+Then, install the following dependencies:
+
+### FAISS
 
 You also need to install [Faiss](https://github.com/facebookresearch/faiss)
 
@@ -52,12 +59,20 @@ You also need to install [Faiss](https://github.com/facebookresearch/faiss)
 conda install -c conda-forge faiss-cpu
 ```
 
-## M1 Macs
+### M1 Macs
 
 On M1 Macs, you also need to install two additional dependencies:
 ```bash
 conda install scipy
 conda install scikit-learn
+```
+
+## Pip
+
+After that, you can use pip to install the package:
+
+```bash
+pip install genworlds
 ```
 
 # Usage
@@ -69,7 +84,7 @@ import genworlds
 
 See examples for more details.
 
-You also need to run the websocket server, that will be used for communication between the agents and the world.
+Before running a simulation, you also need to run the websocket server that will be used for communication between the agents and the world.
 
 ```bash
 genworlds-start-socket
