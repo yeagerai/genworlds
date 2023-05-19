@@ -42,21 +42,7 @@ class Simulation:
 
         for (agent, world_properties) in self.agents:
             # start the agent's threads
-            threading.Thread(
-                target=agent.listening_antenna.world_socket_client.websocket.run_forever,
-                name=f"Agent {agent.ai_name} Listening Thread",
-                daemon=True,
-            ).start()
-            threading.Thread(
-                target=agent.world_socket_client.websocket.run_forever,
-                name=f"Agent {agent.ai_name} Speaking Thread",
-                daemon=True,
-            ).start()
-            threading.Thread(
-                target=agent.think, 
-                name=f"Agent {agent.ai_name} Thinking Thread",
-                daemon=True,
-            ).start()
+            agent.launch_threads()
 
         for (obj, world_properties) in self.objects:
             # start the object's threads

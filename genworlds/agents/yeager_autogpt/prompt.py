@@ -78,7 +78,7 @@ class AutoGPTPrompt(BaseChatPromptTemplate, BaseModel):
 
         nearby_entities = kwargs["nearby_entities"]
         if len(nearby_entities) > 0:
-            nearby_entities_prompt = f"There are the following entities near you:\  n"
+            nearby_entities_prompt = f"There are the following entities near you: \n"
             for entity in nearby_entities:
                 nearby_entities_prompt += f"{json.dumps(entity)}\n"
         else:

@@ -1,5 +1,6 @@
 
 import logging
+import os
 import colorlog
 
 
@@ -24,7 +25,8 @@ class LoggingFactory:
         # Create a logger
         logger = colorlog.getLogger(name)
         logger.addHandler(handler)
-        logger.setLevel(logging.DEBUG)
+        logger.setLevel(os.getenv("LOGGING_LEVEL", logging.INFO))
+        logger.debug(f"Created logger {name} with level {logger.level}")
 
         # Cache the logger instance
         cls.loggers[name] = logger

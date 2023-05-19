@@ -1,5 +1,8 @@
+import threading
 from fastapi import FastAPI, WebSocket, WebSocketDisconnect
 from typing import List
+
+import uvicorn
 
 
 class WebSocketManager:
@@ -49,6 +52,18 @@ async def websocket_endpoint(websocket: WebSocket):
         traceback.print_exc()
     finally:
         await websocket_manager.disconnect(websocket)
+
+
+def start(port: int = 7456):
+    uvicorn.run(app, port=port, log_level="critical")
+
+def start_thread(port: int = 7456):
+    threading.Thread(
+        target=start,
+        name=f"Websocket Server Thread",
+        daemon=True,
+        args=(port,),
+    ).start()
 
 
 # uvicorn world_socket_server:app --host 0.0.0.0 --port 7456

@@ -1,10 +1,17 @@
 
+from genworlds.events.websocket_event_handler import Event
 from genworlds.properties.basic_properties import Coordinates, Size
 from genworlds.worlds.base_world import BaseWorld
 from genworlds.worlds.base_world_entity import BaseWorldEntity
 
 class WorldEntity2D(BaseWorldEntity):
     location: str = None
+
+
+class AgentMovesToNewLocation(Event):
+    event_type = "agent_moves_to_new_location"
+    description = "Agent moves to a new location in the world."
+    destination_location: str
 
 class World2D(BaseWorld[WorldEntity2D]):
 
@@ -26,6 +33,10 @@ class World2D(BaseWorld[WorldEntity2D]):
         );
     
         self.locations = locations
+
+        self.register_event_listeners([
+            (AgentMovesToNewLocation, self.agent_moves_to_new_location_listener),
+        ])
 
     def get_nearby_entities(self, entity_id: str) -> WorldEntity2D:
         reference_entity = self.entities.get(entity_id)
@@ -58,3 +69,12 @@ class World2D(BaseWorld[WorldEntity2D]):
         )
 
         return world_state_prompt
+
+    def agent_moves_to_new_location_listener(self, event: AgentMovesToNewLocation):
+        agent_entity = self.get_agent_by_id(event.agent_id)
+
+        if event.destination_location not in self.locations:
+            raise Exception(f"Location {event.destination_location} does not exist.")
+
+        agent_entity.location = event.destination_location
+        self.emit_agent_world_state(agent_entity.id)

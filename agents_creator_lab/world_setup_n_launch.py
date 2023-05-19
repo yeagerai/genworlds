@@ -1,23 +1,20 @@
 import os
 from dotenv import load_dotenv
 import concurrent.futures
+
+import uvicorn
 from agents_creator_lab.objects.microphone import Microphone
 from genworlds.simulation.simulation import Simulation
 from genworlds.properties.basic_properties import Coordinates, Size
 from agents_creator_lab.objects.blackboard import Blackboard
 from genworlds.agents.yeager_autogpt.agent import YeagerAutoGPT
+from genworlds.sockets import world_socket_server
 from genworlds.worlds.world_2d.world_2d import World2D
 
 thread_pool_ref = concurrent.futures.ThreadPoolExecutor
 
-home_path = os.path.expanduser("~")
-load_dotenv(dotenv_path=os.path.join(home_path, ".yeagerai-sessions/.env"))
+load_dotenv(dotenv_path=".env")
 openai_api_key = os.getenv("OPENAI_API_KEY")
-
-# blackboard = Blackboard(
-#     name="blackboard",
-#     description="The blackboard is a place where agents can read and write all the jobs they have to do while in the lab",
-# )
 
 ABS_PATH = os.path.dirname(os.path.abspath(__file__))
 
@@ -78,6 +75,9 @@ simulation = Simulation(
         (podcast_guest, {"location": "roundtable"}),
     ],
 )
+
+# Start the websocket server
+# world_socket_server.start_thread()
 
 # this attaches to the websocket all the objects and agents in the world
 simulation.launch()

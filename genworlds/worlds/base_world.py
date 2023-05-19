@@ -1,6 +1,8 @@
 from uuid import uuid4
 from typing import Generic, Type, TypeVar
 
+import uvicorn
+
 from genworlds.agents.yeager_autogpt.agent import YeagerAutoGPT
 from genworlds.objects.base_object import BaseObject
 from genworlds.events.websocket_event_handler import WebsocketEventHandler
@@ -17,7 +19,7 @@ from genworlds.worlds.base_world_entity import EntityTypeEnum, BaseWorldEntity
 
 WorldEntityType = TypeVar('WorldEntityType', bound=BaseWorldEntity)
 class BaseWorld(Generic[WorldEntityType], WebsocketEventHandler):
-    subconscious_event_classes: set[str] = {AgentGetsNearbyEntitiesEvent, EntityRequestWorldStateUpdateEvent}
+    subconscious_event_classes: set[str]
     entities: dict[str, WorldEntityType]
     entity_schemas: dict[str, dict]
     world_entity_constructor: Type[WorldEntityType]
@@ -28,13 +30,15 @@ class BaseWorld(Generic[WorldEntityType], WebsocketEventHandler):
         name: str,
         description: str,
         id: str = None,
+        websocket_url: str = "ws://127.0.0.1:7456/ws",
     ):
         self.id = id if id else str(uuid4())
         self.name = name
         self.description = description
         self.world_entity_constructor = world_entity_constructor
+        self.subconscious_event_classes = {AgentGetsNearbyEntitiesEvent, EntityRequestWorldStateUpdateEvent}
 
-        super().__init__(self.id)
+        super().__init__(self.id, websocket_url=websocket_url)
 
         self.entities = {}
         self.entity_schemas = {}
@@ -192,6 +196,5 @@ class BaseWorld(Generic[WorldEntityType], WebsocketEventHandler):
         print("Registered object", entity)
 
         self.entities[entity.id] = entity
-
 
     

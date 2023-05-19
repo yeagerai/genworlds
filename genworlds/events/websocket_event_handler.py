@@ -15,13 +15,16 @@ class WebsocketEventHandler:
     listeners: dict[str, set]
     event_classes: dict[str, type[Event]]
 
-    def __init__(self, id, event_class_listener_pairs: List[tuple[type[Event], Callable]] = []):
+    def __init__(self, id, event_class_listener_pairs: List[tuple[type[Event], Callable]] = None, websocket_url: str = "ws://127.0.0.1:7456/ws"):
+        if event_class_listener_pairs is None:
+            event_class_listener_pairs = []
+
         self.listeners = {}
         self.event_classes = {}
 
         self.id = id
-        self.world_socket_client = WorldSocketClient(process_event=self.process_event)
         self.register_event_listeners(event_class_listener_pairs)
+        self.world_socket_client = WorldSocketClient(process_event=self.process_event, url=websocket_url)        
 
 
     def register_event_listeners(self, event_class_listener_pairs: List[tuple[type[Event], Callable]]):
@@ -67,6 +70,6 @@ class WebsocketEventHandler:
     def launch_websocket_thread(self):
         threading.Thread(
             target=self.world_socket_client.websocket.run_forever,
-            name=f"{id} Thread",
+            name=f"{self.id} Thread",
             daemon=True,
         ).start()
