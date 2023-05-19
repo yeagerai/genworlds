@@ -34,25 +34,58 @@ The current version of GenWorlds is powered by [OpenAI's GPT4](https://openai.co
 
 - ⚡ **Scalability:** Benefit from threading and WebSocket communication for real-time interaction between agents, ensuring the platform can easily scale up as your needs grow.
 
+# Requirements
+
+Currently it needs to be run in a [Conda](https://docs.conda.io/en/latest/) environment, because some of the dependencies can only be installed with conda.
 
 # Installation
 
-`pip install genworlds`
+```bash
+pip install genworlds
+```
+
+## FAISS
+
+You also need to install [Faiss](https://github.com/facebookresearch/faiss)
+
+```bash
+conda install -c conda-forge faiss-cpu
+```
+
+## M1 Macs
+
+On M1 Macs, you also need to install two additional dependencies:
+```bash
+conda install scipy
+conda install scikit-learn
+```
 
 # Usage
 Importing the framework:
 
-```
+```bash
 import genworlds
 ```
 
 See examples for more details.
 
+You also need to run the websocket server, that will be used for communication between the agents and the world.
+
+```bash
+genworlds-start-socket
+```
+
+The default port is 7456, but you can change it with the `--port` argument.
+
+```bash
+genworlds-start-socket --port 1234
+```
+
 ## Set up a simulations
 
 A simulation consists of a world, a set of agents, and a set of objects.
 
-```
+```python
 simulation = Simulation(
     name="roundable",
     description="This is a podcast studio. There is a microphone, and only the holder of the microphone can speak to the audience",
@@ -76,7 +109,7 @@ The World ensures every agent is informed about the world state, entities nearby
 
 The BaseWorld class has been designed with extensibility in mind, enabling the introduction of new world properties. An example of this is the World2D class in our examples, which introduces a location property, adding a spatial dimension to the world.
 
-```
+```python
 world = World2D(
     id="world",
     name="roundtable",
@@ -91,7 +124,7 @@ Agents are the entities that interact with the world. They have a set of goals a
 
 The agents interact with their environment by sending events through a WebSocket server initiated by the world. They dynamically learn about the world and the objects around them, figuring out how to utilize these objects to achieve their goals.
 
-```
+```python
 podcast_host = YeagerAutoGPT(
     id="maria",
     ai_name="Maria",
@@ -115,7 +148,7 @@ Each agent can be pre-loaded with unique memories, enhancing its unique personal
 
 Setting up these custom memories is straightforward with the [Chroma](https://www.trychroma.com/) vector database. Just pass the following parameters to the agent constructor:
 
-```
+```python
 personality_db_path="/path/to/db",
 personality_db_collection_name="jimmy-sentences",
 ```
@@ -144,7 +177,7 @@ Objects are the entities that agents interact with. Each object defines a set of
 
 Agents dynamically learn about nearby objects, and figure out how to use them based on the events that these objects define. Furthermore, objects can be held in an agent's inventory, providing an added layer of interaction.
 
-```
+```python
 microphone = Microphone(
     id="microphone",
     name="Microphone",
@@ -157,7 +190,10 @@ microphone = Microphone(
 
 Run the server
 
-`uvicorn world_socket_server:app --host 0.0.0.0 --port 7456`
+```bash
+cd sockets/worls_socket_server
+uvicorn world_socket_server:app --host 0.0.0.0 --port 7456
+```
 
 Run the world from VSCode
 

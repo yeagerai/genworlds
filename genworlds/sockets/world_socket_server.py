@@ -1,3 +1,4 @@
+import argparse
 import threading
 from fastapi import FastAPI, WebSocket, WebSocketDisconnect
 from typing import List
@@ -55,7 +56,7 @@ async def websocket_endpoint(websocket: WebSocket):
 
 
 def start(port: int = 7456):
-    uvicorn.run(app, port=port, log_level="critical")
+    uvicorn.run(app, port=port, log_level="info")
 
 def start_thread(port: int = 7456):
     threading.Thread(
@@ -66,4 +67,16 @@ def start_thread(port: int = 7456):
     ).start()
 
 
+def start_from_command_line():
+    parser = argparse.ArgumentParser(description='Start the world socket server.')
+    parser.add_argument('--port', type=int, help='The port to start the socket on.', default=7456, nargs='?')
+
+    args = parser.parse_args()
+
+    port = args.port
+
+    start(port=port)
+
 # uvicorn world_socket_server:app --host 0.0.0.0 --port 7456
+
+
