@@ -1,12 +1,15 @@
 import os
-from dotenv import load_dotenv
 import concurrent.futures
-from roundtable.objects.microphone import Microphone
+
+from dotenv import load_dotenv
+
 from genworlds.simulation.simulation import Simulation
 from genworlds.properties.basic_properties import Coordinates, Size
-from roundtable.objects.blackboard import Blackboard
 from genworlds.agents.yeager_autogpt.agent import YeagerAutoGPT
 from genworlds.worlds.world_2d.world_2d import World2D
+
+from use_cases.roundtable.objects.microphone import Microphone
+from use_cases.roundtable.objects.blackboard import Blackboard
 
 thread_pool_ref = concurrent.futures.ThreadPoolExecutor
 

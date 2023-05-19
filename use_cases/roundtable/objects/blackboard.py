@@ -2,14 +2,14 @@ from typing import List
 
 from genworlds.worlds.base_world import BaseObject
 from genworlds.objects.base_object import BaseObject
-from roundtable.events import (
+from use_cases.roundtable.events import (
     AgentReadsBlackboardEvent,
     AgentDeletesJobFromBlackboardEvent,
     AgentAddsJobToBlackboardEvent,
     BlackboardSendsContentEvent,
     UserAddsJobToBlackboardEvent,
 )
-from roundtable.objects.job import Job
+from use_cases.roundtable.objects.job import Job
 
 
 class Blackboard(BaseObject):
