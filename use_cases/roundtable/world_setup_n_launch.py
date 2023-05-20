@@ -55,13 +55,13 @@ microphone = Microphone(
 
 world = World2D(
     id="world",
-    name="roundtable",
+    name="Roundtable",
     description="This is a podcast studio, where you record the Roundtable podcast. There is a microphone, and only the holder of the microphone can speak to the audience",
     locations=["roundtable"],
 )
 
 simulation = Simulation(
-    name="roundable",
+    name="Roundable",
     description="This is a podcast studio, where you record the Roundtable podcast. There is a microphone, and only the holder of the microphone can speak to the audience",
     world=world,
     objects=[
