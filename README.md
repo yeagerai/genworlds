@@ -45,13 +45,13 @@ Before installing the package with pip, you need to set up your conda environmen
 First, set up a new conda environment:
 
 ```bash
-conda create -n genworlds python=3.8
+conda create -n genworlds python=3.10
 conda activate genworlds
 ```
 
 Then, install the following dependencies:
 
-### FAISS
+### On Windows
 
 You also need to install [Faiss](https://github.com/facebookresearch/faiss)
 
@@ -59,12 +59,12 @@ You also need to install [Faiss](https://github.com/facebookresearch/faiss)
 conda install -c conda-forge faiss-cpu
 ```
 
-### M1 Macs
+### On Mac OS
 
-On M1 Macs, you also need to install two additional dependencies:
 ```bash
 conda install scipy
 conda install scikit-learn
+conda install -c pytorch faiss-cpu
 ```
 
 ## Pip
@@ -75,7 +75,23 @@ After that, you can use pip to install the package:
 pip install genworlds
 ```
 
-# Usage
+# Run the Rountable example
+
+Start the websocket server and the CLI:
+
+```bash
+genworlds-start-chat-room
+```
+
+Then in another terminal run the example:
+
+```bash
+python use_cases/roundtable/world_setup_n_launch.py
+```
+
+See (use_cases/roundtable/world_setup_n_launch.py) for the code.
+
+# Usage in your own project
 Importing the framework:
 
 ```bash
@@ -103,7 +119,7 @@ A simulation consists of a world, a set of agents, and a set of objects.
 
 ```python
 simulation = Simulation(
-    name="roundable",
+    name="roundtable",
     description="This is a podcast studio. There is a microphone, and only the holder of the microphone can speak to the audience",
     world=world,
     objects=[
@@ -202,30 +218,26 @@ microphone = Microphone(
 )
 ```
 
-# Development
-
-Run the server
-
-```bash
-cd sockets/worls_socket_server
-uvicorn world_socket_server:app --host 0.0.0.0 --port 7456
-```
-
-Run the world from VSCode
-
-## Building locally
-
-`conda install -c conda-forge faiss-cpu`
-https://github.com/facebookresearch/faiss/blob/main/INSTALL.md
-
-`pip install -r requirements.txt`
-
-
 # Contributing  
 
 As an open-source project in a rapidly developing field, we are extremely open to contributions, whether it be in the form of a new feature, improved infrastructure, or better documentation. Please read our CONTRIBUTING for guidelines on how to submit your contributions.
 
 As the framework is in alpha, expect large changes to the codebase.
+
+## Building locally
+
+`pip install -r requirements.txt`
+
+# Running locally for development
+
+Running the socket server server
+
+```bash
+cd sockets/world_socket_server
+uvicorn world_socket_server:app --host 0.0.0.0 --port 7456
+```
+
+The easiest way to run the world is using the Visual Studio Code run configuration.
 
 # License
 
