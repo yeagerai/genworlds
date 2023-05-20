@@ -371,11 +371,13 @@ class YeagerAutoGPT:
                 name=f"Agent {self.ai_name} Listening Thread",
                 daemon=True,
             ).start()
+        sleep(0.1)
         threading.Thread(
             target=self.world_socket_client.websocket.run_forever,
             name=f"Agent {self.ai_name} Speaking Thread",
             daemon=True,
         ).start()
+        sleep(0.1)
         threading.Thread(
             target=self.think, 
             name=f"Agent {self.ai_name} Thinking Thread",
