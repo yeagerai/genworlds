@@ -84,17 +84,17 @@ import genworlds
 
 See examples for more details.
 
-Before running a simulation, you also need to run the websocket server that will be used for communication between the agents and the world.
+Before running a simulation, you also need to run the websocket server that will be used for communication between the agents and the world. And also the CLI to visualize what the simulated agents are doing.
 
 ```bash
-genworlds-start-socket
+genworlds-start-chat-room
 ```
 
 The default port is 7456, but you can change it with the `--port` argument.
 You can also set the host with the `--host` argument.
 
 ```bash
-genworlds-start-socket --port 1234 --host 0.0.0.0
+genworlds-start-chat-room --port 1234 --host 0.0.0.0
 ```
 
 ## Set up a simulations

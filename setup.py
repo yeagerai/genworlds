@@ -41,7 +41,7 @@ setup(
     ],
     entry_points={
         'console_scripts': [
-            'genworlds-start-socket = genworlds.sockets.world_socket_server:start_from_command_line',
+            'genworlds-start-chat-room = genworlds.interfaces.cli:start_from_command_line',
         ],
     },
 )

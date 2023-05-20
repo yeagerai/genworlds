@@ -1,3 +1,5 @@
+import argparse
+import time
 import os
 from datetime import datetime
 import threading
@@ -13,163 +15,168 @@ from prompt_toolkit.styles import Style
 import textwrap
 
 from genworlds.sockets.world_socket_client import WorldSocketClient
+from genworlds.sockets.world_socket_server import start_thread as start_world_socket_server_thread
 
-def get_terminal_size():
-    return os.get_terminal_size()
+class ChatRoom:
+    def __init__(self):
+        self.ws_client = WorldSocketClient(self.process_event)
 
-# TODO: process initial world state to create menu items and coloring
+        self.header_buffer = Buffer()
+        self.menu_buffer = Buffer()
+        self.chat_buffer = Buffer()
+        self.prompt_buffer = Buffer()
 
-# TODO: process thoughts
+        self.menu_items = []
+        self.menu_highlighted_index = 0
 
-def process_agent_message(message):
-    timestamp = datetime.fromisoformat(message['created_at'].replace("Z", "+00:00"))
-    formatted_timestamp = timestamp.strftime("%Y-%m-%d %H:%M:%S")
+        self.init_layout()
+        self.init_keybindings()
+        self.init_style()
+        self.init_app()
 
-    columns, _ = get_terminal_size()  
-    wrap_width = max(columns - len(f"{formatted_timestamp} [{message['sender_id']}]: ") - 20, 0)
-    wrapped_message = textwrap.fill(message['message'], wrap_width)
-    return f"{formatted_timestamp} [{message['sender_id']}]: {wrapped_message}\n\n"
+    def init_layout(self):
+        header = Window(height=3, content=BufferControl(buffer=self.header_buffer), align=WindowAlign.LEFT)
+        menu_content = BufferControl(buffer=self.menu_buffer)
+        switch_chat_menu = Window(content=menu_content, width=D.exact(15), style="class:menu", wrap_lines=False)
+        chat = Window(BufferControl(buffer=self.chat_buffer))
+        chat_user_input = Window(height=3, content=BufferControl(buffer=self.prompt_buffer), style="class:prompt")
+        footer = Window(height=2, content=FormattedTextControl([("class:title", "The default 🧬🌍 GenWorlds interface\n"),
+                                                           ("class:title", "Press [Ctrl-S] to select chat. | Press [Ctrl-C] to quit.")]), align=WindowAlign.CENTER)
 
-def process_event(ws_json_message):
-    # router for event types
-    if ws_json_message['event_type'] == 'agent_speaks_into_microphone':
-        chat_buffer.text += process_agent_message(ws_json_message)
+        self.root_container = HSplit(
+            [
+                header,
+                Window(height=1, char="-", style="class:line"),
+                VSplit([
+                    switch_chat_menu,
+                    Window(width=1, char="|", style="class:line"),
+                    chat,
+                ]),
+                Window(height=1, char="-", style="class:line"),
+                chat_user_input,
+                Window(height=1, char="-", style="class:line"),
+                footer,
+            ]
+        )
 
-ws_client = WorldSocketClient(process_event)
+    def init_keybindings(self):
+        self.kb = KeyBindings()
 
-# TODO: organize menu screens on the right side of the screen
+        @self.kb.add("c-c", eager=True)
+        def exit_app(event):
+            event.app.exit()
 
-# TODO: enable chat input and chat events to chat with the agents
+        @self.kb.add("up")
+        def navigate_up(event):
+            if self.menu_highlighted_index > 0:
+                self.menu_highlighted_index -= 1
+            self.menu_buffer.text = self._create_menu_text()
 
-chat_room_name = "Chat Room"
-chat_room_description = "This is a chat room, where you can chat with other agents"
-agents = [
-    {
-        "agent_name":"Agent 1",
-        "agent_description": "This is agent 1",
-    },
-    {
-        "agent_name":"Agent 2",
-        "agent_description": "This is agent 2",
-    },
-]
+        @self.kb.add("down")
+        def navigate_down(event):
+            if self.menu_highlighted_index < len(self.menu_items) - 1:
+                self.menu_highlighted_index += 1
+            self.menu_buffer.text = self._create_menu_text()
 
-# Define the menu items
-agent_items = [(agent["agent_name"], f"item-{i+2}") for i,agent in enumerate(agents)]
+        @self.kb.add("c-s")
+        def select_item(event):
+            self._handle_menu_selection()
 
-menu_items = [
-    (chat_room_name, "item-1"),
-    *agent_items,]
+        # Handle text changes in prompt
+        self.prompt_buffer.on_text_changed += self._handle_prompt_text_changed
 
-# Initialize buffers and menu index
-chat_buffer = Buffer()
-prompt_buffer = Buffer()
-menu_highlighted_index = 0
+    def init_style(self):
+        self.style = Style([
+            ('menu.highlighted', 'fg:white bg:grey'),
+            ('menu.normal', 'fg:black'),
+        ])
 
-# Update text in left buffer when menu selection is made
-def handle_menu_selection():
-    selected_item = menu_items[menu_highlighted_index][0]
-    chat_buffer.text = f"Selected: {selected_item}"
+    def init_app(self):
+        self.application = Application(
+            layout=Layout(self.root_container, focused_element=self.prompt_buffer),
+            key_bindings=self.kb,
+            mouse_support=True,
+            full_screen=True,
+            style=self.style,
+        )
 
-# Update text in left buffer when text in prompt changes
-def handle_prompt_text_changed(_):
-    chat_buffer.text = f"Prompt: {prompt_buffer.text}"
+    def process_event(self, ws_json_message):
+        # router for event types
+        if ws_json_message['event_type'] == 'agent_speaks_into_microphone':
+            self.chat_buffer.text += self._process_agent_message(ws_json_message)
+        if ws_json_message['event_type'] == 'world_sends_schemas_event':
+            self._process_world_state(ws_json_message)
 
-# Construct formatted text for menu items
-def create_menu_text():
-    menu_text = []
-    for i, (item, _) in enumerate(menu_items):
-        if i == menu_highlighted_index:
-            style_class = "class:menu.highlighted"
-            menu_text.append((style_class, "> "))
-            menu_text.append((style_class, item))
-            menu_text.append((style_class, "\n"))
-        else:
-            style_class = "class:menu.normal"
-            menu_text.append((style_class, "  "))
-            menu_text.append((style_class, item))
-            menu_text.append((style_class, "\n"))
-    return menu_text
+    def run(self):
+        start_world_socket_server_thread(silent=True)
+        time.sleep(2)
+        threading.Thread(
+            target=self.ws_client.websocket.run_forever,
+            name=f"CLI Chat Room Thread",
+            daemon=True,
+        ).start()
+        self.application.run(),
 
+    def _handle_prompt_text_changed(self, _):
+        # TODO: enable chat input and chat events to chat with the agents
+        pass
 
-# Create menu content control
-menu_content = FormattedTextControl(create_menu_text)
+    def _handle_menu_selection(self):
+        # TODO: switch chat window based on menu selection
+        pass
 
-header = Window(height=3, content=FormattedTextControl([("class:title", f" {chat_room_name}\n"),
-                                                       ("class:title", f" {chat_room_description}\n")]), align=WindowAlign.LEFT)
+    def _create_menu_text(self):
+        menu_text = []
+        for i, (item, _) in enumerate(self.menu_items):
+            if i == self.menu_highlighted_index:
+                style_class = "class:menu.highlighted"
+                menu_text.append((style_class, "> "))
+                menu_text.append((style_class, item))
+                menu_text.append((style_class, "\n"))
+            else:
+                style_class = "class:menu.normal"
+                menu_text.append((style_class, "  "))
+                menu_text.append((style_class, item))
+                menu_text.append((style_class, "\n"))
+        return menu_text
 
-switch_chat_menu = Window(content=menu_content, width=D.exact(15), style="class:menu", wrap_lines=False)
-chat = Window(BufferControl(buffer=chat_buffer))
-chat_user_input = Window(height=3, content=BufferControl(buffer=prompt_buffer), style="class:prompt")
-footer = Window(height=2, content=FormattedTextControl([("class:title", "The default 🧬🌍 GenWorlds interface\n"),
-                                                       ("class:title", "Press [Ctrl-S] to select chat. | Press [Ctrl-C] to quit.")]), align=WindowAlign.CENTER)
+    def _get_terminal_size(self):
+        return os.get_terminal_size()
 
-root_container = HSplit(
-    [
-        header,
-        Window(height=1, char="-", style="class:line"),
-        VSplit([
-            switch_chat_menu,
-            Window(width=1, char="|", style="class:line"),
-            chat,
-        ]),
-        Window(height=1, char="-", style="class:line"),
-        chat_user_input,
-        Window(height=1, char="-", style="class:line"),
-        footer,
-    ]
-)
+    def _process_world_state(self, message):
+        self.header_buffer.text = f"{message['world_name']}\n{message['world_description']}"
+        # TODO: process menu items and coloring per agent
 
+    def _process_thoughts(self, message):
+        # TODO: Add thoughts to the agent window buffer
+        pass
 
-kb = KeyBindings()
+    def _process_agent_message(self, message):
+        timestamp = datetime.fromisoformat(message['created_at'].replace("Z", "+00:00"))
+        formatted_timestamp = timestamp.strftime("%Y-%m-%d %H:%M:%S")
 
-@kb.add("c-c", eager=True)
-def exit_app(event):
-    event.app.exit()
+        columns, _ = self._get_terminal_size()  
+        wrap_width = max(columns - len(f"{formatted_timestamp} [{message['sender_id']}]: ") - 20, 0)
+        wrapped_message = textwrap.fill(message['message'], wrap_width)
+        return f"{formatted_timestamp} [{message['sender_id']}]: {wrapped_message}\n\n"
 
-@kb.add("up")
-def navigate_up(event):
-    global menu_highlighted_index
-    if menu_highlighted_index > 0:
-        menu_highlighted_index -= 1
-    menu_content.text = create_menu_text()
+def start(host:str = "127.0.0.1", port: int = 7456):
+    chat_room = ChatRoom()
+    chat_room.run()
 
-@kb.add("down")
-def navigate_down(event):
-    global menu_highlighted_index
-    if menu_highlighted_index < len(menu_items) - 1:
-        menu_highlighted_index += 1
-    menu_content.text = create_menu_text()
+def start_from_command_line():
+    parser = argparse.ArgumentParser(description='Start the world socket server.')
+    parser.add_argument('--port', type=int, help='The port to start the socket on.', default=7456, nargs='?')
+    parser.add_argument('--host', type=str, help='The hostname of the socket.', default="127.0.0.1", nargs='?')
 
-@kb.add("c-s")
-def select_item(event):
-    handle_menu_selection()
+    args = parser.parse_args()
 
-# Handle text changes in prompt
-prompt_buffer.on_text_changed += handle_prompt_text_changed
+    port = args.port
+    host = args.host
 
-style = Style([
-    ('menu.highlighted', 'fg:white bg:grey'),
-    ('menu.normal', 'fg:black'),
-])
+    start(host=host, port=port)
 
-# Define application
-application = Application(
-    layout=Layout(root_container, focused_element=prompt_buffer),
-    key_bindings=kb,
-    mouse_support=True,
-    full_screen=True,
-    style=style,
-)
-
-def run():
-    threading.Thread(
-        target=ws_client.websocket.run_forever,
-        name=f"CLI Chat Room Thread",
-        daemon=True,
-    ).start()
-    application.run(),
-    
-
+# And to run the application
 if __name__ == "__main__":
-    run()
+    chat_room = ChatRoom()
+    chat_room.run()
