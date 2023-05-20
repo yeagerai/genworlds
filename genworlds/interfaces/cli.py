@@ -1,3 +1,5 @@
+import os
+from datetime import datetime
 import threading
 
 from prompt_toolkit.application import Application
@@ -8,19 +10,36 @@ from prompt_toolkit.layout.controls import BufferControl, FormattedTextControl
 from prompt_toolkit.layout.dimension import LayoutDimension as D
 from prompt_toolkit.layout.layout import Layout
 from prompt_toolkit.styles import Style
+import textwrap
 
 from genworlds.sockets.world_socket_client import WorldSocketClient
 
+def get_terminal_size():
+    return os.get_terminal_size()
+
+# TODO: process initial world state to create menu items and coloring
+
+# TODO: process thoughts
+
 def process_agent_message(message):
-    return f"{message['created_at']} [{message['sender_id']}]: {message['message']}\n"
+    timestamp = datetime.fromisoformat(message['created_at'].replace("Z", "+00:00"))
+    formatted_timestamp = timestamp.strftime("%Y-%m-%d %H:%M:%S")
+
+    columns, _ = get_terminal_size()  
+    wrap_width = max(columns - len(f"{formatted_timestamp} [{message['sender_id']}]: ") - 20, 0)
+    wrapped_message = textwrap.fill(message['message'], wrap_width)
+    return f"{formatted_timestamp} [{message['sender_id']}]: {wrapped_message}\n\n"
 
 def process_event(ws_json_message):
+    # router for event types
     if ws_json_message['event_type'] == 'agent_speaks_into_microphone':
         chat_buffer.text += process_agent_message(ws_json_message)
 
 ws_client = WorldSocketClient(process_event)
 
+# TODO: organize menu screens on the right side of the screen
 
+# TODO: enable chat input and chat events to chat with the agents
 
 chat_room_name = "Chat Room"
 chat_room_description = "This is a chat room, where you can chat with other agents"
