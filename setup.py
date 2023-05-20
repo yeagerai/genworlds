@@ -17,6 +17,7 @@ setup(
         "jsonschema==4.17.3",
         "langchain==0.0.157",
         "openai==0.27.4",
+        "prompt-toolkit==3.0.38",
         "pydantic==1.10.7",
         "python-dotenv==1.0.0",
         "threadpoolctl==3.1.0",
