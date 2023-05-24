@@ -19,32 +19,42 @@ podcast_host = TreeAgent(
     id="maria",
     ai_name="Maria",
     description="The host of the podcast",
-    goals=[(
-        "Host an episode of the Roundtable podcast, discussing AI technology. \n",
-        "Only the holder of the microphone can speak to the audience, if you don't have the microphone in your inventory, wait to receive it from the previous speaker. \n",
-        "Don't repeat yourself, respond to questions and points made by other co-hosts to advance the conversation. \n",
-        "Don't hog the microphone for a long time, make sure to give it to other participants. \n",
-    )],
+    goals=[
+        (
+            "Host an episode of the Roundtable podcast, discussing AI technology. \n",
+            "Only the holder of the microphone can speak to the audience, if you don't have the microphone in your inventory, wait to receive it from the previous speaker. \n",
+            "Don't repeat yourself, respond to questions and points made by other co-hosts to advance the conversation. \n",
+            "Don't hog the microphone for a long time, make sure to give it to other participants. \n",
+        )
+    ],
     openai_api_key=openai_api_key,
     model_name="gpt-3.5-turbo",
     search_algorithm="BFS",
-    interesting_events={"agent_speaks_into_microphone", "agent_gives_object_to_agent_event"},
+    interesting_events={
+        "agent_speaks_into_microphone",
+        "agent_gives_object_to_agent_event",
+    },
 )
 
 podcast_guest = TreeAgent(
     id="jimmy",
     ai_name="Jimmy",
     description="A co-host of the podcast",
-    goals=[(
-        "Participate an episode of the Roundtable podcast, discussing AI technology. \n",
-        "Only the holder of the microphone can speak to the audience, if you don't have the microphone in your inventory, wait to receive it from the previous speaker. \n",
-        "Don't repeat yourself, respond to questions and points made by other co-hosts to advance the conversation. \n",
-        "Don't hog the microphone for a long time, make sure to give it to other participants. \n",
-    )],
+    goals=[
+        (
+            "Participate an episode of the Roundtable podcast, discussing AI technology. \n",
+            "Only the holder of the microphone can speak to the audience, if you don't have the microphone in your inventory, wait to receive it from the previous speaker. \n",
+            "Don't repeat yourself, respond to questions and points made by other co-hosts to advance the conversation. \n",
+            "Don't hog the microphone for a long time, make sure to give it to other participants. \n",
+        )
+    ],
     openai_api_key=openai_api_key,
     model_name="gpt-3.5-turbo",
     search_algorithm="BFS",
-    interesting_events={"agent_speaks_into_microphone", "agent_gives_object_to_agent_event"},
+    interesting_events={
+        "agent_speaks_into_microphone",
+        "agent_gives_object_to_agent_event",
+    },
 )
 
 
@@ -52,9 +62,8 @@ microphone = Microphone(
     id="microphone",
     name="Microphone",
     description="A podcast microphone that allows the holder of it to speak to the audience",
-    host=podcast_host.id
+    host=podcast_host.id,
 )
-
 
 
 world = World2D(

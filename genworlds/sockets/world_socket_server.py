@@ -57,10 +57,10 @@ async def websocket_endpoint(websocket: WebSocket):
         await websocket_manager.disconnect(websocket)
 
 
-def start(host:str = "127.0.0.1", port: int = 7456, silent: bool = False):
+def start(host: str = "127.0.0.1", port: int = 7456, silent: bool = False):
     if silent:
-        sys.stdout = open(os.devnull, 'w')
-        sys.stderr = open(os.devnull, 'w')
+        sys.stdout = open(os.devnull, "w")
+        sys.stderr = open(os.devnull, "w")
 
     uvicorn.run(app, host=host, port=port, log_level="info")
 
@@ -68,18 +68,36 @@ def start(host:str = "127.0.0.1", port: int = 7456, silent: bool = False):
         sys.stdout = sys.__stdout__
         sys.stderr = sys.__stderr__
 
-def start_thread(host:str = "127.0.0.1", port: int = 7456, silent: bool = False):
+
+def start_thread(host: str = "127.0.0.1", port: int = 7456, silent: bool = False):
     threading.Thread(
         target=start,
         name=f"Websocket Server Thread",
         daemon=True,
-        args=(host, port, silent,),
+        args=(
+            host,
+            port,
+            silent,
+        ),
     ).start()
 
+
 def start_from_command_line():
-    parser = argparse.ArgumentParser(description='Start the world socket server.')
-    parser.add_argument('--port', type=int, help='The port to start the socket on.', default=7456, nargs='?')
-    parser.add_argument('--host', type=str, help='The hostname of the socket.', default="127.0.0.1", nargs='?')
+    parser = argparse.ArgumentParser(description="Start the world socket server.")
+    parser.add_argument(
+        "--port",
+        type=int,
+        help="The port to start the socket on.",
+        default=7456,
+        nargs="?",
+    )
+    parser.add_argument(
+        "--host",
+        type=str,
+        help="The hostname of the socket.",
+        default="127.0.0.1",
+        nargs="?",
+    )
 
     args = parser.parse_args()
 
@@ -88,6 +106,5 @@ def start_from_command_line():
 
     start(host=host, port=port)
 
+
 # uvicorn world_socket_server:app --host 0.0.0.0 --port 7456
-
-

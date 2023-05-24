@@ -28,7 +28,10 @@ from langchain.schema import (
     SystemMessage,
 )
 
-from genworlds.agents.yeager_autogpt.output_parser import AutoGPTAction, AutoGPTOutputParser
+from genworlds.agents.yeager_autogpt.output_parser import (
+    AutoGPTAction,
+    AutoGPTOutputParser,
+)
 from genworlds.agents.yeager_autogpt.prompt import AutoGPTPrompt
 from genworlds.agents.yeager_autogpt.prompt_generator import FINISH_NAME
 from genworlds.sockets.world_socket_client import WorldSocketClient
@@ -43,7 +46,9 @@ from genworlds.events.basic_events import (
 )
 from genworlds.utils.logging_factory import LoggingFactory
 from genworlds.agents.tree_agent.tree_of_thoughts import TreeOfThoughts
-from genworlds.agents.tree_agent.engines.navigation_engine import NavigationThoughtEngine
+from genworlds.agents.tree_agent.engines.navigation_engine import (
+    NavigationThoughtEngine,
+)
 from genworlds.agents.tree_agent.engines.podcast_engine import PodcastThoughtEngine
 
 
@@ -80,7 +85,9 @@ class TreeAgent:
 
         self.logger = LoggingFactory.get_logger(self.ai_name)
 
-        self.world_socket_client = WorldSocketClient(process_event=None, url=websocket_url)
+        self.world_socket_client = WorldSocketClient(
+            process_event=None, url=websocket_url
+        )
 
         self.listening_antenna = ListeningAntenna(
             self.interesting_events,
@@ -101,8 +108,12 @@ class TreeAgent:
         )
         self.memory = vectorstore.as_retriever()
 
-        self.navigation_engine = NavigationThoughtEngine(openai_api_key, self.model_name)
-        self.navigation_tree = TreeOfThoughts(self.navigation_engine, self.search_algorithm)
+        self.navigation_engine = NavigationThoughtEngine(
+            openai_api_key, self.model_name
+        )
+        self.navigation_tree = TreeOfThoughts(
+            self.navigation_engine, self.search_algorithm
+        )
 
         self.podcast_engine = PodcastThoughtEngine(openai_api_key, self.model_name)
         self.podcast_tree = TreeOfThoughts(self.podcast_engine, self.search_algorithm)
@@ -111,7 +122,7 @@ class TreeAgent:
         self.next_action_count = 0
         self.output_parser = AutoGPTOutputParser()
         self.feedback_tool = None  # HumanInputRun() if human_in_the_loop else None
-        self.schemas_memory : Chroma
+        self.schemas_memory: Chroma
         self.plan: Optional[str] = None
 
         self.personality_db_path = personality_db_path
@@ -119,7 +130,7 @@ class TreeAgent:
             client_settings = chromadb.config.Settings(
                 chroma_db_impl="duckdb+parquet",
                 persist_directory=self.personality_db_path,
-                anonymized_telemetry=False
+                anonymized_telemetry=False,
             )
 
             self.personality_db = Chroma(
@@ -129,7 +140,9 @@ class TreeAgent:
                 persist_directory=self.personality_db_path,
             )
             # self.personality_db.persist()
-            self.logger.info("Testing DB", self.personality_db.similarity_search("hello"))
+            self.logger.info(
+                "Testing DB", self.personality_db.similarity_search("hello")
+            )
 
     def think(self):
         self.logger.info(f" The agent {self.ai_name} is thinking...")
@@ -144,30 +157,43 @@ class TreeAgent:
 
         while True:
             agent_world_state = self.listening_antenna.get_agent_world_state()
-            nearby_entities = self.listening_antenna.get_nearby_entities() 
+            nearby_entities = self.listening_antenna.get_nearby_entities()
 
             if len(nearby_entities) > 0:
-                nearby_entities_store = Chroma.from_texts(list(map(json.dumps, nearby_entities)), self.embeddings_model)
+                nearby_entities_store = Chroma.from_texts(
+                    list(map(json.dumps, nearby_entities)), self.embeddings_model
+                )
 
                 if self.plan:
-                    useful_nearby_entities = nearby_entities_store.similarity_search(self.plan)
+                    useful_nearby_entities = nearby_entities_store.similarity_search(
+                        self.plan
+                    )
                 else:
-                    useful_nearby_entities = nearby_entities_store.similarity_search(json.dumps(self.goals))
+                    useful_nearby_entities = nearby_entities_store.similarity_search(
+                        json.dumps(self.goals)
+                    )
 
-                useful_nearby_entities = list(map(lambda d: json.loads(d.page_content), useful_nearby_entities))
+                useful_nearby_entities = list(
+                    map(lambda d: json.loads(d.page_content), useful_nearby_entities)
+                )
             else:
                 useful_nearby_entities = []
 
             relevant_commands = []
             for entity in useful_nearby_entities:
                 entity_schemas = self.get_schemas()[entity["entity_class"]]
-                
+
                 for event_type, schema in entity_schemas.items():
-                    description = schema['properties']['description']['default']
+                    description = schema["properties"]["description"]["default"]
 
                     args = {}
-                    for (property_name, property_details) in schema['properties'].items():
-                        if property_name not in ['event_type', 'description', 'created_at', 'sender_id',]:
+                    for property_name, property_details in schema["properties"].items():
+                        if property_name not in [
+                            "event_type",
+                            "description",
+                            "created_at",
+                            "sender_id",
+                        ]:
                             args[property_name] = property_details
 
                     # get_object_info: get_object_info(object_id: 'str') - Gets the info of an object., args json schema: {"object_id": {"title": "Object Id", "type": "string"}}
@@ -177,23 +203,27 @@ class TreeAgent:
             # Add world
             entity_class = "World"
             entity_schemas = self.get_schemas()[entity_class]
-                
+
             for event_type, schema in entity_schemas.items():
-                if (event_type in self.listening_antenna.special_events):
+                if event_type in self.listening_antenna.special_events:
                     continue
 
-                description = schema['properties']['description']['default']
+                description = schema["properties"]["description"]["default"]
 
                 args = {}
-                for (property_name, property_details) in schema['properties'].items():
-                    if property_name not in ['event_type', 'description', 'created_at', 'sender_id',]:
+                for property_name, property_details in schema["properties"].items():
+                    if property_name not in [
+                        "event_type",
+                        "description",
+                        "created_at",
+                        "sender_id",
+                    ]:
                         args[property_name] = property_details
                         # args_string += f"{property_name}: {property_details['type']}, "
 
                 # get_object_info: get_object_info(object_id: 'str') - Gets the info of an object., args json schema: {"object_id": {"title": "Object Id", "type": "string"}}
-                command = f"\"{entity_class}:{event_type}\" - {description}, args json schema: {json.dumps(args)}"
+                command = f'"{entity_class}:{event_type}" - {description}, args json schema: {json.dumps(args)}'
                 relevant_commands.append(command)
-
 
             # Send message to AI, get response
             assistant_reply = self.navigation_tree.solve(
@@ -201,8 +231,12 @@ class TreeAgent:
                 messages=self.full_message_history,
                 memory=self.memory,
                 personality_db=self.personality_db,
-                nearby_entities=list(filter(lambda e: (e['held_by'] != self.id), nearby_entities)),
-                inventory=list(filter(lambda e: (e['held_by'] == self.id), nearby_entities)),
+                nearby_entities=list(
+                    filter(lambda e: (e["held_by"] != self.id), nearby_entities)
+                ),
+                inventory=list(
+                    filter(lambda e: (e["held_by"] == self.id), nearby_entities)
+                ),
                 relevant_commands=relevant_commands,
                 plan=self.plan,
                 user_input=user_input,
@@ -210,7 +244,7 @@ class TreeAgent:
             )
             self.plan = json.loads(assistant_reply)["thoughts"]["plan"]
             # Print Assistant thoughts
-            self.logger.info(assistant_reply) # Send the thoughts as events
+            self.logger.info(assistant_reply)  # Send the thoughts as events
             self.full_message_history.append(HumanMessage(content=user_input))
             self.full_message_history.append(AIMessage(content=assistant_reply))
 
@@ -237,9 +271,8 @@ class TreeAgent:
                         )
                     result += f"Command {tool.name} returned: {observation} \n"
                 else:
-                    result += self.execute_event_action(action) + "\n"	
+                    result += self.execute_event_action(action) + "\n"
 
-                
             ## send result and assistant_reply to the socket
             self.logger.info(result)
 
@@ -266,22 +299,21 @@ class TreeAgent:
 
     def get_agent_world_state(self):
         return self.listening_antenna.get_agent_world_state()
-    
+
     def get_nearby_entities(self):
         return self.listening_antenna.get_nearby_entities()
-    
+
     def get_schemas(self):
         return self.listening_antenna.get_schemas()
-
 
     def execute_event_action(self, action: AutoGPTAction):
         try:
             class_name = action.name.split(":")[0]
-            event_type = action.name.split(":")[1] 
+            event_type = action.name.split(":")[1]
 
             event = {
                 "event_type": event_type,
-                "sender_id": self.id,	
+                "sender_id": self.id,
                 "created_at": datetime.now().isoformat(),
             }
             event.update(action.args)
@@ -300,14 +332,9 @@ class TreeAgent:
                 f"commands and only respond in the specified JSON format."
             )
         except ValidationError as e:
-            return (
-                f"Validation Error in args: {str(e)}, args: {action.args}"
-            )
+            return f"Validation Error in args: {str(e)}, args: {action.args}"
         except Exception as e:
-            return (
-                f"Error: {str(e)}, {type(e).__name__}, args: {action.args}"
-            )
-
+            return f"Error: {str(e)}, {type(e).__name__}, args: {action.args}"
 
     def agent_gets_nearby_entities_action(self):
         agent_gets_nearby_entities_event = AgentGetsNearbyEntitiesEvent(
@@ -365,13 +392,12 @@ class TreeAgent:
         )
         self.world_socket_client.send_message(agent_request_world_state_update.json())
 
-
     def launch_threads(self):
         threading.Thread(
-                target=self.listening_antenna.world_socket_client.websocket.run_forever,
-                name=f"Agent {self.ai_name} Listening Thread",
-                daemon=True,
-            ).start()
+            target=self.listening_antenna.world_socket_client.websocket.run_forever,
+            name=f"Agent {self.ai_name} Listening Thread",
+            daemon=True,
+        ).start()
         sleep(0.1)
         threading.Thread(
             target=self.world_socket_client.websocket.run_forever,
@@ -380,7 +406,7 @@ class TreeAgent:
         ).start()
         sleep(0.1)
         threading.Thread(
-            target=self.think, 
+            target=self.think,
             name=f"Agent {self.ai_name} Thinking Thread",
             daemon=True,
         ).start()

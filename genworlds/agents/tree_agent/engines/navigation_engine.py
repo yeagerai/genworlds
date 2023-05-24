@@ -1,8 +1,10 @@
 from langchain import PromptTemplate, LLMChain
 from langchain.chat_models import ChatOpenAI
 
+
 class AbstractThoughtEngine:
     pass
+
 
 class NavigationThoughtEngine:
     def __init__(self, openai_api_key, model_name="gpt-3.5-turbo"):
@@ -32,21 +34,19 @@ class NavigationThoughtEngine:
         self.gen_prompt = PromptTemplate(
             template=self.gen_template,
             input_variables=[
-                "previous_thoughts", 
-                "goals", 
+                "previous_thoughts",
+                "goals",
                 "world_schemas",
                 "world_state",
                 "num_thoughts",
-            ]
+            ],
         )
-        
+
         self.gen_llm_chain = LLMChain(
-            prompt=self.gen_prompt, 
+            prompt=self.gen_prompt,
             llm=ChatOpenAI(
-                temperature=0, 
-                openai_api_key=openai_api_key, 
-                model_name=model_name
-            )
+                temperature=0, openai_api_key=openai_api_key, model_name=model_name
+            ),
         )
         self.eval_template = """
         # Basic rules
@@ -73,44 +73,50 @@ class NavigationThoughtEngine:
             template=self.eval_template,
             input_variables=[
                 "previous_thoughts",
-                "goals", 
+                "goals",
                 "world_schemas",
                 "world_state",
                 "num_thoughts",
-            ]
+            ],
         )
-        
+
         self.eval_llm_chain = LLMChain(
-            prompt=self.eval_prompt, 
+            prompt=self.eval_prompt,
             llm=ChatOpenAI(
-                temperature=0, 
-                openai_api_key=openai_api_key, 
-                model_name=model_name
-            )
+                temperature=0, openai_api_key=openai_api_key, model_name=model_name
+            ),
         )
-    
-    def gen_thoughts(self, previous_thoughts, num_thoughts): ## many more variables
+
+    def gen_thoughts(self, previous_thoughts, num_thoughts):  ## many more variables
         return self.gen_llm_chain.run(
             goals=self.goals,
             messages=self.full_message_history,
             memory=self.memory,
             personality_db=self.personality_db,
-            nearby_entities=list(filter(lambda e: (e['held_by'] != self.id), nearby_entities)),
-            inventory=list(filter(lambda e: (e['held_by'] == self.id), nearby_entities)),
+            nearby_entities=list(
+                filter(lambda e: (e["held_by"] != self.id), nearby_entities)
+            ),
+            inventory=list(
+                filter(lambda e: (e["held_by"] == self.id), nearby_entities)
+            ),
             relevant_commands=relevant_commands,
             plan=self.plan,
             user_input=user_input,
             agent_world_state=agent_world_state,
         )
 
-    def eval_thoughts(self, previous_thoughts, num_thoughts): ## many more variables
+    def eval_thoughts(self, previous_thoughts, num_thoughts):  ## many more variables
         return self.eval_llm_chain.run(
             goals=self.goals,
             messages=self.full_message_history,
             memory=self.memory,
             personality_db=self.personality_db,
-            nearby_entities=list(filter(lambda e: (e['held_by'] != self.id), nearby_entities)),
-            inventory=list(filter(lambda e: (e['held_by'] == self.id), nearby_entities)),
+            nearby_entities=list(
+                filter(lambda e: (e["held_by"] != self.id), nearby_entities)
+            ),
+            inventory=list(
+                filter(lambda e: (e["held_by"] == self.id), nearby_entities)
+            ),
             relevant_commands=relevant_commands,
             plan=self.plan,
             user_input=user_input,

@@ -16,7 +16,6 @@ class Simulation:
         objects: List[tuple[BaseObject, dict]],
         agents: List[tuple[BaseObject, dict]],
     ):
-
         self.id = str(uuid4())
         self.name = name
         self.description = description
@@ -24,14 +23,13 @@ class Simulation:
         self.objects = objects
         self.agents = agents
 
-
-    def launch(self):        
+    def launch(self):
         # Register agents and objects with the world
-        for (agent, world_properties) in self.agents:
+        for agent, world_properties in self.agents:
             agent.world_spawned_id = self.world.id
             self.world.register_agent(agent, **world_properties)
 
-        for (obj, world_properties) in self.objects:
+        for obj, world_properties in self.objects:
             obj.world_spawned_id = self.world.id
             self.world.register_object(obj, **world_properties)
 
@@ -40,16 +38,15 @@ class Simulation:
 
         time.sleep(1)
 
-        for (agent, world_properties) in self.agents:
+        for agent, world_properties in self.agents:
             time.sleep(0.1)
             # start the agent's threads
             agent.launch_threads()
 
-        for (obj, world_properties) in self.objects:
+        for obj, world_properties in self.objects:
             time.sleep(0.1)
             # start the object's threads
             obj.launch_websocket_thread()
-
 
         # Make the application terminate gracefully
         while True:

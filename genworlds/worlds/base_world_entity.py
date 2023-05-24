@@ -1,13 +1,13 @@
-
 from enum import Enum
 
 from pydantic import BaseModel
 
 
 class EntityTypeEnum(str, Enum):
-    AGENT = 'AGENT'
-    OBJECT = 'OBJECT'
-    WORLD = 'WORLD'
+    AGENT = "AGENT"
+    OBJECT = "OBJECT"
+    WORLD = "WORLD"
+
 
 class BaseWorldEntity(BaseModel):
     id: str

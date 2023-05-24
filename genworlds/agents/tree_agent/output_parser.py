@@ -26,7 +26,7 @@ def preprocess_json_input(input_str: str) -> str:
     return corrected_str
 
 
-class AutoGPTOutputParser(BaseAutoGPTOutputParser): ## NavigationOutputParser
+class AutoGPTOutputParser(BaseAutoGPTOutputParser):  ## NavigationOutputParser
     def parse(self, text: str) -> AutoGPTAction:
         try:
             parsed = json.loads(text, strict=False)
@@ -35,20 +35,26 @@ class AutoGPTOutputParser(BaseAutoGPTOutputParser): ## NavigationOutputParser
             try:
                 parsed = json.loads(preprocessed_text, strict=False)
             except Exception:
-                return [AutoGPTAction(
-                    name="ERROR",
-                    args={"error": f"Could not parse invalid json: {text}"},
-                )]
+                return [
+                    AutoGPTAction(
+                        name="ERROR",
+                        args={"error": f"Could not parse invalid json: {text}"},
+                    )
+                ]
         try:
             output = []
-            for command in parsed["commands"]:                
-                output.append(AutoGPTAction(
-                    name=command["name"],
-                    args=command["args"],
-                ))
+            for command in parsed["commands"]:
+                output.append(
+                    AutoGPTAction(
+                        name=command["name"],
+                        args=command["args"],
+                    )
+                )
             return output
         except (KeyError, TypeError):
             # If the command is null or incomplete, return an erroneous tool
-            return [AutoGPTAction(
-                name="ERROR", args={"error": f"Incomplete command args: {parsed}"}
-            )]
+            return [
+                AutoGPTAction(
+                    name="ERROR", args={"error": f"Incomplete command args: {parsed}"}
+                )
+            ]

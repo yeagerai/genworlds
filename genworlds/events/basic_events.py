@@ -31,12 +31,11 @@ class ObjectSendsInfoToAgentEvent(Event):
     possible_events: list[Event]
 
 
-
-
 class AgentSpeaksWithAgentEvent(Event):
     event_type = "agent_speaks_with_agent_event"
     description = "An agent speaks with another agent."
     message: str
+
 
 class WorldSendsSchemasEvent(Event):
     event_type = "world_sends_schemas_event"
@@ -44,19 +43,21 @@ class WorldSendsSchemasEvent(Event):
     world_name: str
     world_description: str
     schemas: dict[str, dict]
-    
+
 
 class EntityRequestWorldStateUpdateEvent(Event):
     event_type = "entity_request_world_state_update_event"
     description = "Request the latest world state update for an entity."
+
+
 class EntityWorldStateUpdateEvent(Event):
     event_type = "entity_world_state_update_event"
     description = "Latest world state update for an entity."
     entity_world_state: str
+
 
 class AgentGivesObjectToAgentEvent(Event):
     event_type = "agent_gives_object_to_agent_event"
     description = "An agent gives an object to another agent."
     object_id: str
     recipient_agent_id: str
-
