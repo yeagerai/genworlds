@@ -11,7 +11,6 @@ from jsonschema import validate
 
 import chromadb
 import faiss
-from langchain.chat_models import ChatOpenAI
 from langchain.vectorstores import FAISS
 from langchain.docstore import InMemoryDocstore
 from langchain.tools import StructuredTool
@@ -19,7 +18,6 @@ from langchain.tools.human.tool import HumanInputRun
 from langchain.vectorstores.base import VectorStoreRetriever
 from langchain.vectorstores import Chroma
 from langchain.embeddings import OpenAIEmbeddings
-from langchain.chains.llm import LLMChain
 from langchain.schema import (
     AIMessage,
     BaseMessage,
@@ -32,7 +30,6 @@ from genworlds.agents.yeager_autogpt.output_parser import (
     AutoGPTAction,
     AutoGPTOutputParser,
 )
-from genworlds.agents.yeager_autogpt.prompt import AutoGPTPrompt
 from genworlds.agents.yeager_autogpt.prompt_generator import FINISH_NAME
 from genworlds.sockets.world_socket_client import WorldSocketClient
 from genworlds.agents.yeager_autogpt.listening_antenna import ListeningAntenna
@@ -45,11 +42,11 @@ from genworlds.events.basic_events import (
     EntityRequestWorldStateUpdateEvent,
 )
 from genworlds.utils.logging_factory import LoggingFactory
-from genworlds.agents.tree_agent.tree_of_thoughts import TreeOfThoughts
-from genworlds.agents.tree_agent.engines.navigation_engine import (
-    NavigationThoughtEngine,
+
+from genworlds.agents.tree_agent.brains.navigation_brain import (
+    NavigationBrain,
 )
-from genworlds.agents.tree_agent.engines.podcast_engine import PodcastThoughtEngine
+from genworlds.agents.tree_agent.brains.podcast_brain import PodcastBrain
 
 
 class TreeAgent:
@@ -108,15 +105,12 @@ class TreeAgent:
         )
         self.memory = vectorstore.as_retriever()
 
-        self.navigation_engine = NavigationThoughtEngine(
-            openai_api_key, self.model_name
+        self.navigation_brain = NavigationBrain(
+            openai_api_key, self.model_name, search_algorithm=self.search_algorithm
         )
-        self.navigation_tree = TreeOfThoughts(
-            self.navigation_engine, self.search_algorithm
+        self.podcast_brain = PodcastBrain(
+            openai_api_key, self.model_name, search_algorithm=self.search_algorithm
         )
-
-        self.podcast_engine = PodcastThoughtEngine(openai_api_key, self.model_name)
-        self.podcast_tree = TreeOfThoughts(self.podcast_engine, self.search_algorithm)
 
         self.full_message_history: List[BaseMessage] = []
         self.next_action_count = 0
@@ -226,7 +220,7 @@ class TreeAgent:
                 relevant_commands.append(command)
 
             # Send message to AI, get response
-            assistant_reply = self.navigation_tree.solve(
+            assistant_reply = self.navigation_brain.run(
                 goals=self.goals,
                 messages=self.full_message_history,
                 memory=self.memory,

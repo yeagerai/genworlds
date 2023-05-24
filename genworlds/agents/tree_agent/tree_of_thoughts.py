@@ -2,8 +2,9 @@ import time
 
 
 class TreeOfThoughts:
-    def __init__(self, thought_model, search_algorithm):
-        self.thought_model = thought_model
+    def __init__(self, gen_thoughts, eval_thoughts, search_algorithm):
+        self.gen_thoughts = gen_thoughts
+        self.eval_thoughts = eval_thoughts
         self.search_algorithm = search_algorithm
 
     def solve(
@@ -45,15 +46,15 @@ class TreeOfThoughts:
         current_set = {initial_state}
         for _ in range(max_depth):
             current_set = self.expand_set(current_set, thought_limit, breadth)
-        return self.thought_model.gen_thoughts(max(current_set), 1)
+        return self.gen_thoughts(max(current_set), 1)
 
     def expand_set(self, current_set, thought_limit, breadth):
         new_set = {
             (*state, new_thought)
             for state in current_set
-            for new_thought in self.thought_model.gen_thoughts(state, thought_limit)
+            for new_thought in self.gen_thoughts(state, thought_limit)
         }
-        thought_values = self.thought_model.eval_thoughts(new_set)
+        thought_values = self.eval_thoughts(new_set)
         sorted_set = sorted(
             new_set, key=lambda state: thought_values[state], reverse=True
         )
@@ -139,8 +140,8 @@ class TreeOfThoughts:
             prev_best_value,
         ):
             return
-        for next_state in self.thought_model.gen_thoughts(current_state, thought_limit):
-            state_value = self.thought_model.eval_thoughts({next_state})[next_state]
+        for next_state in self.gen_thoughts(current_state, thought_limit):
+            state_value = self.eval_thoughts({next_state})[next_state]
             if state_value > value_threshold and (
                 pruning_threshold is None or state_value >= pruning_threshold
             ):
