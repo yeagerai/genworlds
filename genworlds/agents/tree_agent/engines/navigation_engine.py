@@ -8,7 +8,7 @@ class NavigationThoughtEngine:
     def __init__(self, openai_api_key, model_name="gpt-3.5-turbo"):
         self.gen_template = """
         # Basic rules
-        You are Timmy, an expert in generating world events that get you closer to achieve your goals based on:
+        You are an expert in generating world events that get you closer to achieve your goals based on:
 
         ## Your previous thoughts
         {previous_thoughts}
@@ -24,7 +24,9 @@ class NavigationThoughtEngine:
 
         # Response type
         A json file containing {num_thoughts} coherent events to continue the navigation process:
-        {{{{{{{{{{json structure to be defined}}}}}}}}}}
+        - event_type_1: I want to use this event to achieve this goal
+        - event_type_2: I want to use this event to achieve this other goal
+        ...
         """
 
         self.gen_prompt = PromptTemplate(
@@ -51,7 +53,7 @@ class NavigationThoughtEngine:
         You are Timmy, an expert in evaluating which events get you closer to achieve your goals based on:
 
         ## Your previous thoughts
-        {pprevious_thoughts}
+        {previous_thoughts}
         
         ## Your Goals
         {goals}
@@ -87,8 +89,30 @@ class NavigationThoughtEngine:
             )
         )
     
-    def generate_thoughts(self, previous_thoughts, num_thoughts):
-        return self.gen_llm_chain.run()
+    def gen_thoughts(self, previous_thoughts, num_thoughts): ## many more variables
+        return self.gen_llm_chain.run(
+            goals=self.goals,
+            messages=self.full_message_history,
+            memory=self.memory,
+            personality_db=self.personality_db,
+            nearby_entities=list(filter(lambda e: (e['held_by'] != self.id), nearby_entities)),
+            inventory=list(filter(lambda e: (e['held_by'] == self.id), nearby_entities)),
+            relevant_commands=relevant_commands,
+            plan=self.plan,
+            user_input=user_input,
+            agent_world_state=agent_world_state,
+        )
 
-    def eval_thoughts(self, previous_thoughts, num_thoughts):
-        return self.eval_llm_chain.run()
+    def eval_thoughts(self, previous_thoughts, num_thoughts): ## many more variables
+        return self.eval_llm_chain.run(
+            goals=self.goals,
+            messages=self.full_message_history,
+            memory=self.memory,
+            personality_db=self.personality_db,
+            nearby_entities=list(filter(lambda e: (e['held_by'] != self.id), nearby_entities)),
+            inventory=list(filter(lambda e: (e['held_by'] == self.id), nearby_entities)),
+            relevant_commands=relevant_commands,
+            plan=self.plan,
+            user_input=user_input,
+            agent_world_state=agent_world_state,
+        )

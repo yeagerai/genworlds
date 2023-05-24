@@ -6,7 +6,7 @@
             "name": "Start Env",
             "type": "python",
             "request": "launch",
-            "program": "use_cases/roundtable/world_setup_n_launch.py",
+            "program": "use_cases/roundtable/world_setup_n_launch_tree_of_thought.py",
             "console": "integratedTerminal",
             "env": {
                 "PYTHONPATH": "${workspaceRoot}"

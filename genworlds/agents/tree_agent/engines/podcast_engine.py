@@ -87,7 +87,7 @@ class PodcastThoughtEngine:
             )
         )
     
-    def generate_thoughts(self, previous_thoughts, num_thoughts):
+    def gen_thoughts(self, previous_thoughts, num_thoughts):
         return self.gen_llm_chain.run()
 
     def eval_thoughts(self, previous_thoughts, num_thoughts):

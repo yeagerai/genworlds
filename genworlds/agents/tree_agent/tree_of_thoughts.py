@@ -1,71 +1,62 @@
 import time
 
 class TreeOfThoughts:
-    def __init__(self, model, search_algorithm):
-        self.model = model
+    def __init__(self, thought_model, search_algorithm):
+        self.thought_model = thought_model
         self.search_algorithm = search_algorithm
 
-    def solve(self, x, k, T, b, vth, timeout=None):
+    def solve(self, initial_state, thought_limit, max_depth, breadth, value_threshold, timeout=None):
         start_time = time.time()
+
         if self.search_algorithm == 'BFS':
-            while timeout is None or time.time() - start_time < timeout:
-                result = self.tot_bfs(x, k, T, b)
-                if result:
-                    return result
+            return self.bfs_until_timeout(initial_state, thought_limit, max_depth, breadth, start_time, timeout)
         elif self.search_algorithm == 'DFS':
-            while timeout is None or time.time() - start_time < timeout:
-                result = self.tot_dfs(x, k, T, vth)
-                if result:
-                    return result
+            return self.dfs_until_timeout(initial_state, thought_limit, max_depth, value_threshold, start_time, timeout)
         else:
             raise ValueError("Invalid search algorithm. Choose 'BFS' or 'DFS'.")
 
-    def tot_bfs(self, x, k, T, b):
-        S0 = {x}
-        for t in range(1, T + 1):
-            S0_t = {(*s, z) for s in S0 for z in self.model.generate_thoughts(s, k)}
-            Vt = self.model.evaluate_states(S0_t)
-            St = sorted(S0_t, key=lambda s: Vt[s], reverse=True)[:b]
-            S0 = set(St)
-        return self.model.generate_thoughts(max(St, key=lambda s: Vt[s]), 1)
+    def bfs_until_timeout(self, initial_state, thought_limit, max_depth, breadth, start_time, timeout):
+        while timeout is None or time.time() - start_time < timeout:
+            result = self.tot_bfs(initial_state, thought_limit, max_depth, breadth)
+            if result:
+                return result
 
-    def tot_dfs(self, x, k, T, vth, pruning_threshold=0.5, confidence_threshold=0.9, max_iterations=10, convergence_threshold=0.1, convergence_count=5):
-        output = []
-        iteration_count = 0
-        consecutive_convergence_count = 0
-        prev_best_value = None
+    def tot_bfs(self, initial_state, thought_limit, max_depth, breadth):
+        current_set = {initial_state}
+        for _ in range(max_depth):
+            current_set = self.expand_set(current_set, thought_limit, breadth)
+        return self.thought_model.gen_thoughts(max(current_set), 1)
 
-        def dfs(s, t):
-            nonlocal consecutive_convergence_count, prev_best_value, iteration_count
-            if t > T:
-                thought = self.model.generate_thoughts(s, 1)
-                value = self.model.evaluate_states({s})[s]
-                output.append((thought, value))
+    def expand_set(self, current_set, thought_limit, breadth):
+        new_set = {(*state, new_thought) for state in current_set for new_thought in self.thought_model.gen_thoughts(state, thought_limit)}
+        thought_values = self.thought_model.eval_thoughts(new_set)
+        sorted_set = sorted(new_set, key=lambda state: thought_values[state], reverse=True)
+        return set(sorted_set[:breadth])
 
-                if confidence_threshold is not None and value >= confidence_threshold:
-                    return True
+    def dfs_until_timeout(self, initial_state, thought_limit, max_depth, value_threshold, start_time, timeout):
+        while timeout is None or time.time() - start_time < timeout:
+            result = self.tot_dfs(initial_state, thought_limit, max_depth, value_threshold)
+            if result:
+                return result
 
-                if prev_best_value is not None and convergence_threshold is not None:
-                    if abs(value - prev_best_value) < convergence_threshold:
-                        consecutive_convergence_count += 1
-                    else:
-                        consecutive_convergence_count = 0
+    def tot_dfs(self, initial_state, thought_limit, max_depth, value_threshold, pruning_threshold=0.5, confidence_threshold=0.9, max_iterations=10, convergence_threshold=0.1, convergence_count=5):
+        output, iteration_count, consecutive_convergence_count, prev_best_value = [], 0, 0, None
+        self.dfs_search(initial_state, 1, max_depth, thought_limit, value_threshold, pruning_threshold, confidence_threshold, output, iteration_count, consecutive_convergence_count, prev_best_value, max_iterations, convergence_threshold, convergence_count)
+        return max(output, key=lambda output_item: output_item[1]) if output else None
 
-                prev_best_value = value
-                iteration_count += 1
+    def dfs_search(self, current_state, current_depth, max_depth, thought_limit, value_threshold, pruning_threshold, confidence_threshold, output, iteration_count, consecutive_convergence_count, prev_best_value, max_iterations, convergence_threshold, convergence_count):
+        if current_depth > max_depth or self.should_terminate(output, iteration_count, consecutive_convergence_count, max_iterations, convergence_count, confidence_threshold, convergence_threshold, prev_best_value):
+            return
+        for next_state in self.thought_model.gen_thoughts(current_state, thought_limit):
+            state_value = self.thought_model.eval_thoughts({next_state})[next_state]
+            if state_value > value_threshold and (pruning_threshold is None or state_value >= pruning_threshold):
+                self.dfs_search((*current_state, next_state), current_depth + 1, max_depth, thought_limit, value_threshold, pruning_threshold, confidence_threshold, output, iteration_count, consecutive_convergence_count, prev_best_value, max_iterations, convergence_threshold, convergence_count)
 
-                if (max_iterations is not None and iteration_count >= max_iterations) or (convergence_count is not None and consecutive_convergence_count >= convergence_count):
-                    return True
-
-                return False
-
-            for s_prime in sorted(self.model.generate_thoughts(s, k)):
-                state_value = self.model.evaluate_states({s_prime})[s_prime]
-                if state_value > vth and (pruning_threshold is None or state_value >= pruning_threshold):
-                    if dfs((*s, s_prime), t + 1):
-                        return True
-
-            return False
-
-        dfs(x, 1)
-        return max(output, key=lambda x: x[1]) if output else None
+    def should_terminate(self, output, iteration_count, consecutive_convergence_count, max_iterations, convergence_count, confidence_threshold, convergence_threshold, prev_best_value):
+        if iteration_count >= max_iterations or consecutive_convergence_count >= convergence_count:
+            return True
+        if output:
+            thought, value = output[-1]
+            if value >= confidence_threshold or (prev_best_value is not None and abs(value - prev_best_value) < convergence_threshold):
+                return True
+        return False

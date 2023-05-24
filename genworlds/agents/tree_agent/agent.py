@@ -59,6 +59,8 @@ class TreeAgent:
         description: str,
         goals: List[str],
         openai_api_key: str,
+        model_name: str = "gpt-3.5-turbo",
+        search_algorithm: str = "BFS",
         interesting_events: set = {},
         feedback_tool: Optional[HumanInputRun] = None,
         additional_memories: Optional[List[VectorStoreRetriever]] = None,
@@ -70,6 +72,8 @@ class TreeAgent:
         # Its own properties
         self.id = id if id else str(uuid4())
         self.ai_name = ai_name
+        self.model_name = model_name
+        self.search_algorithm = search_algorithm
         self.description = description
         self.goals = goals
         self.interesting_events = interesting_events
@@ -97,11 +101,11 @@ class TreeAgent:
         )
         self.memory = vectorstore.as_retriever()
 
-        self.navigation_engine = NavigationThoughtEngine(self.memory, self.logger)
-        self.navigation_tree = TreeOfThoughts(self.navigation_engine, self.logger)
+        self.navigation_engine = NavigationThoughtEngine(openai_api_key, self.model_name)
+        self.navigation_tree = TreeOfThoughts(self.navigation_engine, self.search_algorithm)
 
-        self.navigation_engine = PodcastThoughtEngine(self.memory, self.logger)
-        self.podcast_tree = TreeOfThoughts(self.podcast_engine, self.logger)
+        self.podcast_engine = PodcastThoughtEngine(openai_api_key, self.model_name)
+        self.podcast_tree = TreeOfThoughts(self.podcast_engine, self.search_algorithm)
 
         self.full_message_history: List[BaseMessage] = []
         self.next_action_count = 0
@@ -192,7 +196,7 @@ class TreeAgent:
 
 
             # Send message to AI, get response
-            assistant_reply = self.chain.run(
+            assistant_reply = self.navigation_tree.solve(
                 goals=self.goals,
                 messages=self.full_message_history,
                 memory=self.memory,
