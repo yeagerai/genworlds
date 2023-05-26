@@ -132,7 +132,19 @@ class NavigationBrain:
             ),
         )
 
-    def gen_thoughts(self, previous_thoughts, num_thoughts):
+    def gen_thoughts(
+        self,
+        ai_name,
+        num_thoughts,
+        previous_thoughts,
+        plan,
+        goals,
+        memory,
+        agent_world_state,
+        nearby_entities,
+        inventory,
+        relevant_commands,
+    ):
         # prepare the input variables
         return self.gen_llm_chain.run(
             ai_name=ai_name,
@@ -147,7 +159,19 @@ class NavigationBrain:
             relevant_commands=relevant_commands,
         )
 
-    def eval_thoughts(self, previous_thoughts, num_thoughts):
+    def eval_thoughts(
+        self,
+        ai_name,
+        num_thoughts,
+        previous_thoughts,
+        plan,
+        goals,
+        memory,
+        agent_world_state,
+        nearby_entities,
+        inventory,
+        relevant_commands,
+    ):
         # prepare the input variables
         return self.eval_llm_chain.run(
             ai_name=ai_name,
@@ -164,6 +188,11 @@ class NavigationBrain:
 
     def run(self):
         final_response = self.tot.solve(  # kwargs
+            initial_state,
+            thought_limit,
+            max_depth,
+            breadth,
+            value_threshold,
             ai_name=ai_name,
             num_thoughts=num_thoughts,
             previous_thoughts=previous_thoughts,

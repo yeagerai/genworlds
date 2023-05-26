@@ -87,7 +87,9 @@ class PodcastBrain:
             ),
         )
 
-    def gen_thoughts(self, previous_thoughts, num_thoughts):
+    def gen_thoughts(
+        self, ai_name, num_thoughts, previous_thoughts, memory, personality_db
+    ):
         # prepare the input variables
         return self.gen_llm_chain.run(
             ai_name=ai_name,
@@ -97,7 +99,9 @@ class PodcastBrain:
             personality_db=personality_db,
         )
 
-    def eval_thoughts(self, previous_thoughts, num_thoughts):
+    def eval_thoughts(
+        self, ai_name, num_thoughts, previous_thoughts, memory, personality_db
+    ):
         # prepare the input variables
         return self.eval_llm_chain.run(
             ai_name=ai_name,
@@ -112,3 +116,4 @@ class PodcastBrain:
         # parse the thought and convert it into an event schema
         # return just the event type that is in the thought
         pass
+
