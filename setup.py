@@ -41,9 +41,9 @@ setup(
         "Topic :: Software Development :: Libraries :: Python Modules",
     ],
     entry_points={
-        'console_scripts': [
-            'genworlds-start-chat-room = genworlds.interfaces.cli:start_from_command_line',
-            'genworlds-start-socket = genworlds.sockets.world_socket_server:start_from_command_line',
+        "console_scripts": [
+            "genworlds-start-chat-room = genworlds.interfaces.cli:start_from_command_line",
+            "genworlds-start-socket = genworlds.sockets.world_socket_server:start_from_command_line",
         ],
     },
 )

@@ -28,7 +28,10 @@ class PromptGenerator:
                 "criticism": "constructive self-criticism",
                 "speak": "thoughts summary to say to user",
             },
-            "commands": [{"name": "command 1 name", "args": {"arg name": "value"}}, {"name": "command 2 name", "args": {"arg name": "value"}}],
+            "commands": [
+                {"name": "command 1 name", "args": {"arg name": "value"}},
+                {"name": "command 2 name", "args": {"arg name": "value"}},
+            ],
         }
 
     def add_constraint(self, constraint: str) -> None:
@@ -137,7 +140,7 @@ def get_prompt(tools: List[BaseTool]) -> str:
     )
     prompt_generator.add_constraint("No user assistance")
     prompt_generator.add_constraint(
-    'Exclusively use the commands listed in double quotes e.g. "command_name". Include the class qualifier if specified e.g. "Cat:give_cuddles"'
+        'Exclusively use the commands listed in double quotes e.g. "command_name". Include the class qualifier if specified e.g. "Cat:give_cuddles"'
     )
 
     # Add commands to the PromptGenerator object

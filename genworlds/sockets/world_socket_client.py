@@ -8,7 +8,12 @@ from genworlds.utils.logging_factory import LoggingFactory
 
 
 class WorldSocketClient:
-    def __init__(self, process_event, url:str = "ws://127.0.0.1:7456/ws", send_initial_event = None) -> None:
+    def __init__(
+        self,
+        process_event,
+        url: str = "ws://127.0.0.1:7456/ws",
+        send_initial_event=None,
+    ) -> None:
         self.url = url
         self.websocket = websocket.WebSocketApp(
             self.url,
@@ -37,7 +42,7 @@ class WorldSocketClient:
         if self.process_event:
             self.process_event(json.loads(message))
 
-    def send_message(self, message):        
+    def send_message(self, message):
         self.websocket.send(message)
         self.logger().debug(f"Sent: {message}")
 

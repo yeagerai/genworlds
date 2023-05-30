@@ -10,6 +10,7 @@ class AgentSpeaksIntoMicrophone(Event):
     description = "The holder of the microphone speaks into the microphone."
     message: str
 
+
 class Microphone(BaseObject):
     host: str
 
@@ -29,14 +30,14 @@ class Microphone(BaseObject):
         self.host = host
         self.holder = host
 
-        self.register_event_listeners([
-            (AgentSpeaksIntoMicrophone, self.agent_speaks_into_microphone_listener),
-        ])    
+        self.register_event_listeners(
+            [
+                (AgentSpeaksIntoMicrophone, self.agent_speaks_into_microphone_listener),
+            ]
+        )
 
     def agent_speaks_into_microphone_listener(self, event: AgentSpeaksIntoMicrophone):
-        if (event.sender_id != self.holder):
+        if event.sender_id != self.holder:
             print(f"Agent {event.sender_id} is not the holder of the microphone.")
             return
         print(f"Agent {event.sender_id} says: {event.message}.")
-
-    

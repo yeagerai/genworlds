@@ -51,7 +51,11 @@ class AutoGPTPrompt(BaseChatPromptTemplate, BaseModel):
     def format_messages(self, **kwargs: Any) -> List[BaseMessage]:
         messages: List[BaseMessage] = []
 
-        base_prompt = SystemMessage(content=self.construct_full_prompt(kwargs["agent_world_state"], kwargs["goals"]))
+        base_prompt = SystemMessage(
+            content=self.construct_full_prompt(
+                kwargs["agent_world_state"], kwargs["goals"]
+            )
+        )
         messages.append(base_prompt)
 
         time_prompt = SystemMessage(
@@ -69,12 +73,9 @@ class AutoGPTPrompt(BaseChatPromptTemplate, BaseModel):
                 inventory_prompt += f"{json.dumps(entity)}\n"
         else:
             inventory_prompt = f"You have no items in your inventory.\n"
-        inventory_message = SystemMessage(
-            content=inventory_prompt
-        )
+        inventory_message = SystemMessage(content=inventory_prompt)
         messages.append(inventory_message)
         used_tokens += self.token_counter(inventory_message.content)
-
 
         nearby_entities = kwargs["nearby_entities"]
         if len(nearby_entities) > 0:
@@ -83,31 +84,29 @@ class AutoGPTPrompt(BaseChatPromptTemplate, BaseModel):
                 nearby_entities_prompt += f"{json.dumps(entity)}\n"
         else:
             nearby_entities_prompt = f"There are no entities near you.\n"
-        nearby_entities_message = SystemMessage(
-            content=nearby_entities_prompt
-        )
+        nearby_entities_message = SystemMessage(content=nearby_entities_prompt)
         messages.append(nearby_entities_message)
         used_tokens += self.token_counter(nearby_entities_message.content)
 
         relevant_commands = kwargs["relevant_commands"]
-        relevant_commands_prompt = f"You can perform the following additional commands with the entities nearby. \"target_id\" is the id of the entity that provides the command:\n"
+        relevant_commands_prompt = f'You can perform the following additional commands with the entities nearby. "target_id" is the id of the entity that provides the command:\n'
         for command in relevant_commands:
             relevant_commands_prompt += f"{command}\n"
-        relevant_commands_message = SystemMessage(
-            content=relevant_commands_prompt
-        )
+        relevant_commands_message = SystemMessage(content=relevant_commands_prompt)
         messages.append(relevant_commands_message)
         used_tokens += self.token_counter(relevant_commands_message.content)
 
         personality_db: Chroma = kwargs["personality_db"]
         if personality_db is not None:
             previous_messages = kwargs["messages"]
-            past_statements = list(map(lambda d: d.page_content, personality_db.similarity_search(str(previous_messages[-10:]))))
-            if(len(past_statements) > 0):
-
-                past_statements_format = (
-                    f"You have said the following things in the past on this topic:\n{past_statements}\n\n"
+            past_statements = list(
+                map(
+                    lambda d: d.page_content,
+                    personality_db.similarity_search(str(previous_messages[-10:])),
                 )
+            )
+            if len(past_statements) > 0:
+                past_statements_format = f"You have said the following things in the past on this topic:\n{past_statements}\n\n"
                 personality_message = SystemMessage(content=past_statements_format)
                 messages.append(personality_message)
                 used_tokens += len(personality_message.content)
@@ -132,16 +131,16 @@ class AutoGPTPrompt(BaseChatPromptTemplate, BaseModel):
         messages.append(memory_message)
         used_tokens += len(memory_message.content)
 
-        historical_messages: List[BaseMessage] = []
-        for message in previous_messages[-10:][::-1]:
-            message_tokens = self.token_counter(message.content)
-            if used_tokens + message_tokens > self.send_token_limit - 1000:
-                break
-            historical_messages = [message] + historical_messages
-        input_message = HumanMessage(content=kwargs["user_input"])
+        # historical_messages: List[BaseMessage] = []
+        # for message in previous_messages[-10:][::-1]:
+        #     message_tokens = self.token_counter(message.content)
+        #     if used_tokens + message_tokens > self.send_token_limit - 1000:
+        #         break
+        #     historical_messages = [message] + historical_messages
+        # input_message = HumanMessage(content=kwargs["user_input"])
 
-        messages += historical_messages
-        plan : Optional[str] = kwargs["plan"]
+        # messages += historical_messages
+        # plan : Optional[str] = kwargs["plan"]
 
-        messages.append(input_message)
+        # messages.append(input_message)
         return messages

@@ -1,11 +1,10 @@
-
 import logging
 import os
 import colorlog
 
 
 class LoggingFactory:
-    colors = ['red', 'yellow', 'blue', 'purple', 'cyan', 'green', 'white']
+    colors = ["red", "yellow", "blue", "purple", "cyan", "green", "white"]
     color_index = 0
     loggers = {}
 
@@ -17,10 +16,12 @@ class LoggingFactory:
 
         # Create a handler for the logger
         handler = colorlog.StreamHandler()
-        handler.setFormatter(colorlog.ColoredFormatter(
-            # f'%(log_color)s%(levelname)-8s%(reset)s %({cls.colors[cls.color_index]})s[%(name)s] %(message)s'
-            f'%({cls.colors[cls.color_index]})s[%(name)s] %(message)s'
-        ))
+        handler.setFormatter(
+            colorlog.ColoredFormatter(
+                # f'%(log_color)s%(levelname)-8s%(reset)s %({cls.colors[cls.color_index]})s[%(name)s] %(message)s'
+                f"%({cls.colors[cls.color_index]})s[%(name)s] %(message)s"
+            )
+        )
 
         # Create a logger
         logger = colorlog.getLogger(name)
