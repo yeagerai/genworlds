@@ -107,4 +107,5 @@ def start_from_command_line():
     start(host=host, port=port)
 
 
-# uvicorn world_socket_server:app --host 0.0.0.0 --port 7456
+if __name__ == "__main__":
+    start_from_command_line()

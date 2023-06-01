@@ -3,6 +3,7 @@ from prompt_toolkit.layout.containers import HSplit, VSplit, Window, WindowAlign
 from prompt_toolkit.layout.controls import BufferControl, FormattedTextControl
 from prompt_toolkit.layout.dimension import LayoutDimension as D
 
+
 def init_layout(self):
     header = Window(
         height=3,

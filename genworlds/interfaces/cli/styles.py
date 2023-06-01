@@ -1,5 +1,6 @@
 from prompt_toolkit.styles import Style
 
+
 def init_style():
     return Style(
         [
