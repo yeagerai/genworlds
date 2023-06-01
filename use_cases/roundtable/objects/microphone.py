@@ -7,7 +7,7 @@ from genworlds.objects.base_object import BaseObject
 
 class AgentSpeaksIntoMicrophone(Event):
     event_type = "agent_speaks_into_microphone"
-    description = "The holder of the microphone speaks into the microphone."
+    description = "The holder of the microphone speaks into the microphone"
     message: str
 
 

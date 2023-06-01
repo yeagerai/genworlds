@@ -58,6 +58,6 @@ class EntityWorldStateUpdateEvent(Event):
 
 class AgentGivesObjectToAgentEvent(Event):
     event_type = "agent_gives_object_to_agent_event"
-    description = "An agent gives an object to another agent."
+    description = "Give an object from your inventory to another agent. Only the holder of an item can use this event, you cannot use this event to request an item. Target id must be the id of the world."
     object_id: str
     recipient_agent_id: str

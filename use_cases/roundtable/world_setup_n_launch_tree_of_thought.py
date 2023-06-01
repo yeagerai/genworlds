@@ -20,15 +20,13 @@ podcast_host = TreeAgent(
     ai_name="Maria",
     description="The host of the podcast",
     goals=[
-        (
-            "Host an episode of the Roundtable podcast, discussing AI technology. \n",
-            "Only the holder of the microphone can speak to the audience, if you don't have the microphone in your inventory, wait to receive it from the previous speaker. \n",
-            "Don't repeat yourself, respond to questions and points made by other co-hosts to advance the conversation. \n",
-            "Don't hog the microphone for a long time, make sure to give it to other participants. \n",
-        )
+        "Host an episode of the Roundtable podcast, discussing AI technology.",
+        "Only the holder of the microphone can speak to the audience, if you don't have the microphone in your inventory, wait to receive it from the previous speaker.",
+        "Don't repeat yourself, respond to questions and points made by other co-hosts to advance the conversation.",
+        "Don't hog the microphone for a long time, make sure to give it to other participants.",        
     ],
     openai_api_key=openai_api_key,
-    model_name="gpt-3.5-turbo",
+    model_name="gpt-4",
     search_algorithm="BFS",
     interesting_events={
         "agent_speaks_into_microphone",
@@ -39,17 +37,15 @@ podcast_host = TreeAgent(
 podcast_guest = TreeAgent(
     id="jimmy",
     ai_name="Jimmy",
-    description="A co-host of the podcast",
+    description="A guest of the podcast",
     goals=[
-        (
-            "Participate an episode of the Roundtable podcast, discussing AI technology. \n",
-            "Only the holder of the microphone can speak to the audience, if you don't have the microphone in your inventory, wait to receive it from the previous speaker. \n",
-            "Don't repeat yourself, respond to questions and points made by other co-hosts to advance the conversation. \n",
-            "Don't hog the microphone for a long time, make sure to give it to other participants. \n",
-        )
+        "Participate in an episode of the Roundtable podcast, discussing AI technology.",
+        "Only the holder of the microphone can speak to the audience, if you don't have the microphone in your inventory, wait to receive it from the previous speaker.",
+        "Don't repeat yourself, respond to questions and points made by other co-hosts to advance the conversation.",
+        "Don't hog the microphone for a long time, make sure to give it to other participants.",        
     ],
     openai_api_key=openai_api_key,
-    model_name="gpt-3.5-turbo",
+    model_name="gpt-4",
     search_algorithm="BFS",
     interesting_events={
         "agent_speaks_into_microphone",
@@ -61,7 +57,7 @@ podcast_guest = TreeAgent(
 microphone = Microphone(
     id="microphone",
     name="Microphone",
-    description="A podcast microphone that allows the holder of it to speak to the audience",
+    description="A podcast microphone that allows the holder of it to speak to the audience. The speaker can choose to make a statement, ask a question, respond to a question, or make a joke.",
     host=podcast_host.id,
 )
 

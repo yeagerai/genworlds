@@ -233,7 +233,7 @@ As the framework is in alpha, expect large changes to the codebase.
 Running the socket server server
 
 ```bash
-cd sockets/world_socket_server
+cd genworlds/sockets/
 uvicorn world_socket_server:app --host 0.0.0.0 --port 7456
 ```
 
