@@ -25,7 +25,7 @@ def loading_socket_servers(genworlds_path: str):
 
     with open(file_path, "r") as f:
         config = f.readlines()
-    for line in config:
+    for line in list(set(config)):
         values.append((line, line))
 
     socket_servers_menu = RadioList(
