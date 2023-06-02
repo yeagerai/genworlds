@@ -14,7 +14,7 @@ from genworlds.interfaces.cli.initial_setup_layout_screen import (
     initial_setup_layout_screen,
 )
 
-CONFIG_PATH = os.path.join(os.path.expanduser("~"), ".genworlds")
+GENWORLDS_CONFIG_PATH = os.path.join(os.path.expanduser("~"), ".genworlds")
 
 
 class CLI:
@@ -34,7 +34,7 @@ class CLI:
             full_screen=True,
         )
 
-        initial_setup_layout_screen(self, CONFIG_PATH)
+        initial_setup_layout_screen(self, GENWORLDS_CONFIG_PATH)
 
     def process_event(self, ws_json_message):
         process_event_router(

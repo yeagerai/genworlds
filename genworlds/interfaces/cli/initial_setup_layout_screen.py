@@ -1,5 +1,8 @@
 from __future__ import annotations
 
+import os
+import json
+
 from prompt_toolkit import Application
 from prompt_toolkit.layout import HSplit, VSplit, Layout
 from prompt_toolkit.layout.containers import Window
@@ -15,26 +18,34 @@ from prompt_toolkit.keys import Keys
 import genworlds.interfaces as interfaces
 
 
-def loading_socket_servers():
+def loading_socket_servers(genworlds_path: str):
     ## gather all the ws running locally if is empty display the empty message
+    file_path = os.path.join(genworlds_path, "active_socket_servers_list.txt")
+    values = []
+
+    with open(file_path, "r") as f:
+        config = f.readlines()
+    for line in config:
+        values.append((line, line))
+
     socket_servers_menu = RadioList(
-        values=[
-            ("ws://0.0.0.0:7456/", "All-in Pod - ws://0.0.0.0:7456/"),
-            ("ws://0.0.0.0:7457/", "Longevity Research Tank - ws://0.0.0.0:7457/"),
-            ("ws://0.0.0.0:7458/", "Lawyers - ws://0.0.0.0:7458/"),
-        ],
+        values=values,
     )
     return socket_servers_menu
 
 
-def loading_configuration_files(config_path):
-    ## gather all the config files in the config path
+def loading_configuration_files(genworlds_path: str):
+    config_path = os.path.join(genworlds_path, "cli_configurations")
+    values = []
+
+    for file in os.listdir(config_path):
+        file_path = os.path.join(config_path, file)
+        with open(file_path, "r") as f:
+            config = json.load(f)
+        values.append((file_path, config["name"]))
+
     screen_config_menu = RadioList(
-        values=[
-            ("New", "New Configuration (Empty)"),
-            ("path/to/config1.json", "All-in Pod (Debug)"),
-            ("path/to/config2.json", "All-in Pod (Demo)"),
-        ],
+        values=values,
     )
     return screen_config_menu
 
@@ -44,7 +55,7 @@ def launch_cli_button_handler():
     pass
 
 
-def initial_setup_layout_screen(cli: interfaces.CLI, config_path: str):
+def initial_setup_layout_screen(cli: interfaces.CLI, genworlds_path: str):
     title = Window(
         height=D.exact(3),
         content=FormattedTextControl(
@@ -52,8 +63,8 @@ def initial_setup_layout_screen(cli: interfaces.CLI, config_path: str):
         ),
         align=WindowAlign.CENTER,
     )
-    socket_servers_menu = loading_socket_servers()
-    screen_config_menu = loading_configuration_files(config_path)
+    socket_servers_menu = loading_socket_servers(genworlds_path=genworlds_path)
+    screen_config_menu = loading_configuration_files(genworlds_path=genworlds_path)
 
     socket_server_layout = HSplit(
         [
