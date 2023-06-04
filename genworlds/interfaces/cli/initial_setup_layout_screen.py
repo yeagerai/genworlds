@@ -2,18 +2,16 @@ from __future__ import annotations
 
 import os
 import json
+from functools import partial
 
-from prompt_toolkit import Application
-from prompt_toolkit.layout import HSplit, VSplit, Layout
+from prompt_toolkit.layout import HSplit, VSplit
 from prompt_toolkit.layout.containers import Window
 from prompt_toolkit.layout.controls import FormattedTextControl
-from prompt_toolkit.key_binding import KeyBindings
 from prompt_toolkit.widgets import RadioList
 from prompt_toolkit.formatted_text import HTML
 from prompt_toolkit.widgets import Button
 from prompt_toolkit.layout import WindowAlign
 from prompt_toolkit.layout.dimension import D
-from prompt_toolkit.keys import Keys
 
 import genworlds.interfaces as interfaces
 
@@ -51,8 +49,11 @@ def loading_configuration_files(genworlds_path: str):
 
 
 # launch CLI button init the client threaded pointing to the selected ws server and switch the CLI layout
-def launch_cli_button_handler():
-    pass
+def launch_cli_button_handler(cli: interfaces.CLI, socket_servers_menu: RadioList, screen_config_menu: RadioList):
+    cli.server_url = socket_servers_menu.current_value
+    with open(screen_config_menu.current_value, "r") as f:
+        cli.configuration = json.load(f)
+    cli.initialize_dynamic_layout()
 
 
 def initial_setup_layout_screen(cli: interfaces.CLI, genworlds_path: str):
@@ -95,7 +96,7 @@ def initial_setup_layout_screen(cli: interfaces.CLI, genworlds_path: str):
 
     main_container = VSplit([socket_server_layout, screen_config_layout])
 
-    launch_cli_button = Button("Launch CLI", handler=launch_cli_button_handler)
+    launch_cli_button = Button("Launch CLI", handler=partial(launch_cli_button_handler, cli, socket_servers_menu, screen_config_menu))
 
     # Update the CLI layout
     cli.application.layout.container = HSplit(

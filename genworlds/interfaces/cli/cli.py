@@ -13,6 +13,7 @@ from genworlds.interfaces.cli.event_processors import process_event_router
 from genworlds.interfaces.cli.initial_setup_layout_screen import (
     initial_setup_layout_screen,
 )
+from genworlds.interfaces.cli.render_main_screen import render_main_screen
 
 GENWORLDS_CONFIG_PATH = os.path.join(os.path.expanduser("~"), ".genworlds")
 
@@ -21,6 +22,11 @@ class CLI:
     def __init__(self):
         self.ws_client = WorldSocketClient(self.process_event)
         self.kb = KeyBindings()
+        self.configuration = None
+        self.server_url = None
+        self.screens = {}
+        self.current_screen = None
+        self.selected_screen = None
 
         @self.kb.add("c-c", eager=True)
         def exit_app(event):
@@ -40,6 +46,23 @@ class CLI:
         process_event_router(
             self.terminal_size, self.layout_initialized, ws_json_message
         )
+
+    def initialize_dynamic_layout(self):
+        for screen in self.configuration["screens"]:
+            self.screens[screen["name"]] = {}
+            self.screens[screen["name"]]["buffer"] = Buffer()
+            self.screens[screen["name"]]["tracked_events"] = screen["tracked_events"]
+        self.selected_screen = "All events"
+        self.set_current_screen("All events")
+        self.set_main_key_bindings()
+
+    def set_current_screen(self, screen_name):
+        self.current_screen = screen_name
+        render_main_screen(self, screen_name)
+        pass
+
+    def set_main_key_bindings(self):
+        pass
 
     def run(self):
         # threading.Thread(
