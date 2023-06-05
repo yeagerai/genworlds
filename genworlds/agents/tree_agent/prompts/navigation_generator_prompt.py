@@ -14,41 +14,34 @@ from langchain.vectorstores.base import VectorStoreRetriever
 from langchain.vectorstores import Chroma
 
 
-class AutoGPTPrompt(BaseChatPromptTemplate, BaseModel):
-    ai_name: str
+class NavigationGeneratorPrompt(BaseChatPromptTemplate, BaseModel):
     ai_role: str
-    tools: List[BaseTool]
+    response_instruction: str
     token_counter: Callable[[str], int]
     send_token_limit: int = 4196
 
+    basic_template = """
+        # Basic rules
+        {ai_role}
+
+        ## Your Goals
+        {goals}
+
+        ## World State
+        {agent_world_state}
+        """
+
     def construct_full_prompt(self, agent_world_state: str, goals: List[str]) -> str:
-        prompt_start = (
-            "Your decisions must always be made independently "
-            "without seeking user assistance.\n"
-            "Play to your strengths as an LLM and pursue simple "
-            "strategies with no legal complications.\n"
-            "If you have completed all your tasks, make sure to "
-            'use the "finish" command.'
-            "\n\n"
-            "You are an agent that lives in a world with other agents and objects.\n"
-            "You can move around the world, interact with objects, and talk to other agents.\n"
-            "You have an inventory that can hold objects.\n"
+
+        return self.basic_template.format(
+            ai_role=self.ai_role,
+            goals="\n".join([f"{i+1}. {goal}" for i, goal in enumerate(goals)]),
+            agent_world_state=agent_world_state,
         )
 
-        # Add agent world state
-        prompt_start += agent_world_state
+    def format_messages(self, **kwargs: Any) -> List[BaseMessage]:        
+        kwargs = {key: kwargs[key] for key in self.input_variables}
 
-        # Construct full prompt
-        full_prompt = (
-            f"You are {self.ai_name}, {self.ai_role}\n{prompt_start}\n\nGOALS:\n\n"
-        )
-        for i, goal in enumerate(goals):
-            full_prompt += f"{i+1}. {goal}\n"
-
-        full_prompt += f"\n\n{get_prompt(self.tools)}"
-        return full_prompt
-
-    def format_messages(self, **kwargs: Any) -> List[BaseMessage]:
         messages: List[BaseMessage] = []
 
         base_prompt = SystemMessage(
@@ -57,52 +50,70 @@ class AutoGPTPrompt(BaseChatPromptTemplate, BaseModel):
             )
         )
         messages.append(base_prompt)
+        used_tokens = self.token_counter(base_prompt.content) 
 
-        time_prompt = SystemMessage(
-            content=f"The current time and date is {time.strftime('%c')}"
-        )
-        messages.append(time_prompt)
-        used_tokens = self.token_counter(base_prompt.content) + self.token_counter(
-            time_prompt.content
-        )
+        previous_thoughts_prompt = f"## Previous thoughts:\n"
+        if "previous_thoughts" in kwargs and len(kwargs["previous_thoughts"]) > 0:            
+            for entity in kwargs["previous_thoughts"]:
+                previous_thoughts_prompt += f"- {json.dumps(entity)}\n"
+        else:
+            previous_thoughts_prompt += f"You have no previous thoughts.\n"
+        previous_thoughts_message = SystemMessage(content=previous_thoughts_prompt)
+        messages.append(previous_thoughts_message)
+        used_tokens += self.token_counter(previous_thoughts_message.content)
+        
+
+        # time_prompt = SystemMessage(
+        #     content=f"The current time and date is {time.strftime('%c')}"
+        # )
+        # messages.append(time_prompt)
+        # used_tokens = self.token_counter(base_prompt.content) + self.token_counter(
+        #     time_prompt.content
+        # )
 
         inventory = kwargs["inventory"]
-        if len(inventory) > 0:
-            inventory_prompt = f"You have the following items in your inventory:\n"
+        inventory_prompt = f"## Inventory:\n"
+        if len(inventory) > 0:            
             for entity in inventory:
-                inventory_prompt += f"{json.dumps(entity)}\n"
+                inventory_prompt += f"- {json.dumps(entity)}\n"
         else:
-            inventory_prompt = f"You have no items in your inventory.\n"
+            inventory_prompt += f"You have no items in your inventory.\n"
         inventory_message = SystemMessage(content=inventory_prompt)
         messages.append(inventory_message)
         used_tokens += self.token_counter(inventory_message.content)
 
         nearby_entities = kwargs["nearby_entities"]
+        nearby_entities_prompt = f"## Nearby entities: \n"
         if len(nearby_entities) > 0:
-            nearby_entities_prompt = f"There are the following entities near you: \n"
             for entity in nearby_entities:
                 nearby_entities_prompt += f"{json.dumps(entity)}\n"
         else:
-            nearby_entities_prompt = f"There are no entities near you.\n"
+            nearby_entities_prompt += f"There are no entities near you.\n"
         nearby_entities_message = SystemMessage(content=nearby_entities_prompt)
         messages.append(nearby_entities_message)
         used_tokens += self.token_counter(nearby_entities_message.content)
 
         relevant_commands = kwargs["relevant_commands"]
-        relevant_commands_prompt = f'You can perform the following additional commands with the entities nearby. "target_id" is the id of the entity that provides the command:\n'
+        relevant_commands_prompt = f'You can perform the following additional commands with the entities nearby:\n'
         for command in relevant_commands:
             relevant_commands_prompt += f"{command}\n"
         relevant_commands_message = SystemMessage(content=relevant_commands_prompt)
         messages.append(relevant_commands_message)
         used_tokens += self.token_counter(relevant_commands_message.content)
+        
+
+        if "plan" in kwargs and  kwargs["plan"] is not None:
+            plan: Optional[str] = kwargs["plan"]        
+            plan_message = SystemMessage(content=f"## Plan:\n{plan}")
+            messages.append(plan_message)
+            used_tokens += len(plan_message.content)
 
         personality_db: Chroma = kwargs["personality_db"]
         if personality_db is not None:
-            previous_messages = kwargs["messages"]
             past_statements = list(
                 map(
                     lambda d: d.page_content,
-                    personality_db.similarity_search(str(previous_messages[-10:])),
+                    personality_db.similarity_search(str(kwargs["goals"])),
                 )
             )
             if len(past_statements) > 0:
@@ -112,8 +123,7 @@ class AutoGPTPrompt(BaseChatPromptTemplate, BaseModel):
                 used_tokens += len(personality_message.content)
 
         memory: VectorStoreRetriever = kwargs["memory"]
-        previous_messages = kwargs["messages"]
-        relevant_docs = memory.get_relevant_documents(str(previous_messages[-10:]))
+        relevant_docs = memory.get_relevant_documents(str(kwargs["goals"]))
         relevant_memory = [d.page_content for d in relevant_docs]
         relevant_memory_tokens = sum(
             [self.token_counter(doc) for doc in relevant_memory]
@@ -131,16 +141,17 @@ class AutoGPTPrompt(BaseChatPromptTemplate, BaseModel):
         messages.append(memory_message)
         used_tokens += len(memory_message.content)
 
-        # historical_messages: List[BaseMessage] = []
-        # for message in previous_messages[-10:][::-1]:
-        #     message_tokens = self.token_counter(message.content)
-        #     if used_tokens + message_tokens > self.send_token_limit - 1000:
-        #         break
-        #     historical_messages = [message] + historical_messages
-        # input_message = HumanMessage(content=kwargs["user_input"])
+        historical_messages: List[BaseMessage] = []
+        previous_messages = kwargs["messages"]
+        for message in previous_messages[-10:][::-1]:
+            message_tokens = self.token_counter(message.content)
+            if used_tokens + message_tokens > self.send_token_limit - 1000:
+                break
+            historical_messages = [message] + historical_messages
 
-        # messages += historical_messages
-        # plan: Optional[str] = kwargs["plan"]
+        messages += historical_messages
 
-        # messages.append(input_message)
+        instruction = HumanMessage(content=self.response_instruction.format(**kwargs))
+        messages.append(instruction)
+
         return messages

@@ -1,6 +1,6 @@
 import threading
 from typing import Callable, List, Optional
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 from datetime import datetime
 
 from genworlds.sockets.world_socket_client import WorldSocketClient
@@ -12,7 +12,8 @@ class Event(BaseModel):
     summary: Optional[str]
     created_at: datetime
     sender_id: str
-    target_id: Optional[str]
+    target_id: Optional[str] = Field(description="ID of the entity that handles the event")
+
 
 
 class WebsocketEventHandler:
