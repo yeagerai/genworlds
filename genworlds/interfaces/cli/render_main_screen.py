@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from prompt_toolkit.layout import HSplit, VSplit
+from prompt_toolkit.layout import HSplit
 from prompt_toolkit.layout.containers import Window
 from prompt_toolkit.layout.controls import FormattedTextControl, BufferControl
 from prompt_toolkit.formatted_text import HTML
@@ -8,12 +8,13 @@ from prompt_toolkit.widgets import MenuContainer, MenuItem
 from prompt_toolkit.layout import WindowAlign
 from prompt_toolkit.layout.dimension import D
 from prompt_toolkit.keys import Keys
-from prompt_toolkit.buffer import Buffer
-from prompt_toolkit.document import Document
+from prompt_toolkit.key_binding import KeyBindings
 
 import genworlds.interfaces as interfaces
+from genworlds.interfaces.cli.render_help_screen import render_help_screen
 
-def render_main_screen(cli: interfaces.CLI, screen_name: str):
+
+def render_main_screen(cli: interfaces.CLI):
     title = Window(
         height=D.exact(3),
         content=FormattedTextControl(
@@ -22,26 +23,39 @@ def render_main_screen(cli: interfaces.CLI, screen_name: str):
         align=WindowAlign.CENTER,
     )
 
-    menu_text = "\n".join(cli.screens.keys())
-    menu_buffer = Buffer(document=Document(menu_text, cursor_position=len(menu_text)))
-    
-    menu_content = BufferControl(buffer=menu_buffer)
-    screens_menu = Window(content=menu_content, width=D.exact(15), style="class:menu", wrap_lines=False)
-    screen_buffer = Window(BufferControl(buffer=cli.screens[screen_name]["buffer"]))
-
-    main_container = VSplit([
-        screens_menu, 
-        Window(width=1, char="|", style="class:line"),
-        screen_buffer
-    ])
-
+    screens_menu = MenuContainer(
+        body=Window(height=0),
+        menu_items=[
+            MenuItem(f"{k}  ", handler=lambda k=k: switch_buffer(k))
+            for k in cli.screens.keys()
+        ],
+    )
+    screen_buffer = Window(
+        BufferControl(buffer=cli.screens[list(cli.screens.keys())[0]]["buffer"])
+    )
+    prompt_buffer = Window(height=1)  # TODO: Create a reasonable prompt_buffer
+    main_container = HSplit(
+        [
+            screens_menu,
+            Window(height=1),
+            screen_buffer,
+            Window(height=1, char="-", style="class:line"),
+            prompt_buffer,
+        ]
+    )
     # Define the commands menu
     commands_menu = MenuContainer(
         body=Window(height=0),
         menu_items=[
-            MenuItem("^N - New Screen", handler=lambda: cli.show_new_screen()),
-            MenuItem("^H - Help", handler=lambda: cli.show_help_screen()),
-            MenuItem("^C - Exit", handler=lambda: cli.application.exit()),
+            MenuItem(
+                "^W - Write Buffers To Disk   "
+            ),  # , handler=lambda: write_buffers(), shortcut=Keys.ControlW),
+            MenuItem(
+                "^H - Help   "
+            ),  # , handler=lambda: render_help_screen(cli), shortcut=Keys.ControlH),
+            MenuItem(
+                "^C - Exit   "
+            ),  # , handler=lambda: cli.application.exit(), shortcut=Keys.ControlC),
         ],
     )
 
@@ -49,32 +63,33 @@ def render_main_screen(cli: interfaces.CLI, screen_name: str):
     cli.application.layout.container = HSplit(
         [
             title,
-            Window(height=1, char="-", style="class:line"),
             main_container,
             Window(height=1, char="-", style="class:line"),
             commands_menu,
             Window(height=1),
-        ]
+        ],
     )
-    
+
+    # Update initial focus
+    cli.application.layout.focus(screens_menu)
+
     # Update the CLI keybindings
-    @cli.kb.add("up")
+    @cli.kb.add(Keys.ControlW, eager=True)
     def _(event):
-        # move the selected item in the screens_menu up
-        pass
-    
-    @cli.kb.add("down")
-    def _(event):
-        # move the selected item in the screens_menu down
-        pass
+        write_buffers()
 
-    @cli.kb.add(Keys.Enter)
+    @cli.kb.add(Keys.ControlH, eager=True)
     def _(event):
-        # renders the buffer selected in the screens_menu
-        pass
+        render_help_screen(cli)
 
-    @cli.kb.add("c-h")
-    def _(event):
-        # opens the help screen
-        pass
+    def switch_buffer(screen_name):
+        screen_buffer.content = BufferControl(buffer=cli.screens[screen_name]["buffer"])
+        if cli.screens[screen_name]["has_input"]:
+            """TODO: If the screen has input, focus the prompt buffer and create a reasonable prompt_buffer"""
+        cli.application.layout.focus(screens_menu)
 
+    def write_buffers():
+        # for screen_name in cli.screens.keys():
+        #     with open(screen_name, "w") as f:
+        #         f.write(cli.screens[screen_name]["buffer"].text)
+        cli.application.layout.focus(screens_menu)

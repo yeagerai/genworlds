@@ -277,6 +277,7 @@ class YeagerAutoGPT:
                         )
                     result += f"Command {tool.name} returned: {observation} \n"
                 else:
+                    # summarize event and add the summary to execute event action
                     result += self.execute_event_action(action) + "\n"
 
             ## send result and assistant_reply to the socket
@@ -318,6 +319,7 @@ class YeagerAutoGPT:
             event = {
                 "event_type": event_type,
                 "sender_id": self.id,
+                "summary": "",
                 "created_at": datetime.now().isoformat(),
             }
             event.update(action.args)

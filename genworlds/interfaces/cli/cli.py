@@ -13,6 +13,7 @@ from genworlds.interfaces.cli.event_processors import process_event_router
 from genworlds.interfaces.cli.initial_setup_layout_screen import (
     initial_setup_layout_screen,
 )
+from genworlds.interfaces.cli.styles import init_style
 from genworlds.interfaces.cli.render_main_screen import render_main_screen
 
 GENWORLDS_CONFIG_PATH = os.path.join(os.path.expanduser("~"), ".genworlds")
@@ -36,39 +37,40 @@ class CLI:
         self.application = Application(
             layout=self.layout,
             key_bindings=self.kb,
-            mouse_support=True,
+            mouse_support=False,
             full_screen=True,
         )
 
         initial_setup_layout_screen(self, GENWORLDS_CONFIG_PATH)
+        init_style()
 
     def process_event(self, ws_json_message):
-        process_event_router(
-            self.terminal_size, self.layout_initialized, ws_json_message
-        )
+        process_event_router(self, ws_json_message)
 
     def initialize_dynamic_layout(self):
         for screen in self.configuration["screens"]:
             self.screens[screen["name"]] = {}
+            self.screens[screen["name"]]["has_input"] = screen["has_input"]
+            self.screens[screen["name"]]["screen_type"] = screen["screen_type"]
             self.screens[screen["name"]]["buffer"] = Buffer()
-            self.screens[screen["name"]]["tracked_events"] = screen["tracked_events"]
-        self.selected_screen = "All events"
-        self.set_current_screen("All events")
-        self.set_main_key_bindings()
+            if self.screens[screen["name"]]["screen_type"] == "event_history":
+                self.screens[screen["name"]]["tracked_events"] = screen[
+                    "tracked_events"
+                ]
+            elif (
+                self.screens[screen["name"]]["screen_type"] == "entities_current_state"
+            ):
+                self.screens[screen["name"]]["tracked_entities"] = screen[
+                    "tracked_entities"
+                ]
 
-    def set_current_screen(self, screen_name):
-        self.current_screen = screen_name
-        render_main_screen(self, screen_name)
-        pass
-
-    def set_main_key_bindings(self):
-        pass
+        render_main_screen(self)
 
     def run(self):
-        # threading.Thread(
-        #     target=self.ws_client.websocket.run_forever,
-        #     name=f"CLI Socket Client Thread",
-        #     daemon=True,
-        # ).start()
+        threading.Thread(
+            target=self.ws_client.websocket.run_forever,
+            name=f"CLI Socket Client Thread",
+            daemon=True,
+        ).start()
         time.sleep(2)
         self.application.run()

@@ -49,7 +49,9 @@ def loading_configuration_files(genworlds_path: str):
 
 
 # launch CLI button init the client threaded pointing to the selected ws server and switch the CLI layout
-def launch_cli_button_handler(cli: interfaces.CLI, socket_servers_menu: RadioList, screen_config_menu: RadioList):
+def launch_cli_button_handler(
+    cli: interfaces.CLI, socket_servers_menu: RadioList, screen_config_menu: RadioList
+):
     cli.server_url = socket_servers_menu.current_value
     with open(screen_config_menu.current_value, "r") as f:
         cli.configuration = json.load(f)
@@ -60,7 +62,9 @@ def initial_setup_layout_screen(cli: interfaces.CLI, genworlds_path: str):
     title = Window(
         height=D.exact(3),
         content=FormattedTextControl(
-            text=HTML('<style fg="orange">\n🧬🌍 GenWorlds CLI Setup Screen\n</style>')
+            text=HTML(
+                '<style fg="orange">\n🧬🌍 GenWorlds CLI Configuration Screen\n</style>'
+            )
         ),
         align=WindowAlign.CENTER,
     )
@@ -96,7 +100,12 @@ def initial_setup_layout_screen(cli: interfaces.CLI, genworlds_path: str):
 
     main_container = VSplit([socket_server_layout, screen_config_layout])
 
-    launch_cli_button = Button("Launch CLI", handler=partial(launch_cli_button_handler, cli, socket_servers_menu, screen_config_menu))
+    launch_cli_button = Button(
+        "Launch CLI",
+        handler=partial(
+            launch_cli_button_handler, cli, socket_servers_menu, screen_config_menu
+        ),
+    )
 
     # Update the CLI layout
     cli.application.layout.container = HSplit(
