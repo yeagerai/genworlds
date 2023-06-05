@@ -137,10 +137,11 @@ class AutoGPTPrompt(BaseChatPromptTemplate, BaseModel):
             if used_tokens + message_tokens > self.send_token_limit - 1000:
                 break
             historical_messages = [message] + historical_messages
-        input_message = HumanMessage(content=kwargs["user_input"])
 
         messages += historical_messages
         plan: Optional[str] = kwargs["plan"]
 
+        input_message = HumanMessage(content=kwargs["user_input"])
         messages.append(input_message)
+        
         return messages

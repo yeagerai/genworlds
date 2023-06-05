@@ -26,7 +26,7 @@ def preprocess_json_input(input_str: str) -> str:
     return corrected_str
 
 
-class AutoGPTOutputParser(BaseAutoGPTOutputParser):
+class AutoGPTOutputParser(BaseAutoGPTOutputParser):  ## NavigationOutputParser
     def parse(self, text: str) -> AutoGPTAction:
         try:
             parsed = json.loads(text, strict=False)

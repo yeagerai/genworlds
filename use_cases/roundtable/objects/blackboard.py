@@ -27,12 +27,23 @@ class Blackboard(BaseObject):
             id=id,
         )
 
-        self.register_event_listeners([
-            (AgentReadsBlackboardEvent, self.agent_reads_blackboard_listener),
-            (AgentAddsJobToBlackboardEvent, self.agent_adds_job_to_blackboard_listener),
-            (UserAddsJobToBlackboardEvent, self.user_adds_job_to_blackboard_listener),
-            (AgentDeletesJobFromBlackboardEvent, self.agent_deletes_job_from_blackboard_listener),
-        ])        
+        self.register_event_listeners(
+            [
+                (AgentReadsBlackboardEvent, self.agent_reads_blackboard_listener),
+                (
+                    AgentAddsJobToBlackboardEvent,
+                    self.agent_adds_job_to_blackboard_listener,
+                ),
+                (
+                    UserAddsJobToBlackboardEvent,
+                    self.user_adds_job_to_blackboard_listener,
+                ),
+                (
+                    AgentDeletesJobFromBlackboardEvent,
+                    self.agent_deletes_job_from_blackboard_listener,
+                ),
+            ]
+        )
 
     def _add_job(self, new_job: Job):
         self.content.append(new_job)
@@ -43,7 +54,7 @@ class Blackboard(BaseObject):
     def agent_reads_blackboard_listener(self, event: AgentReadsBlackboardEvent):
         print(f"Agent {event.sender_id} reads blackboard {self.id}.")
         self.send_event(
-            BlackboardSendsContentEvent, 
+            BlackboardSendsContentEvent,
             target_id=event.sender_id,
             blackboard_content=self.content,
         )
@@ -58,7 +69,5 @@ class Blackboard(BaseObject):
     ):
         self._add_job(event.new_job)
 
-    def user_adds_job_to_blackboard_listener(
-        self, event: UserAddsJobToBlackboardEvent
-    ):
+    def user_adds_job_to_blackboard_listener(self, event: UserAddsJobToBlackboardEvent):
         self._add_job(event.new_job)

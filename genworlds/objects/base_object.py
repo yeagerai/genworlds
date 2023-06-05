@@ -18,13 +18,15 @@ class BaseObject(WebsocketEventHandler):
         self.description = description
 
         super().__init__(self.id)
-        self.register_event_listeners([
-            # (AgentGetsObjectInfoEvent, self.agent_gets_object_info_listener)
-        ])
+        self.register_event_listeners(
+            [
+                # (AgentGetsObjectInfoEvent, self.agent_gets_object_info_listener)
+            ]
+        )
 
     def agent_gets_object_info_listener(self, event: AgentGetsObjectInfoEvent):
-        
-        self.send_event(ObjectSendsInfoToAgentEvent,
+        self.send_event(
+            ObjectSendsInfoToAgentEvent,
             target_id=event.agent_id,
             object_name=self.name,
             object_description=self.description,

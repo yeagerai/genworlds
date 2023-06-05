@@ -7,11 +7,10 @@ import json
 from typing import List, Optional
 
 from pydantic import ValidationError
-
 from jsonschema import validate
 
+import chromadb
 import faiss
-from langchain.chat_models import ChatOpenAI
 from langchain.vectorstores import FAISS
 from langchain.docstore import InMemoryDocstore
 from langchain.tools import StructuredTool
@@ -19,7 +18,6 @@ from langchain.tools.human.tool import HumanInputRun
 from langchain.vectorstores.base import VectorStoreRetriever
 from langchain.vectorstores import Chroma
 from langchain.embeddings import OpenAIEmbeddings
-from langchain.chains.llm import LLMChain
 from langchain.schema import (
     AIMessage,
     BaseMessage,
@@ -27,12 +25,12 @@ from langchain.schema import (
     HumanMessage,
     SystemMessage,
 )
+from genworlds.agents.tree_agent.brains.event_filler_brain import EventFillerBrain
 
 from genworlds.agents.yeager_autogpt.output_parser import (
     AutoGPTAction,
     AutoGPTOutputParser,
 )
-from genworlds.agents.yeager_autogpt.prompt import AutoGPTPrompt
 from genworlds.agents.yeager_autogpt.prompt_generator import FINISH_NAME
 from genworlds.sockets.world_socket_client import WorldSocketClient
 from genworlds.agents.yeager_autogpt.listening_antenna import ListeningAntenna
@@ -46,10 +44,13 @@ from genworlds.events.basic_events import (
 )
 from genworlds.utils.logging_factory import LoggingFactory
 
-import chromadb
+from genworlds.agents.tree_agent.brains.navigation_brain import (
+    NavigationBrain,
+)
+from genworlds.agents.tree_agent.brains.podcast_brain import PodcastBrain
 
 
-class YeagerAutoGPT:
+class TreeAgent:
     """Agent class for interacting with Auto-GPT."""
 
     world_spawned_id: str
@@ -61,6 +62,8 @@ class YeagerAutoGPT:
         description: str,
         goals: List[str],
         openai_api_key: str,
+        model_name: str = "gpt-3.5-turbo",
+        search_algorithm: str = "BFS",
         interesting_events: set = {},
         feedback_tool: Optional[HumanInputRun] = None,
         additional_memories: Optional[List[VectorStoreRetriever]] = None,
@@ -68,13 +71,19 @@ class YeagerAutoGPT:
         personality_db_path: str = None,
         personality_db_collection_name: str = None,
         websocket_url: str = "ws://127.0.0.1:7456/ws",
+        # action_brain_map: dict = None,
     ):
         # Its own properties
         self.id = id if id else str(uuid4())
         self.ai_name = ai_name
+        self.model_name = model_name
+        self.search_algorithm = search_algorithm
         self.description = description
         self.goals = goals
         self.interesting_events = interesting_events
+        self.feedback_tool = feedback_tool
+        self.additional_memories = additional_memories
+        # self.action_brain_map = action_brain_map if action_brain_map else {}
 
         self.logger = LoggingFactory.get_logger(self.ai_name)
 
@@ -101,26 +110,21 @@ class YeagerAutoGPT:
         )
         self.memory = vectorstore.as_retriever()
 
-        llm = ChatOpenAI(openai_api_key=openai_api_key, model_name="gpt-4")
-        prompt = AutoGPTPrompt(
-            ai_name=self.ai_name,
-            ai_role=self.description,
-            tools=self.actions,
-            input_variables=[
-                "memory",
-                "personality_db",
-                "messages",
-                "goals",
-                "user_input",
-                "nearby_entities",
-                "inventory",
-                "relevant_commands",
-                "plan",
-                "agent_world_state",
-            ],
-            token_counter=llm.get_num_tokens,
+        self.navigation_brain = NavigationBrain(
+            openai_api_key, self.ai_name, self.model_name, search_algorithm=self.search_algorithm
         )
-        self.chain = LLMChain(llm=llm, prompt=prompt, verbose=True)
+        self.podcast_brain = PodcastBrain(
+            openai_api_key, self.ai_name, self.model_name, search_algorithm=self.search_algorithm
+        )
+        self.event_filler_brain = EventFillerBrain(
+            openai_api_key, self.ai_name, self.model_name, search_algorithm=self.search_algorithm
+        )
+
+        self.default_action_brains = [self.event_filler_brain]
+        self.action_brain_map = {
+            "Microphone:agent_speaks_into_microphone": [self.podcast_brain, self.event_filler_brain],
+            "World:agent_gives_object_to_agent_event": [self.event_filler_brain],
+        }
 
         self.full_message_history: List[BaseMessage] = []
         self.next_action_count = 0
@@ -183,7 +187,7 @@ class YeagerAutoGPT:
             else:
                 useful_nearby_entities = []
 
-            relevant_commands = []
+            relevant_commands = {}
             for entity in useful_nearby_entities:
                 entity_schemas = self.get_schemas()[entity["entity_class"]]
 
@@ -200,9 +204,14 @@ class YeagerAutoGPT:
                         ]:
                             args[property_name] = property_details
 
-                    # get_object_info: get_object_info(object_id: 'str') - Gets the info of an object., args json schema: {"object_id": {"title": "Object Id", "type": "string"}}
-                    command = f"\"{entity['entity_class']}:{event_type}\" - {description}, args json schema: {json.dumps(args)}"
-                    relevant_commands.append(command)
+                    command = {
+                        'title': f"{entity['entity_class']}:{event_type}",
+                        'description': description,
+                        'args': args,
+                        'string_short': f"{entity['entity_class']}:{event_type} - {description}",
+                        'string_full': f"\"{entity['entity_class']}:{event_type}\" - {description}, args json schema: {json.dumps(args)}",
+                    }
+                    relevant_commands[command["title"]] = command
 
             # Add world
             entity_class = "World"
@@ -223,59 +232,119 @@ class YeagerAutoGPT:
                         "sender_id",
                     ]:
                         args[property_name] = property_details
-                        # args_string += f"{property_name}: {property_details['type']}, "
 
-                # get_object_info: get_object_info(object_id: 'str') - Gets the info of an object., args json schema: {"object_id": {"title": "Object Id", "type": "string"}}
-                command = f'"{entity_class}:{event_type}" - {description}, args json schema: {json.dumps(args)}'
-                relevant_commands.append(command)
+                command = {
+                    'title': f"{entity_class}:{event_type}",
+                    'description': description,
+                    'args': args,
+                    'string_short': f"{entity_class}:{event_type} - {description}",
+                    'string_full': f"\"{entity_class}:{event_type}\" - {description}, args json schema: {json.dumps(args)}",
+                }
+                relevant_commands[command["title"]] = command
 
             # Send message to AI, get response
-            assistant_reply = self.chain.run(
-                goals=self.goals,
-                messages=self.full_message_history,
-                memory=self.memory,
-                personality_db=self.personality_db,
-                nearby_entities=list(
+            navigation_plan = self.navigation_brain.run({
+                "goals": self.goals,
+                "messages": self.full_message_history,
+                "memory": self.memory,
+                "personality_db": self.personality_db,
+                "nearby_entities": list(
                     filter(lambda e: (e["held_by"] != self.id), nearby_entities)
                 ),
-                inventory=list(
+                "inventory": list(
                     filter(lambda e: (e["held_by"] == self.id), nearby_entities)
                 ),
-                relevant_commands=relevant_commands,
-                plan=self.plan,
-                user_input=user_input,
-                agent_world_state=agent_world_state,
-            )
-            self.plan = json.loads(assistant_reply)["thoughts"]["plan"]
+                "plan": self.plan,
+                "user_input": user_input,
+                "agent_world_state": agent_world_state,
+                "relevant_commands": map(lambda c: c['string_short'],  relevant_commands.values()),
+            })
+            
             # Print Assistant thoughts
-            self.logger.info(assistant_reply)  # Send the thoughts as events
-            self.full_message_history.append(HumanMessage(content=user_input))
-            self.full_message_history.append(AIMessage(content=assistant_reply))
+            self.logger.info(navigation_plan) 
+            self.full_message_history.append(AIMessage(content=str(navigation_plan)))
+
+            # Parse response
+            navigation_plan_parsed = json.loads(navigation_plan)
+            self.plan = navigation_plan_parsed["plan"]
+           
+            selected_action = navigation_plan_parsed["next_action"]
+            action_goal_description = navigation_plan_parsed["goal"]
+
+            result = ""
+            if selected_action == FINISH_NAME:
+                return "FINISHED"
+            elif selected_action == "Self:wait":
+                self.logger.info(f"Waiting...")
+                result += f"Waiting...\n"
+            # TODO: tools?
+            elif (selected_action in relevant_commands):
+                command = relevant_commands[selected_action]
+
+                if selected_action in self.action_brain_map:
+                    action_brains = self.action_brain_map[selected_action]
+                else:
+                    action_brains = self.default_action_brains
+
+                previous_brain_outputs = [
+                    f"Current goal: {action_goal_description}",
+                ]
+                for action_brain in action_brains:
+
+                    previous_brain_outputs.append(action_brain.run({
+                        "goals": self.goals,
+                        "messages": self.full_message_history,
+                        "memory": self.memory,
+                        "personality_db": self.personality_db,
+                        "nearby_entities": list(
+                            filter(lambda e: (e["held_by"] != self.id), nearby_entities)
+                        ),
+                        "inventory": list(
+                            filter(lambda e: (e["held_by"] == self.id), nearby_entities)
+                        ),
+                        "plan": self.plan,
+                        "user_input": user_input,
+                        "agent_world_state": agent_world_state,
+                        "command_to_execute": command['string_full'],	
+                        "previous_brain_outputs": previous_brain_outputs,
+                    }))
+
+                args = json.loads(previous_brain_outputs[-1])
+
+                assert type(args) == dict, f"Final action brain {action_brain} did not return a dict, returned {args} instead. The action brain map wasn't set up correctly."
+
+                result += self.execute_event_with_args(command['title'], args) + "\n"
+
+            else:
+                self.logger.info(f"Invalid command: {selected_action}")
+                result += f"Error: {selected_action} is not recognized. \n"
+                continue
+         
 
             # Get command name and arguments
-            actions = self.output_parser.parse(assistant_reply)
-            result = ""
-            for action in actions:
-                tools = {t.name: t for t in self.actions}
-                if action.name == FINISH_NAME:
-                    return action.args["response"]
-                elif action.name == "ERROR":
-                    result += f"Error: {action.args}. \n"
-                elif action.name in tools:
-                    tool = tools[action.name]
-                    try:
-                        observation = tool.run(action.args)
-                    except ValidationError as e:
-                        observation = (
-                            f"Validation Error in args: {str(e)}, args: {action.args}"
-                        )
-                    except Exception as e:
-                        observation = (
-                            f"Error: {str(e)}, {type(e).__name__}, args: {action.args}"
-                        )
-                    result += f"Command {tool.name} returned: {observation} \n"
-                else:
-                    result += self.execute_event_action(action) + "\n"
+            # actions = self.output_parser.parse(navigation_actions)
+            # result = ""
+            # for action in actions:
+            #     tools = {t.name: t for t in self.actions}
+            #     if action.name == FINISH_NAME:
+            #         return action.args["response"]
+            #     elif action.name == "ERROR":
+            #         result += f"Error: {action.args}. \n"
+            #     elif action.name in tools:
+            #         tool = tools[action.name]
+            #         try:
+            #             observation = tool.run(action.args)
+            #         except ValidationError as e:
+            #             observation = (
+            #                 f"Validation Error in args: {str(e)}, args: {action.args}"
+            #             )
+            #         except Exception as e:
+            #             observation = (
+            #                 f"Error: {str(e)}, {type(e).__name__}, args: {action.args}"
+            #             )
+            #         result += f"Command {tool.name} returned: {observation} \n"
+            #     else:
+            #         result += self.execute_event_action(action) + "\n"
 
             ## send result and assistant_reply to the socket
             self.logger.info(result)
@@ -284,7 +353,7 @@ class YeagerAutoGPT:
             sleep(3)
             last_events = self.listening_antenna.get_last_events()
             memory_to_add = (
-                f"Assistant Reply: {assistant_reply} "
+                f"Assistant Reply: {navigation_plan} "
                 f"\nResult: {result} "
                 f"\nLast World Events: {last_events}"
             )
@@ -310,17 +379,17 @@ class YeagerAutoGPT:
     def get_schemas(self):
         return self.listening_antenna.get_schemas()
 
-    def execute_event_action(self, action: AutoGPTAction):
+    def execute_event_with_args(self, name: str, args: dict):
         try:
-            class_name = action.name.split(":")[0]
-            event_type = action.name.split(":")[1]
+            class_name = name.split(":")[0]
+            event_type = name.split(":")[1]
 
             event = {
                 "event_type": event_type,
                 "sender_id": self.id,
                 "created_at": datetime.now().isoformat(),
             }
-            event.update(action.args)
+            event.update(args)
 
             self.logger.debug(event)
 
@@ -328,17 +397,17 @@ class YeagerAutoGPT:
             validate(event, event_schema)
 
             self.world_socket_client.send_message(json.dumps(event))
-            return f"Action {action.name} sent to the world."
+            return f"Action {name} sent to the world."
         except IndexError as e:
             return (
-                f"Unknown command '{action.name}'. "
+                f"Unknown command '{name}'. "
                 f"Please refer to the 'COMMANDS' list for available "
                 f"commands and only respond in the specified JSON format."
             )
         except ValidationError as e:
-            return f"Validation Error in args: {str(e)}, args: {action.args}"
+            return f"Validation Error in args: {str(e)}, args: {args}"
         except Exception as e:
-            return f"Error: {str(e)}, {type(e).__name__}, args: {action.args}"
+            return f"Error: {str(e)}, {type(e).__name__}, args: {args}"
 
     def agent_gets_nearby_entities_action(self):
         agent_gets_nearby_entities_event = AgentGetsNearbyEntitiesEvent(
