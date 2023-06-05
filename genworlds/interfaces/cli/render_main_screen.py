@@ -8,10 +8,12 @@ from prompt_toolkit.widgets import MenuContainer, MenuItem
 from prompt_toolkit.layout import WindowAlign
 from prompt_toolkit.layout.dimension import D
 from prompt_toolkit.keys import Keys
-from prompt_toolkit.key_binding import KeyBindings
 
 import genworlds.interfaces as interfaces
 from genworlds.interfaces.cli.render_help_screen import render_help_screen
+from genworlds.interfaces.cli.formatted_buffer import (
+    FormatText,
+)
 
 
 def render_main_screen(cli: interfaces.CLI):
@@ -26,12 +28,16 @@ def render_main_screen(cli: interfaces.CLI):
     screens_menu = MenuContainer(
         body=Window(height=0),
         menu_items=[
-            MenuItem(f"{k}  ", handler=lambda k=k: switch_buffer(k))
+            MenuItem(f"  {k}  ", handler=lambda k=k: switch_buffer(k))
             for k in cli.screens.keys()
         ],
     )
     screen_buffer = Window(
-        BufferControl(buffer=cli.screens[list(cli.screens.keys())[0]]["buffer"])
+        BufferControl(
+            buffer=cli.screens[list(cli.screens.keys())[0]]["buffer"],
+            focusable=True,
+            input_processors=[FormatText()],
+        )
     )
     prompt_buffer = Window(height=1)  # TODO: Create a reasonable prompt_buffer
     main_container = HSplit(
@@ -83,7 +89,11 @@ def render_main_screen(cli: interfaces.CLI):
         render_help_screen(cli)
 
     def switch_buffer(screen_name):
-        screen_buffer.content = BufferControl(buffer=cli.screens[screen_name]["buffer"])
+        screen_buffer.content = BufferControl(
+            buffer=cli.screens[screen_name]["buffer"],
+            input_processors=[FormatText()],
+            focusable=True,
+        )
         if cli.screens[screen_name]["has_input"]:
             """TODO: If the screen has input, focus the prompt buffer and create a reasonable prompt_buffer"""
         cli.application.layout.focus(screens_menu)

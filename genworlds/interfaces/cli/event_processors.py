@@ -1,9 +1,7 @@
 from __future__ import annotations
 
-from datetime import datetime
-import textwrap
-from prompt_toolkit.buffer import Buffer
 import genworlds.interfaces as interfaces
+from genworlds.interfaces.cli.formatted_buffer import html_from_json_format
 
 
 def process_event_router(self: interfaces.CLI, ws_json_message):
@@ -28,15 +26,27 @@ def event_history_formatter(screen, message):
     event_type = message["event_type"]
     for et in screen["tracked_events"]:
         if et["event_type"] == event_type:
-            for field in message:
-                if field in et["fields_to_display"]:
-                    if field in et["filters"]:
-                        if message[field] in et["filters"][field]:
-                            text += f"{field}: {message[field]}\n"
-                            continue
+            field_filters = et["filters"]
+            for field in et["fields_to_display"]:
+                field_name = field["name"]
+                field_format = field["format"]
+                if field_name in message:
+                    if len(field_filters) > 0:
+                        for filter in field_filters:
+                            field = filter["field"]
+                            value = filter["value"]
+                            if message[field] == value:
+                                text += html_from_json_format(
+                                    field_format,
+                                    f"{field_name}: {message[field_name]}",
+                                )
+                                text += "\n"
+                                continue
                     else:
-                        text += f"{field}: {message[field]}\n"
-    # add the coloring and the formatting fit to screen size
+                        text += html_from_json_format(
+                            field_format, f"{field_name}: {message[field_name]}"
+                        )
+                        text += "\n"
     return text + "\n"
 
 
