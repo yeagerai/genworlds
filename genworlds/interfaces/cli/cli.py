@@ -13,7 +13,6 @@ from genworlds.interfaces.cli.event_processors import process_event_router
 from genworlds.interfaces.cli.initial_setup_layout_screen import (
     initial_setup_layout_screen,
 )
-from genworlds.interfaces.cli.styles import init_style
 from genworlds.interfaces.cli.render_main_screen import render_main_screen
 
 GENWORLDS_CONFIG_PATH = os.path.join(os.path.expanduser("~"), ".genworlds")
@@ -42,7 +41,6 @@ class CLI:
         )
 
         initial_setup_layout_screen(self, GENWORLDS_CONFIG_PATH)
-        init_style()
 
     def process_event(self, ws_json_message):
         process_event_router(self, ws_json_message)

@@ -32,14 +32,13 @@ class NavigationGeneratorPrompt(BaseChatPromptTemplate, BaseModel):
         """
 
     def construct_full_prompt(self, agent_world_state: str, goals: List[str]) -> str:
-
         return self.basic_template.format(
             ai_role=self.ai_role,
             goals="\n".join([f"{i+1}. {goal}" for i, goal in enumerate(goals)]),
             agent_world_state=agent_world_state,
         )
 
-    def format_messages(self, **kwargs: Any) -> List[BaseMessage]:        
+    def format_messages(self, **kwargs: Any) -> List[BaseMessage]:
         kwargs = {key: kwargs[key] for key in self.input_variables}
 
         messages: List[BaseMessage] = []
@@ -50,10 +49,10 @@ class NavigationGeneratorPrompt(BaseChatPromptTemplate, BaseModel):
             )
         )
         messages.append(base_prompt)
-        used_tokens = self.token_counter(base_prompt.content) 
+        used_tokens = self.token_counter(base_prompt.content)
 
         previous_thoughts_prompt = f"## Previous thoughts:\n"
-        if "previous_thoughts" in kwargs and len(kwargs["previous_thoughts"]) > 0:            
+        if "previous_thoughts" in kwargs and len(kwargs["previous_thoughts"]) > 0:
             for entity in kwargs["previous_thoughts"]:
                 previous_thoughts_prompt += f"- {json.dumps(entity)}\n"
         else:
@@ -61,7 +60,6 @@ class NavigationGeneratorPrompt(BaseChatPromptTemplate, BaseModel):
         previous_thoughts_message = SystemMessage(content=previous_thoughts_prompt)
         messages.append(previous_thoughts_message)
         used_tokens += self.token_counter(previous_thoughts_message.content)
-        
 
         # time_prompt = SystemMessage(
         #     content=f"The current time and date is {time.strftime('%c')}"
@@ -73,7 +71,7 @@ class NavigationGeneratorPrompt(BaseChatPromptTemplate, BaseModel):
 
         inventory = kwargs["inventory"]
         inventory_prompt = f"## Inventory:\n"
-        if len(inventory) > 0:            
+        if len(inventory) > 0:
             for entity in inventory:
                 inventory_prompt += f"- {json.dumps(entity)}\n"
         else:
@@ -94,16 +92,15 @@ class NavigationGeneratorPrompt(BaseChatPromptTemplate, BaseModel):
         used_tokens += self.token_counter(nearby_entities_message.content)
 
         relevant_commands = kwargs["relevant_commands"]
-        relevant_commands_prompt = f'You can perform the following additional commands with the entities nearby:\n'
+        relevant_commands_prompt = f"You can perform the following additional commands with the entities nearby:\n"
         for command in relevant_commands:
             relevant_commands_prompt += f"{command}\n"
         relevant_commands_message = SystemMessage(content=relevant_commands_prompt)
         messages.append(relevant_commands_message)
         used_tokens += self.token_counter(relevant_commands_message.content)
-        
 
-        if "plan" in kwargs and  kwargs["plan"] is not None:
-            plan: Optional[str] = kwargs["plan"]        
+        if "plan" in kwargs and kwargs["plan"] is not None:
+            plan: Optional[str] = kwargs["plan"]
             plan_message = SystemMessage(content=f"## Plan:\n{plan}")
             messages.append(plan_message)
             used_tokens += len(plan_message.content)

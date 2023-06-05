@@ -111,18 +111,30 @@ class TreeAgent:
         self.memory = vectorstore.as_retriever()
 
         self.navigation_brain = NavigationBrain(
-            openai_api_key, self.ai_name, self.model_name, search_algorithm=self.search_algorithm
+            openai_api_key,
+            self.ai_name,
+            self.model_name,
+            search_algorithm=self.search_algorithm,
         )
         self.podcast_brain = PodcastBrain(
-            openai_api_key, self.ai_name, self.model_name, search_algorithm=self.search_algorithm
+            openai_api_key,
+            self.ai_name,
+            self.model_name,
+            search_algorithm=self.search_algorithm,
         )
         self.event_filler_brain = EventFillerBrain(
-            openai_api_key, self.ai_name, self.model_name, search_algorithm=self.search_algorithm
+            openai_api_key,
+            self.ai_name,
+            self.model_name,
+            search_algorithm=self.search_algorithm,
         )
 
         self.default_action_brains = [self.event_filler_brain]
         self.action_brain_map = {
-            "Microphone:agent_speaks_into_microphone": [self.podcast_brain, self.event_filler_brain],
+            "Microphone:agent_speaks_into_microphone": [
+                self.podcast_brain,
+                self.event_filler_brain,
+            ],
             "World:agent_gives_object_to_agent_event": [self.event_filler_brain],
         }
 
@@ -205,11 +217,11 @@ class TreeAgent:
                             args[property_name] = property_details
 
                     command = {
-                        'title': f"{entity['entity_class']}:{event_type}",
-                        'description': description,
-                        'args': args,
-                        'string_short': f"{entity['entity_class']}:{event_type} - {description}",
-                        'string_full': f"\"{entity['entity_class']}:{event_type}\" - {description}, args json schema: {json.dumps(args)}",
+                        "title": f"{entity['entity_class']}:{event_type}",
+                        "description": description,
+                        "args": args,
+                        "string_short": f"{entity['entity_class']}:{event_type} - {description}",
+                        "string_full": f"\"{entity['entity_class']}:{event_type}\" - {description}, args json schema: {json.dumps(args)}",
                     }
                     relevant_commands[command["title"]] = command
 
@@ -234,40 +246,44 @@ class TreeAgent:
                         args[property_name] = property_details
 
                 command = {
-                    'title': f"{entity_class}:{event_type}",
-                    'description': description,
-                    'args': args,
-                    'string_short': f"{entity_class}:{event_type} - {description}",
-                    'string_full': f"\"{entity_class}:{event_type}\" - {description}, args json schema: {json.dumps(args)}",
+                    "title": f"{entity_class}:{event_type}",
+                    "description": description,
+                    "args": args,
+                    "string_short": f"{entity_class}:{event_type} - {description}",
+                    "string_full": f'"{entity_class}:{event_type}" - {description}, args json schema: {json.dumps(args)}',
                 }
                 relevant_commands[command["title"]] = command
 
             # Send message to AI, get response
-            navigation_plan = self.navigation_brain.run({
-                "goals": self.goals,
-                "messages": self.full_message_history,
-                "memory": self.memory,
-                "personality_db": self.personality_db,
-                "nearby_entities": list(
-                    filter(lambda e: (e["held_by"] != self.id), nearby_entities)
-                ),
-                "inventory": list(
-                    filter(lambda e: (e["held_by"] == self.id), nearby_entities)
-                ),
-                "plan": self.plan,
-                "user_input": user_input,
-                "agent_world_state": agent_world_state,
-                "relevant_commands": map(lambda c: c['string_short'],  relevant_commands.values()),
-            })
-            
+            navigation_plan = self.navigation_brain.run(
+                {
+                    "goals": self.goals,
+                    "messages": self.full_message_history,
+                    "memory": self.memory,
+                    "personality_db": self.personality_db,
+                    "nearby_entities": list(
+                        filter(lambda e: (e["held_by"] != self.id), nearby_entities)
+                    ),
+                    "inventory": list(
+                        filter(lambda e: (e["held_by"] == self.id), nearby_entities)
+                    ),
+                    "plan": self.plan,
+                    "user_input": user_input,
+                    "agent_world_state": agent_world_state,
+                    "relevant_commands": map(
+                        lambda c: c["string_short"], relevant_commands.values()
+                    ),
+                }
+            )
+
             # Print Assistant thoughts
-            self.logger.info(navigation_plan) 
+            self.logger.info(navigation_plan)
             self.full_message_history.append(AIMessage(content=str(navigation_plan)))
 
             # Parse response
             navigation_plan_parsed = json.loads(navigation_plan)
             self.plan = navigation_plan_parsed["plan"]
-           
+
             selected_action = navigation_plan_parsed["next_action"]
             action_goal_description = navigation_plan_parsed["goal"]
 
@@ -278,7 +294,7 @@ class TreeAgent:
                 self.logger.info(f"Waiting...")
                 result += f"Waiting...\n"
             # TODO: tools?
-            elif (selected_action in relevant_commands):
+            elif selected_action in relevant_commands:
                 command = relevant_commands[selected_action]
 
                 if selected_action in self.action_brain_map:
@@ -290,36 +306,46 @@ class TreeAgent:
                     f"Current goal: {action_goal_description}",
                 ]
                 for action_brain in action_brains:
-
-                    previous_brain_outputs.append(action_brain.run({
-                        "goals": self.goals,
-                        "messages": self.full_message_history,
-                        "memory": self.memory,
-                        "personality_db": self.personality_db,
-                        "nearby_entities": list(
-                            filter(lambda e: (e["held_by"] != self.id), nearby_entities)
-                        ),
-                        "inventory": list(
-                            filter(lambda e: (e["held_by"] == self.id), nearby_entities)
-                        ),
-                        "plan": self.plan,
-                        "user_input": user_input,
-                        "agent_world_state": agent_world_state,
-                        "command_to_execute": command['string_full'],	
-                        "previous_brain_outputs": previous_brain_outputs,
-                    }))
+                    previous_brain_outputs.append(
+                        action_brain.run(
+                            {
+                                "goals": self.goals,
+                                "messages": self.full_message_history,
+                                "memory": self.memory,
+                                "personality_db": self.personality_db,
+                                "nearby_entities": list(
+                                    filter(
+                                        lambda e: (e["held_by"] != self.id),
+                                        nearby_entities,
+                                    )
+                                ),
+                                "inventory": list(
+                                    filter(
+                                        lambda e: (e["held_by"] == self.id),
+                                        nearby_entities,
+                                    )
+                                ),
+                                "plan": self.plan,
+                                "user_input": user_input,
+                                "agent_world_state": agent_world_state,
+                                "command_to_execute": command["string_full"],
+                                "previous_brain_outputs": previous_brain_outputs,
+                            }
+                        )
+                    )
 
                 args = json.loads(previous_brain_outputs[-1])
 
-                assert type(args) == dict, f"Final action brain {action_brain} did not return a dict, returned {args} instead. The action brain map wasn't set up correctly."
+                assert (
+                    type(args) == dict
+                ), f"Final action brain {action_brain} did not return a dict, returned {args} instead. The action brain map wasn't set up correctly."
 
-                result += self.execute_event_with_args(command['title'], args) + "\n"
+                result += self.execute_event_with_args(command["title"], args) + "\n"
 
             else:
                 self.logger.info(f"Invalid command: {selected_action}")
                 result += f"Error: {selected_action} is not recognized. \n"
                 continue
-         
 
             # Get command name and arguments
             # actions = self.output_parser.parse(navigation_actions)

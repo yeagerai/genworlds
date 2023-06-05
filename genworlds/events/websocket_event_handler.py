@@ -12,8 +12,9 @@ class Event(BaseModel):
     summary: Optional[str]
     created_at: datetime
     sender_id: str
-    target_id: Optional[str] = Field(description="ID of the entity that handles the event")
-
+    target_id: Optional[str] = Field(
+        description="ID of the entity that handles the event"
+    )
 
 
 class WebsocketEventHandler:

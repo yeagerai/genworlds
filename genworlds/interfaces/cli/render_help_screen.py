@@ -2,13 +2,11 @@ from __future__ import annotations
 
 from prompt_toolkit.layout import HSplit
 from prompt_toolkit.layout.containers import Window
-from prompt_toolkit.layout.controls import FormattedTextControl, BufferControl
+from prompt_toolkit.layout.controls import FormattedTextControl
 from prompt_toolkit.formatted_text import HTML
-from prompt_toolkit.widgets import TextArea
 from prompt_toolkit.layout import WindowAlign
 from prompt_toolkit.layout.dimension import D
 from prompt_toolkit.keys import Keys
-from prompt_toolkit.key_binding import KeyBindings
 
 import genworlds.interfaces as interfaces
 import genworlds.interfaces.cli.render_main_screen as render_main_screen
