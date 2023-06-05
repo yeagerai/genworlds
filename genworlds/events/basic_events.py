@@ -12,6 +12,12 @@ class WorldSendsNearbyEntitiesEvent(Event):
     nearby_entities: list
 
 
+class WorldSendsAllEntitiesEvent(Event):
+    event_type = "world_sends_all_entities_event"
+    description = "Send all entities."
+    all_entities: list
+
+
 class AgentGetsObjectInfoEvent(Event):
     event_type = "agent_gets_object_info_event"
     description = "Get info about an object."

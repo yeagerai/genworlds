@@ -143,5 +143,5 @@ class AutoGPTPrompt(BaseChatPromptTemplate, BaseModel):
 
         input_message = HumanMessage(content=kwargs["user_input"])
         messages.append(input_message)
-        
+
         return messages

@@ -36,6 +36,7 @@ from genworlds.agents.yeager_autogpt.prompt import AutoGPTPrompt
 from genworlds.agents.yeager_autogpt.prompt_generator import FINISH_NAME
 from genworlds.sockets.world_socket_client import WorldSocketClient
 from genworlds.agents.yeager_autogpt.listening_antenna import ListeningAntenna
+from genworlds.agents.yeager_autogpt.memory_summarizers import MemorySummarizer
 from genworlds.events.basic_events import (
     AgentGetsNearbyEntitiesEvent,
     AgentGetsObjectInfoEvent,
@@ -93,6 +94,7 @@ class YeagerAutoGPT:
         self.actions = []
 
         # Brain properties
+        self.memory_summarizer = MemorySummarizer(openai_api_key=openai_api_key)
         self.embeddings_model = OpenAIEmbeddings(openai_api_key=openai_api_key)
         embedding_size = 1536
         index = faiss.IndexFlatL2(embedding_size)
@@ -275,6 +277,7 @@ class YeagerAutoGPT:
                         )
                     result += f"Command {tool.name} returned: {observation} \n"
                 else:
+                    # summarize event and add the summary to execute event action
                     result += self.execute_event_action(action) + "\n"
 
             ## send result and assistant_reply to the socket
@@ -283,12 +286,8 @@ class YeagerAutoGPT:
             # If there are any relevant events in the world for this agent, add them to memory
             sleep(3)
             last_events = self.listening_antenna.get_last_events()
-            memory_to_add = (
-                f"Assistant Reply: {assistant_reply} "
-                f"\nResult: {result} "
-                f"\nLast World Events: {last_events}"
-            )
-
+            memory_to_add = f"Last World Events: {last_events}" f"\n\nResult: {result} "
+            memory_to_add = self.memory_summarizer.summarize(memory_to_add)
             self.logger.debug(f"Adding to memory: {memory_to_add}")
 
             if self.feedback_tool is not None:
@@ -299,6 +298,8 @@ class YeagerAutoGPT:
                 memory_to_add += feedback
 
             self.memory.add_documents([Document(page_content=memory_to_add)])
+
+            result = self.memory_summarizer.summarize(result)
             self.full_message_history.append(SystemMessage(content=result))
 
     def get_agent_world_state(self):
@@ -318,6 +319,7 @@ class YeagerAutoGPT:
             event = {
                 "event_type": event_type,
                 "sender_id": self.id,
+                "summary": "",
                 "created_at": datetime.now().isoformat(),
             }
             event.update(action.args)

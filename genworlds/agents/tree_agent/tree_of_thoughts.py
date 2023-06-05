@@ -3,17 +3,18 @@ from typing import Literal
 
 
 class TreeOfThoughts:
-    def __init__(self, 
-            gen_thoughts: callable,
-            eval_thoughts: callable, 
-            search_algorithm: Literal["BFS", "DFS"],
-            initial_state: str,
-            thought_limit: int,
-            max_depth: int,
-            breadth: int,
-            value_threshold: int,
-            timeout: int = None,
-        ):
+    def __init__(
+        self,
+        gen_thoughts: callable,
+        eval_thoughts: callable,
+        search_algorithm: Literal["BFS", "DFS"],
+        initial_state: str,
+        thought_limit: int,
+        max_depth: int,
+        breadth: int,
+        value_threshold: int,
+        timeout: int = None,
+    ):
         self.gen_thoughts = gen_thoughts
         self.eval_thoughts = eval_thoughts
         self.search_algorithm = search_algorithm
@@ -32,11 +33,11 @@ class TreeOfThoughts:
 
         if self.search_algorithm == "BFS":
             return self.bfs_until_timeout(
-                self.initial_state, 
-                self.thought_limit, 
-                self.max_depth, 
-                self.breadth, 
-                start_time, 
+                self.initial_state,
+                self.thought_limit,
+                self.max_depth,
+                self.breadth,
+                start_time,
                 self.timeout,
                 llm_params,
             )
@@ -54,17 +55,28 @@ class TreeOfThoughts:
             raise ValueError("Invalid search algorithm. Choose 'BFS' or 'DFS'.")
 
     def bfs_until_timeout(
-        self, initial_state, thought_limit, max_depth, breadth, start_time, timeout, llm_params
+        self,
+        initial_state,
+        thought_limit,
+        max_depth,
+        breadth,
+        start_time,
+        timeout,
+        llm_params,
     ):
         while timeout is None or time.time() - start_time < timeout:
-            result = self.tot_bfs(initial_state, thought_limit, max_depth, breadth, llm_params)
+            result = self.tot_bfs(
+                initial_state, thought_limit, max_depth, breadth, llm_params
+            )
             if result:
                 return result
 
     def tot_bfs(self, initial_state, thought_limit, max_depth, breadth, llm_params):
         current_set = {initial_state}
         for _ in range(max_depth):
-            current_set = self.expand_set(current_set, thought_limit, breadth, llm_params)
+            current_set = self.expand_set(
+                current_set, thought_limit, breadth, llm_params
+            )
         print(current_set)
         print(max(current_set))
         # return self.gen_thoughts(max(current_set), 1, llm_params)
@@ -76,7 +88,7 @@ class TreeOfThoughts:
             for state in current_set
             for new_thought in self.gen_thoughts(state, thought_limit, llm_params)
         }
-        if (thought_limit == 1):
+        if thought_limit == 1:
             return new_set
         else:
             thought_values = self.eval_thoughts(new_set, llm_params)

@@ -9,9 +9,12 @@ from genworlds.sockets.world_socket_client import WorldSocketClient
 class Event(BaseModel):
     event_type: str
     description: str
+    summary: Optional[str]
     created_at: datetime
     sender_id: str
-    target_id: Optional[str] = Field(description="ID of the entity that handles the event")
+    target_id: Optional[str] = Field(
+        description="ID of the entity that handles the event"
+    )
 
 
 class WebsocketEventHandler:

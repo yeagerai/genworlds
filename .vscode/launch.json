@@ -3,7 +3,27 @@
     "configurations": [
         
         {
-            "name": "Start Env",
+            "name": "Start Socket Server",
+            "type": "python",
+            "request": "launch",
+            "program": "genworlds/sockets/world_socket_server.py",
+            "console": "externalTerminal",
+            "env": {
+                "PYTHONPATH": "${workspaceRoot}"
+            },
+        },
+        {
+            "name": "Start CLI",
+            "type": "python",
+            "request": "launch",
+            "program": "genworlds/interfaces/cli/run.py",
+            "console": "externalTerminal",
+            "env": {
+                "PYTHONPATH": "${workspaceRoot}"
+            },
+        },
+        {
+            "name": "Start Roundtable World",
             "type": "python",
             "request": "launch",
             "program": "use_cases/roundtable/world_setup_n_launch_tree_of_thought.py",
@@ -11,6 +31,17 @@
             "env": {
                 "PYTHONPATH": "${workspaceRoot}"
             },
+        },
+    ],
+    "compounds": [
+        {
+          "name": "Launch Full Stack",
+          "configurations": [
+            "Start Socket Server",
+            "Start CLI",
+            "Start Roundtable World",
+          ],
+          "stopAll": true
         }
-    ]
+      ]
 }

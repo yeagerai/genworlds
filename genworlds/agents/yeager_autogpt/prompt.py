@@ -131,16 +131,16 @@ class AutoGPTPrompt(BaseChatPromptTemplate, BaseModel):
         messages.append(memory_message)
         used_tokens += len(memory_message.content)
 
-        historical_messages: List[BaseMessage] = []
-        for message in previous_messages[-10:][::-1]:
-            message_tokens = self.token_counter(message.content)
-            if used_tokens + message_tokens > self.send_token_limit - 1000:
-                break
-            historical_messages = [message] + historical_messages
-        input_message = HumanMessage(content=kwargs["user_input"])
+        # historical_messages: List[BaseMessage] = []
+        # for message in previous_messages[-10:][::-1]:
+        #     message_tokens = self.token_counter(message.content)
+        #     if used_tokens + message_tokens > self.send_token_limit - 1000:
+        #         break
+        #     historical_messages = [message] + historical_messages
+        # input_message = HumanMessage(content=kwargs["user_input"])
 
-        messages += historical_messages
-        plan: Optional[str] = kwargs["plan"]
+        # messages += historical_messages
+        # plan: Optional[str] = kwargs["plan"]
 
-        messages.append(input_message)
+        # messages.append(input_message)
         return messages

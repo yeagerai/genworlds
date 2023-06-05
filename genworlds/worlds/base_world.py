@@ -13,6 +13,7 @@ from genworlds.events.basic_events import (
     EntityRequestWorldStateUpdateEvent,
     EntityWorldStateUpdateEvent,
     WorldSendsNearbyEntitiesEvent,
+    WorldSendsAllEntitiesEvent,
     WorldSendsSchemasEvent,
 )
 from genworlds.worlds.base_world_entity import EntityTypeEnum, BaseWorldEntity
@@ -123,8 +124,9 @@ class BaseWorld(Generic[WorldEntityType], WebsocketEventHandler):
     def entity_request_world_state_update_event_listener(
         self, event: EntityRequestWorldStateUpdateEvent
     ):
-        self.emit_agent_world_state(agent_id=event.sender_id)
         self.world_sends_schemas()
+        self.world_sends_all_entities()
+        self.emit_agent_world_state(agent_id=event.sender_id)
         self.emit_world_sends_nearby_entities(agent_id=event.sender_id)
 
     def agent_gives_object_to_agent_listener(self, event: AgentGivesObjectToAgentEvent):
@@ -159,6 +161,10 @@ class BaseWorld(Generic[WorldEntityType], WebsocketEventHandler):
             world_description=self.description,
             schemas=schemas,
         )
+
+    def world_sends_all_entities(self):
+        all_entities = self.entities.copy()
+        self.send_event(WorldSendsAllEntitiesEvent, all_entities=[all_entities])
 
     def register_agent(self, agent: YeagerAutoGPT, **kwargs: WorldEntityType):
         class_name = agent.__class__.__name__

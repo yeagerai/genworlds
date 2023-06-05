@@ -2,10 +2,35 @@ import os
 import sys
 import argparse
 import threading
-from fastapi import FastAPI, WebSocket, WebSocketDisconnect
 from typing import List
 
+from fastapi import FastAPI, WebSocket, WebSocketDisconnect
 import uvicorn
+
+
+GENWORLDS_CONFIG_PATH = os.path.join(os.path.expanduser("~"), ".genworlds")
+if not os.path.exists(GENWORLDS_CONFIG_PATH):
+    os.mkdir(GENWORLDS_CONFIG_PATH)
+
+
+def write_socket_server_to_file(url: str):
+    with open(
+        os.path.join(GENWORLDS_CONFIG_PATH, "active_socket_servers_list.txt"), "a"
+    ) as f:
+        f.write(f"{url}\n")
+
+
+def remove_socket_server_from_file(url: str):
+    with open(
+        os.path.join(GENWORLDS_CONFIG_PATH, "active_socket_servers_list.txt"), "r"
+    ) as f:
+        lines = f.readlines()
+    with open(
+        os.path.join(GENWORLDS_CONFIG_PATH, "active_socket_servers_list.txt"), "w"
+    ) as f:
+        for line in lines:
+            if f"{url}" not in line:
+                f.write(line)
 
 
 class WebSocketManager:
@@ -36,11 +61,19 @@ class WebSocketManager:
 app = FastAPI()
 websocket_manager = WebSocketManager()
 
+socket_server_url = None
+
+
+@app.on_event("shutdown")
+async def shutdown_event():
+    print("SIGTERM received, stopping server...")
+    remove_socket_server_from_file(socket_server_url)
+    sys.exit(0)
+
 
 @app.websocket("/ws")
 async def websocket_endpoint(websocket: WebSocket):
     await websocket_manager.connect(websocket)
-
     try:
         while True:
             data = await websocket.receive_text()
@@ -103,8 +136,17 @@ def start_from_command_line():
 
     port = args.port
     host = args.host
+    global socket_server_url
+    socket_server_url = f"http://{host}:{port}"
 
-    start(host=host, port=port)
+    write_socket_server_to_file(socket_server_url)
+    try:
+        start(host=host, port=port)
+    except BaseException as e:
+        print(f"{e}")
+        remove_socket_server_from_file(socket_server_url)
+        sys.exit(0)
 
 
-# uvicorn world_socket_server:app --host 0.0.0.0 --port 7456
+if __name__ == "__main__":
+    start_from_command_line()
