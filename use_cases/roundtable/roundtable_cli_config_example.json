@@ -1,74 +1,76 @@
 {
-    "name": "All-in Podcast Test",
-    "screens": [
-      {
-        "name": "All events",
-        "has_input": false,
-        "screen_type": "event_history",
-        "tracked_events": [
-          {
-            "event_type": "world_sends_schemas_event",
-            "fields_to_display": [
-          {"name":"created_at", "format":"fg:#ff00ff bold"},
-          {"name":"event_type", "format":"fg:#ffffff"},
-          {"name":"summary","format":"fg:#ffffff"}
-        ],
-        "filters":[]
-          },
-          {
-            "event_type": "agent_speaks_into_microphone",
-            "fields_to_display": [
-          {"name":"created_at", "format":"fg:#ffffff"},
-          {"name":"event_type", "format":"fg:#ffffff"},
-          {"name":"summary","format":"fg:#ffffff"}
-        ],
-        "filters":[]
-          },
-          {
-            "event_type": "agent_gives_object_to_agent_event",
-            "fields_to_display": [
-          {"name":"created_at", "format":"fg:#ffffff"},
-          {"name":"event_type", "format":"fg:#ffffff"},
-          {"name":"summary","format":"fg:#ffffff"}
-        ],
-        "filters":[]
-          },
-          {
-            "event_type": "agent_moves_to_new_location",
-            "fields_to_display": [
-          {"name":"created_at", "format":"fg:#ffffff"},
-          {"name":"event_type", "format":"fg:#ffffff"},
-          {"name":"summary","format":"fg:#ffffff"}
-        ],
-        "filters":[]
-          }
-        ]
-      },
-      {
-        "name": "Chat Room",
-        "has_input": false,
-        "screen_type": "event_history",
-        "tracked_events": [
-          {
-            "event_type": "agent_speaks_into_microphone",
-            "fields_to_display": [
-          {"name":"created_at", "format":"fg:#ff0000 bold"},
-          {"name":"event_type", "format":"fg:#ff0000"},
-          {"name":"summary","format":"fg:#ff0000"}
-        ],
-        "filters":[{"field": "sender_id", "value": "jimmy"}]
-          },
-          {
-            "event_type": "agent_speaks_into_microphone",
-            "fields_to_display": [
-          {"name":"created_at", "format":"fg:#00ff00 bold"},
-          {"name":"event_type", "format":"fg:#00ff00"},
-          {"name":"summary","format":"fg:#00ff00"}
-        ],
-        "filters":[{"field": "sender_id", "value": "maria"}]
-          }
-        ]
-      }
-    ],
-    "settings": {}
-  }
+  "name": "All-in Podcast Test",
+  "screens": [
+    {
+      "name": "All events",
+      "has_input": false,
+      "screen_type": "event_history",
+      "tracked_events": [
+        {
+          "event_type": "world_sends_schemas_event",
+          "fields_to_display": [
+		{"name":"created_at", "format":"fg:#f8f8f2 bold"},
+		{"name":"event_type", "format":"fg:#ff79c6"},
+		{"name":"summary","format":"fg:#f8f8f2"}
+	  ],
+	  "filters":[]
+        },
+        {
+          "event_type": "agent_speaks_into_microphone",
+          "fields_to_display": [
+		{"name":"created_at", "format":"fg:#f8f8f2"},
+		{"name":"event_type", "format":"fg:#ffb86c"},
+		{"name":"summary","format":"fg:#f8f8f2"}
+	  ],
+	  "filters":[]
+        },
+        {
+          "event_type": "agent_gives_object_to_agent_event",
+          "fields_to_display": [
+		{"name":"created_at", "format":"fg:#f8f8f2"},
+		{"name":"event_type", "format":"fg:#f1fa8c"},
+		{"name":"summary","format":"fg:#f8f8f2"}
+	  ],
+	  "filters":[]
+        },
+        {
+          "event_type": "agent_moves_to_new_location",
+          "fields_to_display": [
+		{"name":"created_at", "format":"fg:#f8f8f2"},
+		{"name":"event_type", "format":"fg:#ff5555"},
+		{"name":"summary","format":"fg:#f8f8f2"}
+	  ],
+	  "filters":[]
+        }
+      ]
+    },
+    {
+      "name": "Chat Room",
+      "has_input": false,
+      "screen_type": "event_history",
+      "tracked_events": [
+        {
+          "event_type": "agent_speaks_into_microphone",
+          "fields_to_display": [
+		{"name":"created_at", "format":"fg:#bd93f9 bold"},
+		{"name":"sender_id", "format":"fg:#bd93f9"},
+		{"name":"summary","format":"fg:#bd93f9"},
+		{"name":"message","format":"fg:#bd93f9"}
+	  ],
+	  "filters":[{"field": "sender_id", "value": "jimmy"}]
+        },
+        {
+          "event_type": "agent_speaks_into_microphone",
+          "fields_to_display": [
+		{"name":"created_at", "format":"fg:#50fa7b bold"},
+		{"name":"sender_id", "format":"fg:#50fa7b"},
+		{"name":"summary","format":"fg:#50fa7b"},
+		{"name":"message","format":"fg:#50fa7b"}
+	  ],
+	  "filters":[{"field": "sender_id", "value": "maria"}]
+        }
+      ]
+    }
+  ],
+  "settings": {}
+}
