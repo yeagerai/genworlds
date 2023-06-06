@@ -30,24 +30,28 @@ class PodcastBrain:
     def __init__(
         self,
         openai_api_key,
-        ai_name: str,
-        model_name="gpt-3.5-turbo",
-        search_algorithm="BFS",
+        generator_role_prompt: str,
+        generator_results_prompt: str,
+        evaluator_role_prompt: str,
+        evaluator_results_prompt: str,
+        n_of_thoughts: int,
+        model_name="gpt-4",
+        temperature=0.7,
+        verbose=False,
     ):
-        self.search_algorithm = search_algorithm
         self.tot = TreeOfThoughts(
             self.gen_thoughts,
             self.eval_thoughts,
-            self.search_algorithm,
+            search_algorithm="BFS",
             initial_state="",
-            thought_limit=1,
+            thought_limit=n_of_thoughts,
             max_depth=1,
             breadth=1,
             value_threshold=0.5,
         )
 
         llm = ChatOpenAI(
-            temperature=0, openai_api_key=openai_api_key, model_name=model_name
+            temperature=temperature, openai_api_key=openai_api_key, model_name=model_name
         )
 
         self.gen_prompt = ExecutionGeneratorPrompt(
@@ -57,20 +61,14 @@ class PodcastBrain:
                 "num_thoughts",  # num
             ]
             + list(self.LLMParams.__annotations__.keys()),
-            ai_role="You are {ai_name}, an expert podcaster. You have to generate a podcast response based on:".format(
-                ai_name=ai_name
-            ),
-            response_instruction="""# Response type
-                {num_thoughts} paragraphs of text containing a speech that achieves your desired goal, contributes to the conversation and matches something you would say AND NOTHING ELSE:
-                - The first possible paragraph
-                - A second possible paragraph
-            """,
+            ai_role=generator_role_prompt,
+            response_instruction=generator_results_prompt
         )
 
         self.gen_llm_chain = LLMChain(
             prompt=self.gen_prompt,
             llm=llm,
-            verbose=True,
+            verbose=verbose,
         )
         self.eval_prompt = ExecutionGeneratorPrompt(
             token_counter=llm.get_num_tokens,
@@ -78,22 +76,14 @@ class PodcastBrain:
                 "thought_to_evaluate",
             ]
             + list(self.LLMParams.__annotations__.keys()),
-            ai_role="You are {ai_name}, an expert in evaluating the quality and the depth of a podcast response based on:".format(
-                ai_name=ai_name
-            ),
-            response_instruction="""## Thought to evaluate
-                Evaluate the following thought by rating it from 0 to 1, where 0 means that the thought is not useful at all, and 1 means that the thought is very useful:
-                {thought_to_evaluate}
-
-                # Response type
-                Return the evaluation of the thought as a float between 0 and 1, and NOTHING ELSE:      
-            """,
+            ai_role=evaluator_role_prompt,
+            response_instruction=evaluator_results_prompt,
         )
 
         self.eval_llm_chain = LLMChain(
             prompt=self.eval_prompt,
             llm=llm,
-            verbose=True,
+            verbose=verbose,
         )
 
     def gen_thoughts(
