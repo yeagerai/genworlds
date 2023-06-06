@@ -30,49 +30,45 @@ class EventFillerBrain:
     def __init__(
         self,
         openai_api_key,
-        ai_name: str,
-        model_name="gpt-3.5-turbo",
-        search_algorithm="BFS",
+        generator_role_prompt: str,
+        generator_results_prompt: str,
+        evaluator_role_prompt: str,
+        evaluator_results_prompt: str,
+        n_of_thoughts: int,
+        model_name="gpt-4",
+        temperature=0.7,
+        verbose=False,
     ):
-        self.search_algorithm = search_algorithm
         self.tot = TreeOfThoughts(
             self.gen_thoughts,
             self.eval_thoughts,
-            self.search_algorithm,
+            search_algorithm="BFS",
             initial_state="",
-            thought_limit=1,
+            thought_limit=n_of_thoughts,
             max_depth=1,
             breadth=1,
             value_threshold=0.5,
         )
 
         llm = ChatOpenAI(
-            temperature=0, openai_api_key=openai_api_key, model_name=model_name
+            temperature=temperature, openai_api_key=openai_api_key, model_name=model_name
         )
 
         self.gen_prompt = ExecutionGeneratorPrompt(
             token_counter=llm.get_num_tokens,
             input_variables=[
-                "previous_thoughts",  # TODO: take out
-                "num_thoughts",
+                "previous_thoughts",  # iterative
+                "num_thoughts",  # num
             ]
             + list(self.LLMParams.__annotations__.keys()),
-            ai_role="""You are {ai_name}. In previous steps, you have selected an action to execute, and possibly generated some of the response parameters in a previous step - make sure to include those exactly. 
-                You now need to generate a valid set of JSON parameters for the command to execute, based on the following information:
-            """.format(
-                ai_name=ai_name
-            ),
-            response_instruction="""# Response type
-                {num_thoughts} lines of json containing possible options for completing the arguments of the command to execute, each one with the following format AND NOTHING ELSE:
-                - {{"arg name": "value1", "arg name 2": "value2", ...}}
-                - {{"arg name": "alt value1", "arg name 2": "alt value2", ...}} 
-            """,
+            ai_role=generator_role_prompt,
+            response_instruction=generator_results_prompt
         )
 
         self.gen_llm_chain = LLMChain(
             prompt=self.gen_prompt,
             llm=llm,
-            verbose=True,
+            verbose=verbose,
         )
         self.eval_prompt = ExecutionGeneratorPrompt(
             token_counter=llm.get_num_tokens,
@@ -80,22 +76,14 @@ class EventFillerBrain:
                 "thought_to_evaluate",
             ]
             + list(self.LLMParams.__annotations__.keys()),
-            ai_role="You are {ai_name}. You need to evaluate the provided set of JSON parameters based on their correctness, with respect to all of the following information:".format(
-                ai_name=ai_name
-            ),
-            response_instruction="""## Parameters to evaluate
-                Evaluate the following set of parameters by rating them from 0 to 1, where 0 means that the parameters are not correct, and 1 means that the parameters completely correct:
-                {thought_to_evaluate}
-
-                # Response type
-                Return the evaluation of the parameters as a float between 0 and 1, and NOTHING ELSE:      
-            """,
+            ai_role=evaluator_role_prompt,
+            response_instruction=evaluator_results_prompt,
         )
 
         self.eval_llm_chain = LLMChain(
             prompt=self.eval_prompt,
             llm=llm,
-            verbose=True,
+            verbose=verbose,
         )
 
     def gen_thoughts(

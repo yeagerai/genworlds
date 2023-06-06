@@ -62,8 +62,10 @@ class TreeAgent:
         description: str,
         goals: List[str],
         openai_api_key: str,
-        model_name: str = "gpt-3.5-turbo",
-        search_algorithm: str = "BFS",
+
+        navigation_brain: NavigationBrain,
+        execution_brains: dict,        
+        action_brain_map: dict,
         interesting_events: set = {},
         feedback_tool: Optional[HumanInputRun] = None,
         additional_memories: Optional[List[VectorStoreRetriever]] = None,
@@ -71,19 +73,15 @@ class TreeAgent:
         personality_db_path: str = None,
         personality_db_collection_name: str = None,
         websocket_url: str = "ws://127.0.0.1:7456/ws",
-        # action_brain_map: dict = None,
     ):
         # Its own properties
         self.id = id if id else str(uuid4())
         self.ai_name = ai_name
-        self.model_name = model_name
-        self.search_algorithm = search_algorithm
         self.description = description
         self.goals = goals
         self.interesting_events = interesting_events
         self.feedback_tool = feedback_tool
         self.additional_memories = additional_memories
-        # self.action_brain_map = action_brain_map if action_brain_map else {}
 
         self.logger = LoggingFactory.get_logger(self.ai_name)
 
@@ -110,33 +108,9 @@ class TreeAgent:
         )
         self.memory = vectorstore.as_retriever()
 
-        self.navigation_brain = NavigationBrain(
-            openai_api_key,
-            self.ai_name,
-            self.model_name,
-            search_algorithm=self.search_algorithm,
-        )
-        self.podcast_brain = PodcastBrain(
-            openai_api_key,
-            self.ai_name,
-            self.model_name,
-            search_algorithm=self.search_algorithm,
-        )
-        self.event_filler_brain = EventFillerBrain(
-            openai_api_key,
-            self.ai_name,
-            self.model_name,
-            search_algorithm=self.search_algorithm,
-        )
-
-        self.default_action_brains = [self.event_filler_brain]
-        self.action_brain_map = {
-            "Microphone:agent_speaks_into_microphone": [
-                self.podcast_brain,
-                self.event_filler_brain,
-            ],
-            "World:agent_gives_object_to_agent_event": [self.event_filler_brain],
-        }
+        self.navigation_brain = navigation_brain
+        self.execution_brains = execution_brains
+        self.action_brain_map = action_brain_map
 
         self.full_message_history: List[BaseMessage] = []
         self.next_action_count = 0
@@ -158,10 +132,6 @@ class TreeAgent:
                 embedding_function=self.embeddings_model,
                 client_settings=client_settings,
                 persist_directory=self.personality_db_path,
-            )
-            # self.personality_db.persist()
-            self.logger.info(
-                "Testing DB", self.personality_db.similarity_search("hello")
             )
 
     def think(self):
@@ -213,6 +183,7 @@ class TreeAgent:
                             "description",
                             "created_at",
                             "sender_id",
+                            "summary",
                         ]:
                             args[property_name] = property_details
 
@@ -242,6 +213,7 @@ class TreeAgent:
                         "description",
                         "created_at",
                         "sender_id",
+                        "summary",
                     ]:
                         args[property_name] = property_details
 
@@ -300,12 +272,14 @@ class TreeAgent:
                 if selected_action in self.action_brain_map:
                     action_brains = self.action_brain_map[selected_action]
                 else:
-                    action_brains = self.default_action_brains
+                    action_brains = self.action_brain_map["default"]
 
                 previous_brain_outputs = [
                     f"Current goal: {action_goal_description}",
                 ]
-                for action_brain in action_brains:
+                for action_brain_name in action_brains:
+                    action_brain = self.execution_brains[action_brain_name]
+
                     previous_brain_outputs.append(
                         action_brain.run(
                             {
@@ -346,31 +320,6 @@ class TreeAgent:
                 self.logger.info(f"Invalid command: {selected_action}")
                 result += f"Error: {selected_action} is not recognized. \n"
                 continue
-
-            # Get command name and arguments
-            # actions = self.output_parser.parse(navigation_actions)
-            # result = ""
-            # for action in actions:
-            #     tools = {t.name: t for t in self.actions}
-            #     if action.name == FINISH_NAME:
-            #         return action.args["response"]
-            #     elif action.name == "ERROR":
-            #         result += f"Error: {action.args}. \n"
-            #     elif action.name in tools:
-            #         tool = tools[action.name]
-            #         try:
-            #             observation = tool.run(action.args)
-            #         except ValidationError as e:
-            #             observation = (
-            #                 f"Validation Error in args: {str(e)}, args: {action.args}"
-            #             )
-            #         except Exception as e:
-            #             observation = (
-            #                 f"Error: {str(e)}, {type(e).__name__}, args: {action.args}"
-            #             )
-            #         result += f"Command {tool.name} returned: {observation} \n"
-            #     else:
-            #         result += self.execute_event_action(action) + "\n"
 
             ## send result and assistant_reply to the socket
             self.logger.info(result)
