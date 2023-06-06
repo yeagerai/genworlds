@@ -32,23 +32,27 @@ class NavigationBrain:
     def __init__(
         self,
         openai_api_key: str,
-        ai_name: str,
-        model_name="gpt-3.5-turbo",
-        search_algorithm="BFS",
+        generator_role_prompt: str,
+        generator_results_prompt: str,
+        evaluator_role_prompt: str,
+        evaluator_results_prompt: str,
+        n_of_thoughts: int,
+        model_name="gpt-4",
+        temperature=0.7,
+        verbose=False,
     ):
-        self.search_algorithm = search_algorithm
         self.tot = TreeOfThoughts(
             gen_thoughts=self.gen_thoughts,
             eval_thoughts=self.eval_thoughts,
-            search_algorithm=self.search_algorithm,
+            search_algorithm="BFS",
             initial_state="",
-            thought_limit=3,
+            thought_limit=n_of_thoughts,
             max_depth=1,
             breadth=1,
             value_threshold=0.5,
         )
         llm = ChatOpenAI(
-            temperature=0, openai_api_key=openai_api_key, model_name=model_name
+            temperature=temperature, openai_api_key=openai_api_key, model_name=model_name
         )
 
         self.gen_prompt = NavigationGeneratorPrompt(
@@ -58,21 +62,14 @@ class NavigationBrain:
                 "num_thoughts",  # num
             ]
             + list(self.LLMParams.__annotations__.keys()),
-            ai_role="You are {ai_name}. You need to choose your next action that helps you achieve your goals. It must be consistent with all of the following information:".format(
-                ai_name=ai_name
-            ),
-            response_instruction="""# Response type
-                A bullet list containing {num_thoughts} of possible plans and next events that help you achieve your large scale goals. You can use the same event multiple times with different goals in mind. If none of the actions make sense, you can also use the action "Self:wait". Use the following format:
-                - {{ "plan": "1. plan step 1 2. plan step 2 3. plan step 3", "next_action": "Class:event_type_1", "goal": "I want to use this event to achieve a goal"}}
-                - {{ "plan": "1. plan step 1 2. plan step 2 3. plan step 3", "next_action": "Class:event_type_1", "goal": "I want to use this event to achieve a different goal"}}
-                - {{ "plan": "1. plan step 1 2. plan step 2 3. plan step 3"", "next_action": "Class:event_type_2", "goal": "I want to use this event to achieve a third goal"}}
-            """,
+            ai_role=generator_role_prompt,
+            response_instruction=generator_results_prompt,
         )
 
         self.gen_llm_chain = LLMChain(
             prompt=self.gen_prompt,
             llm=llm,
-            verbose=True,
+            verbose=verbose,
         )
 
         self.eval_prompt = NavigationGeneratorPrompt(
@@ -81,22 +78,14 @@ class NavigationBrain:
                 "thought_to_evaluate",
             ]
             + list(self.LLMParams.__annotations__.keys()),
-            ai_role="You are {ai_name}, an expert in evaluating which events get you closer to achieving your goals based on:".format(
-                ai_name=ai_name
-            ),
-            response_instruction="""## Action to evaluate
-                Evaluate the following plan by rating it from 0 to 1, where 0 means that the plan is not useful or possible, and 1 means that the plan is the best next step you can take:
-                {thought_to_evaluate}
-
-                # Response type
-                Return the evaluation of the plan as a float between 0 and 1, and NOTHING ELSE:
-            """,
+            ai_role=evaluator_role_prompt,
+            response_instruction=evaluator_results_prompt,
         )
 
         self.eval_llm_chain = LLMChain(
             prompt=self.eval_prompt,
             llm=llm,
-            verbose=True,
+            verbose=verbose,
         )
 
     def gen_thoughts(
