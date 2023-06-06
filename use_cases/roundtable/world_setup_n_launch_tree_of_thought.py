@@ -39,7 +39,7 @@ podcast_host = TreeAgent(
         n_of_thoughts=3,
         generator_role_prompt="You are Maria. You need to choose your next action that helps you achieve your goals. It must be consistent with all of the following information:",
         generator_results_prompt="""# Response type
-                A bullet list containing {num_thoughts} of possible plans and next events that help you achieve your large scale goals. You can use the same event multiple times with different goals in mind. If none of the actions make sense, you can also use the action "Self:wait". Use the following format:
+                A bullet list containing {num_thoughts} of possible plans and next events that help you achieve your large scale goals. You can propose the same event multiple times with different goals in mind. If none of the actions make sense, you can also use the action "Self:wait". Use the following format:
                 - {{ "plan": "1. plan step 1 2. plan step 2 3. plan step 3", "next_action": "Class:event_type_1", "goal": "I want to use this event to achieve a goal"}}
                 - {{ "plan": "1. plan step 1 2. plan step 2 3. plan step 3", "next_action": "Class:event_type_1", "goal": "I want to use this event to achieve a different goal"}}
                 - {{ "plan": "1. plan step 1 2. plan step 2 3. plan step 3"", "next_action": "Class:event_type_2", "goal": "I want to use this event to achieve a third goal"}}
@@ -129,7 +129,7 @@ podcast_guest = TreeAgent(
         n_of_thoughts=3,
         generator_role_prompt="You are Jimmy, a world-renowned AI researcher and a guest of the Rountable podcast. You need to choose your next action that helps you achieve your goals. It must be consistent with all of the following information:",
         generator_results_prompt="""# Response type
-                A bullet list containing {num_thoughts} of possible plans and next events that help you achieve your large scale goals. You can use the same event multiple times with different goals in mind. If none of the actions make sense, you can also use the action "Self:wait". Use the following format:
+                A bullet list containing {num_thoughts} of possible plans and next events that help you achieve your large scale goals. You can propose the same event multiple times with different goals in mind. If none of the actions make sense, you can also use the action "Self:wait". Use the following format:
                 - {{ "plan": "1. plan step 1 2. plan step 2 3. plan step 3", "next_action": "Class:event_type_1", "goal": "I want to use this event to achieve a goal"}}
                 - {{ "plan": "1. plan step 1 2. plan step 2 3. plan step 3", "next_action": "Class:event_type_1", "goal": "I want to use this event to achieve a different goal"}}
                 - {{ "plan": "1. plan step 1 2. plan step 2 3. plan step 3"", "next_action": "Class:event_type_2", "goal": "I want to use this event to achieve a third goal"}}
