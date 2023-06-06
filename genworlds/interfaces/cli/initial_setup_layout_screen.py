@@ -63,7 +63,7 @@ def initial_setup_layout_screen(cli: interfaces.CLI, genworlds_path: str):
         height=D.exact(3),
         content=FormattedTextControl(
             text=HTML(
-                '<style fg="orange">\n🧬🌍 GenWorlds CLI Configuration Screen\n</style>'
+                '<style fg="#ffb86c">\n🧬🌍 GenWorlds CLI Configuration Screen\n</style>'
             )
         ),
         align=WindowAlign.CENTER,
@@ -95,7 +95,7 @@ def initial_setup_layout_screen(cli: interfaces.CLI, genworlds_path: str):
                 style="reverse",
             ),
             screen_config_menu,
-        ]
+        ],
     )
 
     main_container = VSplit([socket_server_layout, screen_config_layout])

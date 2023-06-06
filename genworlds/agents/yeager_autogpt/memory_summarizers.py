@@ -5,11 +5,9 @@ from langchain.chat_models import ChatOpenAI
 class MemorySummarizer:
     def __init__(self, openai_api_key: str, model_name: str = "gpt-3.5-turbo"):
         self.summary_template = """
-        This is what happened:
+        This is The last event coming from a web-socket, it is in JSON format:
         {memory}
-        Summarize what happened in one line. Every event should have the following structure:
-        AgentName did Action which implies X. 
-        If there is nothing new to summarize, say "NOTHING_NEW"
+        Summarize what happened in one line.
         """
 
         self.summary_prompt = PromptTemplate(
