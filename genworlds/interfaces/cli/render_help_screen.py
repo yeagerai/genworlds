@@ -16,7 +16,7 @@ def render_help_screen(cli: interfaces.CLI):
     title = Window(
         height=D.exact(3),
         content=FormattedTextControl(
-            text=HTML('<style fg="orange">\n🧬🌍 GenWorlds CLI Help Screen\n</style>')
+            text=HTML('<style fg="#ffb86c">\n🧬🌍 GenWorlds CLI Help Screen\n</style>')
         ),
         align=WindowAlign.CENTER,
     )
@@ -49,7 +49,7 @@ def render_help_screen(cli: interfaces.CLI):
                 content=FormattedTextControl(text="Press CTRL+C to exit"),
                 align=WindowAlign.CENTER,
             ),
-        ]
+        ],
     )
 
     # Update the CLI layout

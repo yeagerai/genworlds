@@ -257,6 +257,7 @@ class YeagerAutoGPT:
             # Get command name and arguments
             actions = self.output_parser.parse(assistant_reply)
             result = ""
+            event_sent_summary = ""
             for action in actions:
                 tools = {t.name: t for t in self.actions}
                 if action.name == FINISH_NAME:
@@ -277,17 +278,26 @@ class YeagerAutoGPT:
                         )
                     result += f"Command {tool.name} returned: {observation} \n"
                 else:
-                    # summarize event and add the summary to execute event action
-                    result += self.execute_event_action(action) + "\n"
-
-            ## send result and assistant_reply to the socket
-            self.logger.info(result)
+                    event_sent = self.execute_event_action(action)
+                    event_sent_summary += "Event timestamp: " + event_sent["created_at"] + "\n"
+                    event_sent_summary += event_sent["sender_id"] + " sent "
+                    event_sent_summary += event_sent["event_type"] + " to "
+                    event_sent_summary += str(event_sent["target_id"]) + "\n"
+                    event_sent_summary += "And this is the summary of what happened: "+ str(event_sent["summary"]) + "\n"
 
             # If there are any relevant events in the world for this agent, add them to memory
             sleep(3)
             last_events = self.listening_antenna.get_last_events()
-            memory_to_add = f"Last World Events: {last_events}" f"\n\nResult: {result} "
-            memory_to_add = self.memory_summarizer.summarize(memory_to_add)
+            memory_to_add = ""
+            for event in last_events:
+                memory_to_add += "Event timestamp: " + event["created_at"] + "\n"
+                memory_to_add += event["sender_id"] + " sent "
+                memory_to_add += event["event_type"] + " to "
+                memory_to_add += str(event["target_id"]) + "\n"
+                memory_to_add += "And this is the summary of what happened: "+ str(event["summary"]) + "\n"
+
+            # memory_to_add += event_sent_summary
+
             self.logger.debug(f"Adding to memory: {memory_to_add}")
 
             if self.feedback_tool is not None:
@@ -296,11 +306,9 @@ class YeagerAutoGPT:
                     self.logger.info("EXITING")
                     return "EXITING"
                 memory_to_add += feedback
-
-            self.memory.add_documents([Document(page_content=memory_to_add)])
-
-            result = self.memory_summarizer.summarize(result)
-            self.full_message_history.append(SystemMessage(content=result))
+            if memory_to_add != "":
+                self.memory.add_documents([Document(page_content=memory_to_add)])
+            self.full_message_history.append(SystemMessage(content=event_sent_summary))
 
     def get_agent_world_state(self):
         return self.listening_antenna.get_agent_world_state()
@@ -319,18 +327,18 @@ class YeagerAutoGPT:
             event = {
                 "event_type": event_type,
                 "sender_id": self.id,
-                "summary": "",
                 "created_at": datetime.now().isoformat(),
             }
             event.update(action.args)
-
+            summary = self.memory_summarizer.summarize(json.dumps(event))
+            event["summary"] = summary
             self.logger.debug(event)
 
             event_schema = self.get_schemas()[class_name][event_type]
             validate(event, event_schema)
 
             self.world_socket_client.send_message(json.dumps(event))
-            return f"Action {action.name} sent to the world."
+            return event
         except IndexError as e:
             return (
                 f"Unknown command '{action.name}'. "

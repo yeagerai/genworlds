@@ -48,7 +48,7 @@ from genworlds.agents.tree_agent.brains.navigation_brain import (
     NavigationBrain,
 )
 from genworlds.agents.tree_agent.brains.podcast_brain import PodcastBrain
-
+from genworlds.agents.tree_agent.memory_summarizers import MemorySummarizer
 
 class TreeAgent:
     """Agent class for interacting with Auto-GPT."""
@@ -100,6 +100,7 @@ class TreeAgent:
         self.actions = []
 
         # Brain properties
+        self.memory_summarizer = MemorySummarizer(openai_api_key=openai_api_key)
         self.embeddings_model = OpenAIEmbeddings(openai_api_key=openai_api_key)
         embedding_size = 1536
         index = faiss.IndexFlatL2(embedding_size)
@@ -260,6 +261,7 @@ class TreeAgent:
             action_goal_description = navigation_plan_parsed["goal"]
 
             result = ""
+            event_sent_summary = ""
             if selected_action == FINISH_NAME:
                 return "FINISHED"
             elif selected_action == "Self:wait":
@@ -313,8 +315,13 @@ class TreeAgent:
                 assert (
                     type(args) == dict
                 ), f"Final action brain {action_brain} did not return a dict, returned {args} instead. The action brain map wasn't set up correctly."
-
-                result += self.execute_event_with_args(command["title"], args) + "\n"
+                event_sent = self.execute_event_with_args(command["title"], args)
+                event_sent_summary += "Event timestamp: " + event_sent["created_at"] + "\n"
+                event_sent_summary += event_sent["sender_id"] + " sent "
+                event_sent_summary += event_sent["event_type"] + " to "
+                event_sent_summary += str(event_sent["target_id"]) + "\n"
+                event_sent_summary += "And this is the summary of what happened: "+ str(event_sent["summary"]) + "\n"
+                # result += self.execute_event_with_args(command["title"], args) + "\n"
 
             else:
                 self.logger.info(f"Invalid command: {selected_action}")
@@ -327,11 +334,13 @@ class TreeAgent:
             # If there are any relevant events in the world for this agent, add them to memory
             sleep(3)
             last_events = self.listening_antenna.get_last_events()
-            memory_to_add = (
-                f"Assistant Reply: {navigation_plan} "
-                f"\nResult: {result} "
-                f"\nLast World Events: {last_events}"
-            )
+            memory_to_add = ""
+            for event in last_events:
+                memory_to_add += "Event timestamp: " + event["created_at"] + "\n"
+                memory_to_add += event["sender_id"] + " sent "
+                memory_to_add += event["event_type"] + " to "
+                memory_to_add += str(event["target_id"]) + "\n"
+                memory_to_add += "And this is the summary of what happened: "+ str(event["summary"]) + "\n"
 
             self.logger.debug(f"Adding to memory: {memory_to_add}")
 
@@ -342,7 +351,8 @@ class TreeAgent:
                     return "EXITING"
                 memory_to_add += feedback
 
-            self.memory.add_documents([Document(page_content=memory_to_add)])
+            if memory_to_add != "":
+                self.memory.add_documents([Document(page_content=memory_to_add)])
             self.full_message_history.append(SystemMessage(content=result))
 
     def get_agent_world_state(self):
@@ -365,14 +375,15 @@ class TreeAgent:
                 "created_at": datetime.now().isoformat(),
             }
             event.update(args)
-
+            summary = self.memory_summarizer.summarize(json.dumps(event))
+            event["summary"] = summary
             self.logger.debug(event)
 
             event_schema = self.get_schemas()[class_name][event_type]
             validate(event, event_schema)
 
             self.world_socket_client.send_message(json.dumps(event))
-            return f"Action {name} sent to the world."
+            return event
         except IndexError as e:
             return (
                 f"Unknown command '{name}'. "

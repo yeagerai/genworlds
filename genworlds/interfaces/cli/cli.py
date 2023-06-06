@@ -7,6 +7,7 @@ from prompt_toolkit.buffer import Buffer
 from prompt_toolkit.layout.containers import Window
 from prompt_toolkit.layout.layout import Layout
 from prompt_toolkit.key_binding import KeyBindings
+from prompt_toolkit.styles import Style
 
 from genworlds.sockets.world_socket_client import WorldSocketClient
 from genworlds.interfaces.cli.event_processors import process_event_router
