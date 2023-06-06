@@ -288,8 +288,8 @@ class YeagerAutoGPT:
             # If there are any relevant events in the world for this agent, add them to memory
             sleep(3)
             last_events = self.listening_antenna.get_last_events()
+            memory_to_add = ""
             for event in last_events:
-                memory_to_add = ""
                 memory_to_add += "Event timestamp: " + event["created_at"] + "\n"
                 memory_to_add += event["sender_id"] + " sent "
                 memory_to_add += event["event_type"] + " to "
@@ -306,8 +306,8 @@ class YeagerAutoGPT:
                     self.logger.info("EXITING")
                     return "EXITING"
                 memory_to_add += feedback
-
-            self.memory.add_documents([Document(page_content=memory_to_add)])
+            if memory_to_add != "":
+                self.memory.add_documents([Document(page_content=memory_to_add)])
             self.full_message_history.append(SystemMessage(content=event_sent_summary))
 
     def get_agent_world_state(self):
