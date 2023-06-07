@@ -138,15 +138,15 @@ class NavigationGeneratorPrompt(BaseChatPromptTemplate, BaseModel):
         messages.append(memory_message)
         used_tokens += len(memory_message.content)
 
-        historical_messages: List[BaseMessage] = []
-        previous_messages = kwargs["messages"]
-        for message in previous_messages[-10:][::-1]:
-            message_tokens = self.token_counter(message.content)
-            if used_tokens + message_tokens > self.send_token_limit - 1000:
-                break
-            historical_messages = [message] + historical_messages
+        # historical_messages: List[BaseMessage] = []
+        # previous_messages = kwargs["messages"]
+        # for message in previous_messages[-10:][::-1]:
+        #     message_tokens = self.token_counter(message.content)
+        #     if used_tokens + message_tokens > self.send_token_limit - 1000:
+        #         break
+        #     historical_messages = [message] + historical_messages
 
-        messages += historical_messages
+        # messages += historical_messages
 
         instruction = HumanMessage(content=self.response_instruction.format(**kwargs))
         messages.append(instruction)
