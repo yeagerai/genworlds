@@ -9,7 +9,7 @@ class LoggingFactory:
     loggers = {}
 
     @classmethod
-    def get_logger(cls, name):
+    def get_logger(cls, name, level=None):
         # If a logger with this name already exists, return it
         if name in cls.loggers:
             return cls.loggers[name]
@@ -26,7 +26,11 @@ class LoggingFactory:
         # Create a logger
         logger = colorlog.getLogger(name)
         logger.addHandler(handler)
-        logger.setLevel(os.getenv("LOGGING_LEVEL", logging.INFO))
+
+        # Set the logging level
+        if level == None:
+            level = os.getenv("LOGGING_LEVEL", logging.INFO)  
+        logger.setLevel(level)
         logger.debug(f"Created logger {name} with level {logger.level}")
 
         # Cache the logger instance

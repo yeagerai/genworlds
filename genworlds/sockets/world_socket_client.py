@@ -1,5 +1,6 @@
 import threading
 import json
+import time
 
 import websocket
 from colorama import Fore
@@ -13,6 +14,8 @@ class WorldSocketClient:
         process_event,
         url: str = "ws://127.0.0.1:7456/ws",
         send_initial_event=None,
+        reconnect_interval=5,
+        log_level=None,
     ) -> None:
         self.url = url
         self.websocket = websocket.WebSocketApp(
@@ -24,6 +27,8 @@ class WorldSocketClient:
         )
         self.process_event = process_event
         self.send_initial_event = send_initial_event
+        self.reconnect_interval = reconnect_interval
+        self.log_level = log_level
 
     def on_open(self, ws):
         self.logger().info(f"Connected to world socket server {self.url}")
@@ -36,6 +41,13 @@ class WorldSocketClient:
 
     def on_close(self, *args):
         self.logger().info("World socket client closed connection", args)
+        if self.reconnect_interval:
+            self.logger().info(
+                f"Attempting to reconnect in {self.reconnect_interval} seconds"
+            )
+            time.sleep(self.reconnect_interval)
+            self.logger().info("Attempting to reconnect")
+            self.websocket.run_forever()
 
     def on_message(self, ws, message):
         self.logger().debug(f"Received: {message}")
@@ -47,4 +59,4 @@ class WorldSocketClient:
         self.logger().debug(f"Sent: {message}")
 
     def logger(self):
-        return LoggingFactory.get_logger(threading.current_thread().name)
+        return LoggingFactory.get_logger(threading.current_thread().name, level=self.log_level)
