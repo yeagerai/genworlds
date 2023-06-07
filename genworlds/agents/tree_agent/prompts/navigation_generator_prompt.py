@@ -51,15 +51,16 @@ class NavigationGeneratorPrompt(BaseChatPromptTemplate, BaseModel):
         messages.append(base_prompt)
         used_tokens = self.token_counter(base_prompt.content)
 
-        previous_thoughts_prompt = f"## Previous thoughts:\n"
+        
         if "previous_thoughts" in kwargs and len(kwargs["previous_thoughts"]) > 0:
+            previous_thoughts_prompt = f"## Previous thoughts:\n"
             for entity in kwargs["previous_thoughts"]:
                 previous_thoughts_prompt += f"- {json.dumps(entity)}\n"
-        else:
-            previous_thoughts_prompt += f"You have no previous thoughts.\n"
-        previous_thoughts_message = SystemMessage(content=previous_thoughts_prompt)
-        messages.append(previous_thoughts_message)
-        used_tokens += self.token_counter(previous_thoughts_message.content)
+
+            previous_thoughts_message = SystemMessage(content=previous_thoughts_prompt)
+            messages.append(previous_thoughts_message)
+            used_tokens += self.token_counter(previous_thoughts_message.content)
+        
 
         # time_prompt = SystemMessage(
         #     content=f"The current time and date is {time.strftime('%c')}"
@@ -91,17 +92,18 @@ class NavigationGeneratorPrompt(BaseChatPromptTemplate, BaseModel):
         messages.append(nearby_entities_message)
         used_tokens += self.token_counter(nearby_entities_message.content)
 
-        relevant_commands = kwargs["relevant_commands"]
-        relevant_commands_prompt = f"You can perform the following additional commands with the entities nearby:\n"
-        for command in relevant_commands:
-            relevant_commands_prompt += f"{command}\n"
-        relevant_commands_message = SystemMessage(content=relevant_commands_prompt)
-        messages.append(relevant_commands_message)
-        used_tokens += self.token_counter(relevant_commands_message.content)
+        if "relevant_commands" in kwargs and len(kwargs["relevant_commands"]) > 0:
+            relevant_commands = kwargs["relevant_commands"]
+            relevant_commands_prompt = f"You can perform the following additional commands with the entities nearby:\n"
+            for command in relevant_commands:
+                relevant_commands_prompt += f"{command}\n"
+            relevant_commands_message = SystemMessage(content=relevant_commands_prompt)
+            messages.append(relevant_commands_message)
+            used_tokens += self.token_counter(relevant_commands_message.content)
 
         if "plan" in kwargs and kwargs["plan"] is not None:
             plan: Optional[str] = kwargs["plan"]
-            plan_message = SystemMessage(content=f"## Plan:\n{plan}")
+            plan_message = SystemMessage(content=f"## My Previous Plan:\n{plan}")
             messages.append(plan_message)
             used_tokens += len(plan_message.content)
 
@@ -140,7 +142,7 @@ class NavigationGeneratorPrompt(BaseChatPromptTemplate, BaseModel):
 
         historical_messages: List[BaseMessage] = []
         previous_messages = kwargs["messages"]
-        for message in previous_messages[-10:][::-1]:
+        for message in previous_messages[-1:][::-1]:
             message_tokens = self.token_counter(message.content)
             if used_tokens + message_tokens > self.send_token_limit - 1000:
                 break

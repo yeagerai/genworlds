@@ -243,9 +243,9 @@ class TreeAgent:
                     "plan": self.plan,
                     "user_input": user_input,
                     "agent_world_state": agent_world_state,
-                    "relevant_commands": map(
+                    "relevant_commands": list(map(
                         lambda c: c["string_short"], relevant_commands.values()
-                    ),
+                    )),
                 }
             )
 
@@ -265,7 +265,8 @@ class TreeAgent:
             if selected_action == FINISH_NAME:
                 return "FINISHED"
             elif selected_action == "Self:wait":
-                self.logger.info(f"Waiting...")
+                self.logger.info(f"Waiting, sleeping for 10 seconds")
+                sleep(10)
                 result += f"Waiting...\n"
             # TODO: tools?
             elif selected_action in relevant_commands:
@@ -309,20 +310,25 @@ class TreeAgent:
                             }
                         )
                     )
+                final_brain_output = previous_brain_outputs[-1]
+                try:
+                    args = json.loads(final_brain_output)
 
-                args = json.loads(previous_brain_outputs[-1])
+                    if type(args) == dict:
+                        event_sent = self.execute_event_with_args(command["title"], args)
+                        event_sent_summary += "Event timestamp: " + event_sent["created_at"] + "\n"
+                        # event_sent_summary += event_sent["sender_id"] + " sent "
+                        # event_sent_summary += event_sent["event_type"] + " to "
+                        # event_sent_summary += str(event_sent["target_id"]) + "\n"
+                        event_sent_summary += "And this is the summary of what happened: "+ str(event_sent["summary"]) + "\n"
+                        
+                        result += event_sent_summary
+                    else:
+                        raise Exception("Unexpected final output")
 
-                assert (
-                    type(args) == dict
-                ), f"Final action brain {action_brain} did not return a dict, returned {args} instead. The action brain map wasn't set up correctly."
-                event_sent = self.execute_event_with_args(command["title"], args)
-                event_sent_summary += "Event timestamp: " + event_sent["created_at"] + "\n"
-                event_sent_summary += event_sent["sender_id"] + " sent "
-                event_sent_summary += event_sent["event_type"] + " to "
-                event_sent_summary += str(event_sent["target_id"]) + "\n"
-                event_sent_summary += "And this is the summary of what happened: "+ str(event_sent["summary"]) + "\n"
-                # result += self.execute_event_with_args(command["title"], args) + "\n"
-
+                except Exception as e:
+                    self.logger.error(f"Problem executing command with {command['title']} with output {final_brain_output}: {e}\n")
+                    result += f"Problem executing command with {command['title']} with output {final_brain_output}: {e}\n"
             else:
                 self.logger.info(f"Invalid command: {selected_action}")
                 result += f"Error: {selected_action} is not recognized. \n"
@@ -337,9 +343,9 @@ class TreeAgent:
             memory_to_add = ""
             for event in last_events:
                 memory_to_add += "Event timestamp: " + event["created_at"] + "\n"
-                memory_to_add += event["sender_id"] + " sent "
-                memory_to_add += event["event_type"] + " to "
-                memory_to_add += str(event["target_id"]) + "\n"
+                # memory_to_add += event["sender_id"] + " sent "
+                # memory_to_add += event["event_type"] + " to "
+                # memory_to_add += str(event["target_id"]) + "\n"
                 memory_to_add += "And this is the summary of what happened: "+ str(event["summary"]) + "\n"
 
             self.logger.debug(f"Adding to memory: {memory_to_add}")
