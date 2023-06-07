@@ -249,12 +249,20 @@ class TreeAgent:
                 }
             )
 
+            try: 
+                navigation_plan_parsed = json.loads(navigation_plan)
+            except:
+                self.logger.info(f"Failed to parse navigation plan: {navigation_plan}")
+                navigation_plan_parsed = {
+                    "plan": self.plan,
+                    "next_action": "Self:wait",
+                    "goal": "Failed to select a valid action, waiting...",
+                }
+                
             # Print Assistant thoughts
-            self.logger.info(navigation_plan)
-            self.full_message_history.append(AIMessage(content=str(navigation_plan)))
+            self.logger.info(navigation_plan_parsed)
+            self.full_message_history.append(AIMessage(content=str(navigation_plan_parsed)))
 
-            # Parse response
-            navigation_plan_parsed = json.loads(navigation_plan)
             self.plan = navigation_plan_parsed["plan"]
 
             selected_action = navigation_plan_parsed["next_action"]

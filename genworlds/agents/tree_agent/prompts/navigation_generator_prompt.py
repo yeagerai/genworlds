@@ -94,7 +94,7 @@ class NavigationGeneratorPrompt(BaseChatPromptTemplate, BaseModel):
 
         if "relevant_commands" in kwargs and len(kwargs["relevant_commands"]) > 0:
             relevant_commands = kwargs["relevant_commands"]
-            relevant_commands_prompt = f"You can perform the following additional commands with the entities nearby:\n"
+            relevant_commands_prompt = f"You can perform the following actions with the entities nearby:\n"
             for command in relevant_commands:
                 relevant_commands_prompt += f"{command}\n"
             relevant_commands_message = SystemMessage(content=relevant_commands_prompt)
