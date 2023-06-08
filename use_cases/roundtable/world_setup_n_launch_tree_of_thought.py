@@ -34,6 +34,9 @@ podcast_host = TreeAgent(
         "agent_speaks_into_microphone",
         "agent_gives_object_to_agent_event",
     },
+    wakeup_events={
+        "agent_gives_object_to_agent_event": {} 
+    },
 
     navigation_brain=NavigationBrain(
         openai_api_key=openai_api_key,
@@ -130,6 +133,9 @@ podcast_guest = TreeAgent(
     interesting_events={
         "agent_speaks_into_microphone",
         "agent_gives_object_to_agent_event",
+    },
+    wakeup_events={
+        "agent_gives_object_to_agent_event": {} 
     },
 
     navigation_brain=NavigationBrain(

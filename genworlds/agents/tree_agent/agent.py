@@ -31,9 +31,8 @@ from genworlds.agents.yeager_autogpt.output_parser import (
     AutoGPTAction,
     AutoGPTOutputParser,
 )
-from genworlds.agents.yeager_autogpt.prompt_generator import FINISH_NAME
 from genworlds.sockets.world_socket_client import WorldSocketClient
-from genworlds.agents.yeager_autogpt.listening_antenna import ListeningAntenna
+from genworlds.agents.tree_agent.listening_antenna import ListeningAntenna
 from genworlds.events.basic_events import (
     AgentGetsNearbyEntitiesEvent,
     AgentGetsObjectInfoEvent,
@@ -67,6 +66,7 @@ class TreeAgent:
         execution_brains: dict,        
         action_brain_map: dict,
         interesting_events: set = {},
+        wakeup_events: dict = {},
         feedback_tool: Optional[HumanInputRun] = None,
         additional_memories: Optional[List[VectorStoreRetriever]] = None,
         id: str = None,
@@ -80,8 +80,11 @@ class TreeAgent:
         self.description = description
         self.goals = goals
         self.interesting_events = interesting_events
+        self.wakeup_events = wakeup_events
         self.feedback_tool = feedback_tool
         self.additional_memories = additional_memories
+
+        self.is_asleep = False
 
         self.logger = LoggingFactory.get_logger(self.ai_name)
 
@@ -94,6 +97,8 @@ class TreeAgent:
             agent_name=self.ai_name,
             agent_id=self.id,
             websocket_url=websocket_url,
+            wakeup_callback=self.wake_up,
+            wakeup_events=self.wakeup_events,
         )
 
         # Agent actions
@@ -147,6 +152,11 @@ class TreeAgent:
         sleep(5)
 
         while True:
+            if self.is_asleep:
+                self.logger.info(f"Sleeping...")
+                sleep(5)
+                continue
+
             agent_world_state = self.listening_antenna.get_agent_world_state()
             nearby_entities = self.listening_antenna.get_nearby_entities()
 
@@ -170,7 +180,16 @@ class TreeAgent:
             else:
                 useful_nearby_entities = []
 
-            relevant_commands = {}
+            relevant_commands = {
+                # Default commands
+                "Self:wait": {
+                    "title": "Self:wait",
+                    "description": "Wait until the state of the world changes",
+                    "args": {},
+                    "string_short": "Self:wait - Wait until the state of the world changes",
+                    "string_full": "Self:wait - Wait until the state of the world changes, args json schema: {}",
+                },
+            }
             for entity in useful_nearby_entities:
                 entity_schemas = self.get_schemas()[entity["entity_class"]]
 
@@ -255,7 +274,7 @@ class TreeAgent:
                 self.logger.info(f"Failed to parse navigation plan: {navigation_plan}")
                 navigation_plan_parsed = {
                     "plan": self.plan,
-                    "next_action": "Self:wait",
+                    "next_action": "Self:wait", # TODO: does this make sense?
                     "goal": "Failed to select a valid action, waiting...",
                 }
                 
@@ -270,11 +289,12 @@ class TreeAgent:
 
             result = ""
             event_sent_summary = ""
-            if selected_action == FINISH_NAME:
+            if selected_action == "Self:exit":
+                self.logger.info(f"Exiting...")
                 return "FINISHED"
             elif selected_action == "Self:wait":
-                self.logger.info(f"Waiting, sleeping for 10 seconds")
-                sleep(10)
+                self.logger.info(f"Waiting, entering sleep mode...")
+                self.is_asleep = True
                 result += f"Waiting...\n"
             # TODO: tools?
             elif selected_action in relevant_commands:
@@ -408,55 +428,7 @@ class TreeAgent:
             return f"Validation Error in args: {str(e)}, args: {args}"
         except Exception as e:
             return f"Error: {str(e)}, {type(e).__name__}, args: {args}"
-
-    def agent_gets_nearby_entities_action(self):
-        agent_gets_nearby_entities_event = AgentGetsNearbyEntitiesEvent(
-            created_at=datetime.now(),
-            sender_id=self.id,
-        )
-        self.world_socket_client.send_message(agent_gets_nearby_entities_event.json())
-
-    def agent_gets_object_info_action(
-        self,
-        target_id: str,
-    ):
-        agent_gets_object_info = AgentGetsObjectInfoEvent(
-            created_at=datetime.now(),
-            sender_id=self.id,
-            target_id=target_id,
-        )
-        self.world_socket_client.send_message(agent_gets_object_info.json())
-
-    def agent_gets_agent_info_action(
-        self,
-        target_id: str,
-    ):
-        agent_gets_agent_info = AgentGetsAgentInfoEvent(
-            created_at=datetime.now(),
-            sender_id=self.id,
-            target_id=target_id,
-        )
-        self.world_socket_client.send_message(agent_gets_agent_info.json())
-
-    def agent_interacts_with_object_action(
-        self,
-        created_interaction: str,
-    ):
-        self.world_socket_client.send_message(created_interaction)
-
-    def agent_speaks_with_agent_action(
-        self,
-        target_id: str,
-        message: str,
-    ):
-        agent_speaks_with_agent = AgentSpeaksWithAgentEvent(
-            created_at=datetime.now(),
-            sender_id=self.id,
-            target_id=target_id,
-            message=message,
-        )
-        self.world_socket_client.send_message(agent_speaks_with_agent.json())
-
+        
     def agent_request_world_state_update_action(self):
         agent_request_world_state_update = EntityRequestWorldStateUpdateEvent(
             created_at=datetime.now(),
@@ -464,6 +436,10 @@ class TreeAgent:
             target_id=self.world_spawned_id,
         )
         self.world_socket_client.send_message(agent_request_world_state_update.json())
+
+    def wake_up(self, event):
+        self.logger.info("Waking up", event)
+        self.is_asleep = False
 
     def launch_threads(self):
         threading.Thread(
