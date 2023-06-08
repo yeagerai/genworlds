@@ -31,6 +31,7 @@ def render_main_screen(cli: interfaces.CLI):
             MenuItem(f"  {k}  ", handler=lambda k=k: switch_buffer(k))
             for k in cli.screens.keys()
         ],
+        
     )
     screen_buffer = Window(
         BufferControl(
@@ -38,6 +39,7 @@ def render_main_screen(cli: interfaces.CLI):
             focusable=True,
             input_processors=[FormatText()],
         )
+        , wrap_lines=True, 
     )
     prompt_buffer = Window(height=1)  # TODO: Create a reasonable prompt_buffer
     main_container = HSplit(
