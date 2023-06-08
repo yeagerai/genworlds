@@ -55,7 +55,6 @@ class ListeningAntenna:
                 self.nearby_entities = event["nearby_entities"]
         elif (
             event["target_id"] == self.agent_id
-            or event["target_id"] == None
             or event["event_type"] in self.important_event_types
         ):
             self.last_events.append(event)

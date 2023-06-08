@@ -21,7 +21,7 @@ GENWORLDS_CONFIG_PATH = os.path.join(os.path.expanduser("~"), ".genworlds")
 
 class CLI:
     def __init__(self):
-        self.ws_client = WorldSocketClient(self.process_event)
+        self.ws_client = WorldSocketClient(self.process_event, log_level="ERROR")
         self.kb = KeyBindings()
         self.configuration = None
         self.server_url = None
