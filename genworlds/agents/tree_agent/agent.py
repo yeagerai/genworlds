@@ -50,6 +50,7 @@ from genworlds.agents.tree_agent.brains.navigation_brain import (
 from genworlds.agents.tree_agent.brains.podcast_brain import PodcastBrain
 from genworlds.agents.tree_agent.memory_summarizers import MemorySummarizer
 
+
 class TreeAgent:
     """Agent class for interacting with Auto-GPT."""
 
@@ -62,9 +63,8 @@ class TreeAgent:
         description: str,
         goals: List[str],
         openai_api_key: str,
-
         navigation_brain: NavigationBrain,
-        execution_brains: dict,        
+        execution_brains: dict,
         action_brain_map: dict,
         interesting_events: set = {},
         feedback_tool: Optional[HumanInputRun] = None,
@@ -243,13 +243,13 @@ class TreeAgent:
                     "plan": self.plan,
                     "user_input": user_input,
                     "agent_world_state": agent_world_state,
-                    "relevant_commands": list(map(
-                        lambda c: c["string_short"], relevant_commands.values()
-                    )),
+                    "relevant_commands": list(
+                        map(lambda c: c["string_short"], relevant_commands.values())
+                    ),
                 }
             )
 
-            try: 
+            try:
                 navigation_plan_parsed = json.loads(navigation_plan)
             except:
                 self.logger.info(f"Failed to parse navigation plan: {navigation_plan}")
@@ -258,10 +258,12 @@ class TreeAgent:
                     "next_action": "Self:wait",
                     "goal": "Failed to select a valid action, waiting...",
                 }
-                
+
             # Print Assistant thoughts
             self.logger.info(navigation_plan_parsed)
-            self.full_message_history.append(AIMessage(content=str(navigation_plan_parsed)))
+            self.full_message_history.append(
+                AIMessage(content=str(navigation_plan_parsed))
+            )
 
             self.plan = navigation_plan_parsed["plan"]
 
@@ -323,19 +325,29 @@ class TreeAgent:
                     args = json.loads(final_brain_output)
 
                     if type(args) == dict:
-                        event_sent = self.execute_event_with_args(command["title"], args)
-                        event_sent_summary += "Event timestamp: " + event_sent["created_at"] + "\n"
+                        event_sent = self.execute_event_with_args(
+                            command["title"], args
+                        )
+                        event_sent_summary += (
+                            "Event timestamp: " + event_sent["created_at"] + "\n"
+                        )
                         # event_sent_summary += event_sent["sender_id"] + " sent "
                         # event_sent_summary += event_sent["event_type"] + " to "
                         # event_sent_summary += str(event_sent["target_id"]) + "\n"
-                        event_sent_summary += "And this is the summary of what happened: "+ str(event_sent["summary"]) + "\n"
-                        
+                        event_sent_summary += (
+                            "And this is the summary of what happened: "
+                            + str(event_sent["summary"])
+                            + "\n"
+                        )
+
                         result += event_sent_summary
                     else:
                         raise Exception("Unexpected final output")
 
                 except Exception as e:
-                    self.logger.error(f"Problem executing command with {command['title']} with output {final_brain_output}: {e}\n")
+                    self.logger.error(
+                        f"Problem executing command with {command['title']} with output {final_brain_output}: {e}\n"
+                    )
                     result += f"Problem executing command with {command['title']} with output {final_brain_output}: {e}\n"
             else:
                 self.logger.info(f"Invalid command: {selected_action}")
@@ -354,7 +366,11 @@ class TreeAgent:
                 # memory_to_add += event["sender_id"] + " sent "
                 # memory_to_add += event["event_type"] + " to "
                 # memory_to_add += str(event["target_id"]) + "\n"
-                memory_to_add += "And this is the summary of what happened: "+ str(event["summary"]) + "\n"
+                memory_to_add += (
+                    "And this is the summary of what happened: "
+                    + str(event["summary"])
+                    + "\n"
+                )
 
             self.logger.debug(f"Adding to memory: {memory_to_add}")
 

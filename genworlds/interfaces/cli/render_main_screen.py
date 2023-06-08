@@ -31,15 +31,14 @@ def render_main_screen(cli: interfaces.CLI):
             MenuItem(f"  {k}  ", handler=lambda k=k: switch_buffer(k))
             for k in cli.screens.keys()
         ],
-        
     )
     screen_buffer = Window(
         BufferControl(
             buffer=cli.screens[list(cli.screens.keys())[0]]["buffer"],
             focusable=True,
             input_processors=[FormatText()],
-        )
-        , wrap_lines=True, 
+        ),
+        wrap_lines=True,
     )
     prompt_buffer = Window(height=1)  # TODO: Create a reasonable prompt_buffer
     main_container = HSplit(

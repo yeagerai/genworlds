@@ -34,7 +34,6 @@ podcast_host = TreeAgent(
         "agent_speaks_into_microphone",
         "agent_gives_object_to_agent_event",
     },
-
     navigation_brain=NavigationBrain(
         openai_api_key=openai_api_key,
         n_of_thoughts=3,
@@ -59,7 +58,7 @@ podcast_host = TreeAgent(
                 # Response type
                 Return the evaluation of the plan as a float between 0 and 1, and NOTHING ELSE:
             """,
-            verbose=True,
+        verbose=True,
     ),
     execution_brains={
         "podcast_brain": PodcastBrain(
@@ -131,7 +130,6 @@ podcast_guest = TreeAgent(
         "agent_speaks_into_microphone",
         "agent_gives_object_to_agent_event",
     },
-
     navigation_brain=NavigationBrain(
         openai_api_key=openai_api_key,
         n_of_thoughts=3,

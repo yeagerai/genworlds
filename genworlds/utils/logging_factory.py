@@ -29,7 +29,7 @@ class LoggingFactory:
 
         # Set the logging level
         if level == None:
-            level = os.getenv("LOGGING_LEVEL", logging.INFO)  
+            level = os.getenv("LOGGING_LEVEL", logging.INFO)
         logger.setLevel(level)
         logger.debug(f"Created logger {name} with level {logger.level}")
 

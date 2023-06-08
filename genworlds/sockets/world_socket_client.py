@@ -59,4 +59,6 @@ class WorldSocketClient:
         self.logger().debug(f"Sent: {message}")
 
     def logger(self):
-        return LoggingFactory.get_logger(threading.current_thread().name, level=self.log_level)
+        return LoggingFactory.get_logger(
+            threading.current_thread().name, level=self.log_level
+        )

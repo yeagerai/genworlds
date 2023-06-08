@@ -44,9 +44,11 @@ class NavigationBrain:
     ):
         self.n_of_thoughts = n_of_thoughts
         self.value_threshold = value_threshold
-        
+
         llm = ChatOpenAI(
-            temperature=temperature, openai_api_key=openai_api_key, model_name=model_name
+            temperature=temperature,
+            openai_api_key=openai_api_key,
+            model_name=model_name,
         )
 
         self.gen_prompt = NavigationGeneratorPrompt(
@@ -130,5 +132,3 @@ class NavigationBrain:
             return None
         else:
             return best_thought
-
-

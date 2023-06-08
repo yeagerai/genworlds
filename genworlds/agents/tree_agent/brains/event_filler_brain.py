@@ -42,9 +42,11 @@ class EventFillerBrain:
     ):
         self.n_of_thoughts = n_of_thoughts
         self.value_threshold = value_threshold
-        
+
         llm = ChatOpenAI(
-            temperature=temperature, openai_api_key=openai_api_key, model_name=model_name
+            temperature=temperature,
+            openai_api_key=openai_api_key,
+            model_name=model_name,
         )
 
         self.gen_prompt = ExecutionGeneratorPrompt(
@@ -55,7 +57,7 @@ class EventFillerBrain:
             ]
             + list(self.LLMParams.__annotations__.keys()),
             ai_role=generator_role_prompt,
-            response_instruction=generator_results_prompt
+            response_instruction=generator_results_prompt,
         )
 
         self.gen_llm_chain = LLMChain(

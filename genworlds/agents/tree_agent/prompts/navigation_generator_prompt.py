@@ -51,7 +51,6 @@ class NavigationGeneratorPrompt(BaseChatPromptTemplate, BaseModel):
         messages.append(base_prompt)
         used_tokens = self.token_counter(base_prompt.content)
 
-        
         if "previous_thoughts" in kwargs and len(kwargs["previous_thoughts"]) > 0:
             previous_thoughts_prompt = f"## Previous thoughts:\n"
             for entity in kwargs["previous_thoughts"]:
@@ -60,7 +59,6 @@ class NavigationGeneratorPrompt(BaseChatPromptTemplate, BaseModel):
             previous_thoughts_message = SystemMessage(content=previous_thoughts_prompt)
             messages.append(previous_thoughts_message)
             used_tokens += self.token_counter(previous_thoughts_message.content)
-        
 
         # time_prompt = SystemMessage(
         #     content=f"The current time and date is {time.strftime('%c')}"
@@ -94,7 +92,9 @@ class NavigationGeneratorPrompt(BaseChatPromptTemplate, BaseModel):
 
         if "relevant_commands" in kwargs and len(kwargs["relevant_commands"]) > 0:
             relevant_commands = kwargs["relevant_commands"]
-            relevant_commands_prompt = f"You can perform the following actions with the entities nearby:\n"
+            relevant_commands_prompt = (
+                f"You can perform the following actions with the entities nearby:\n"
+            )
             for command in relevant_commands:
                 relevant_commands_prompt += f"{command}\n"
             relevant_commands_message = SystemMessage(content=relevant_commands_prompt)
