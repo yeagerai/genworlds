@@ -37,20 +37,14 @@ class NavigationBrain:
         evaluator_role_prompt: str,
         evaluator_results_prompt: str,
         n_of_thoughts: int,
+        value_threshold: float = 0.5,
         model_name="gpt-4",
         temperature=0.7,
         verbose=False,
     ):
-        self.tot = TreeOfThoughts(
-            gen_thoughts=self.gen_thoughts,
-            eval_thoughts=self.eval_thoughts,
-            search_algorithm="BFS",
-            initial_state="",
-            thought_limit=n_of_thoughts,
-            max_depth=1,
-            breadth=1,
-            value_threshold=0.5,
-        )
+        self.n_of_thoughts = n_of_thoughts
+        self.value_threshold = value_threshold
+        
         llm = ChatOpenAI(
             temperature=temperature, openai_api_key=openai_api_key, model_name=model_name
         )
@@ -126,4 +120,15 @@ class NavigationBrain:
         return thought_values
 
     def run(self, llm_params: LLMParams):
-        return self.tot.solve(llm_params)[-1]
+        thoughts = self.gen_thoughts("", self.n_of_thoughts, llm_params)
+        thought_values = self.eval_thoughts(thoughts, llm_params)
+        print(thought_values)
+
+        best_thought = max(thought_values, key=thought_values.get)
+
+        if thought_values[best_thought] < self.value_threshold:
+            return None
+        else:
+            return best_thought
+
+

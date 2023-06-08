@@ -28,7 +28,6 @@ class Microphone(BaseObject):
         )
 
         self.host = host
-        self.holder = host
 
         self.register_event_listeners(
             [
@@ -37,7 +36,4 @@ class Microphone(BaseObject):
         )
 
     def agent_speaks_into_microphone_listener(self, event: AgentSpeaksIntoMicrophone):
-        if event.sender_id != self.holder:
-            print(f"Agent {event.sender_id} is not the holder of the microphone.")
-            return
         print(f"Agent {event.sender_id} says: {event.message}.")
