@@ -279,11 +279,17 @@ class YeagerAutoGPT:
                     result += f"Command {tool.name} returned: {observation} \n"
                 else:
                     event_sent = self.execute_event_action(action)
-                    event_sent_summary += "Event timestamp: " + event_sent["created_at"] + "\n"
+                    event_sent_summary += (
+                        "Event timestamp: " + event_sent["created_at"] + "\n"
+                    )
                     event_sent_summary += event_sent["sender_id"] + " sent "
                     event_sent_summary += event_sent["event_type"] + " to "
                     event_sent_summary += str(event_sent["target_id"]) + "\n"
-                    event_sent_summary += "And this is the summary of what happened: "+ str(event_sent["summary"]) + "\n"
+                    event_sent_summary += (
+                        "And this is the summary of what happened: "
+                        + str(event_sent["summary"])
+                        + "\n"
+                    )
 
             # If there are any relevant events in the world for this agent, add them to memory
             sleep(3)
@@ -294,7 +300,11 @@ class YeagerAutoGPT:
                 memory_to_add += event["sender_id"] + " sent "
                 memory_to_add += event["event_type"] + " to "
                 memory_to_add += str(event["target_id"]) + "\n"
-                memory_to_add += "And this is the summary of what happened: "+ str(event["summary"]) + "\n"
+                memory_to_add += (
+                    "And this is the summary of what happened: "
+                    + str(event["summary"])
+                    + "\n"
+                )
 
             # memory_to_add += event_sent_summary
 

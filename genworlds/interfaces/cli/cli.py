@@ -37,7 +37,7 @@ class CLI:
         self.application = Application(
             layout=self.layout,
             key_bindings=self.kb,
-            mouse_support=False,
+            mouse_support=True,
             full_screen=True,
         )
 
@@ -66,10 +66,10 @@ class CLI:
         render_main_screen(self)
 
     def run(self):
+        time.sleep(2)
         threading.Thread(
             target=self.ws_client.websocket.run_forever,
             name=f"CLI Socket Client Thread",
             daemon=True,
         ).start()
-        time.sleep(2)
         self.application.run()

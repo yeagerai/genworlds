@@ -13,6 +13,8 @@ from langchain.tools.base import BaseTool
 from langchain.vectorstores.base import VectorStoreRetriever
 from langchain.vectorstores import Chroma
 
+from genworlds.agents.memory_processors.nmk_world_memory import NMKWorldMemory
+
 
 class NavigationGeneratorPrompt(BaseChatPromptTemplate, BaseModel):
     ai_role: str
@@ -51,7 +53,6 @@ class NavigationGeneratorPrompt(BaseChatPromptTemplate, BaseModel):
         messages.append(base_prompt)
         used_tokens = self.token_counter(base_prompt.content)
 
-        
         if "previous_thoughts" in kwargs and len(kwargs["previous_thoughts"]) > 0:
             previous_thoughts_prompt = f"## Previous thoughts:\n"
             for entity in kwargs["previous_thoughts"]:
@@ -60,7 +61,6 @@ class NavigationGeneratorPrompt(BaseChatPromptTemplate, BaseModel):
             previous_thoughts_message = SystemMessage(content=previous_thoughts_prompt)
             messages.append(previous_thoughts_message)
             used_tokens += self.token_counter(previous_thoughts_message.content)
-        
 
         # time_prompt = SystemMessage(
         #     content=f"The current time and date is {time.strftime('%c')}"
@@ -94,7 +94,9 @@ class NavigationGeneratorPrompt(BaseChatPromptTemplate, BaseModel):
 
         if "relevant_commands" in kwargs and len(kwargs["relevant_commands"]) > 0:
             relevant_commands = kwargs["relevant_commands"]
-            relevant_commands_prompt = f"You can perform the following actions with the entities nearby:\n"
+            relevant_commands_prompt = (
+                f"You can perform the following actions with the entities nearby:\n"
+            )
             for command in relevant_commands:
                 relevant_commands_prompt += f"{command}\n"
             relevant_commands_message = SystemMessage(content=relevant_commands_prompt)
@@ -121,34 +123,18 @@ class NavigationGeneratorPrompt(BaseChatPromptTemplate, BaseModel):
                 messages.append(personality_message)
                 used_tokens += len(personality_message.content)
 
-        memory: VectorStoreRetriever = kwargs["memory"]
-        relevant_docs = memory.get_relevant_documents(str(kwargs["goals"]))
-        relevant_memory = [d.page_content for d in relevant_docs]
-        relevant_memory_tokens = sum(
-            [self.token_counter(doc) for doc in relevant_memory]
-        )
-        while used_tokens + relevant_memory_tokens > 2500:
-            relevant_memory = relevant_memory[:-1]
-            relevant_memory_tokens = sum(
-                [self.token_counter(doc) for doc in relevant_memory]
-            )
-        content_format = (
-            f"This reminds you of these events "
-            f"from your past:\n{relevant_memory}\n\n"
-        )
-        memory_message = SystemMessage(content=content_format)
-        messages.append(memory_message)
-        used_tokens += len(memory_message.content)
-
-        historical_messages: List[BaseMessage] = []
-        previous_messages = kwargs["messages"]
-        for message in previous_messages[-1:][::-1]:
-            message_tokens = self.token_counter(message.content)
-            if used_tokens + message_tokens > self.send_token_limit - 1000:
-                break
-            historical_messages = [message] + historical_messages
-
-        messages += historical_messages
+        if "memory" in kwargs and kwargs["memory"] is not None:
+            memory: NMKWorldMemory = kwargs["memory"]
+            if len(memory.world_events) > 0:
+                if len(memory.world_events) % 5 == 0:
+                    memory.create_full_summary()
+                relevant_memory = memory.get_event_stream_memories(
+                    query=kwargs["plan"], summarized=True
+                )  # TODO: add token limitations
+                relevant_memory_tokens = self.token_counter(relevant_memory)
+                memory_message = SystemMessage(content=relevant_memory)
+                messages.append(memory_message)
+                used_tokens += relevant_memory_tokens
 
         instruction = HumanMessage(content=self.response_instruction.format(**kwargs))
         messages.append(instruction)

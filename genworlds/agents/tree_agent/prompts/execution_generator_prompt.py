@@ -4,14 +4,15 @@ from typing import Any, Callable, List, Optional
 
 from pydantic import BaseModel
 
-from genworlds.agents.yeager_autogpt.prompt_generator import get_prompt
-from langchain.prompts.chat import (
-    BaseChatPromptTemplate,
-)
 from langchain.schema import BaseMessage, HumanMessage, SystemMessage
 from langchain.tools.base import BaseTool
 from langchain.vectorstores.base import VectorStoreRetriever
 from langchain.vectorstores import Chroma
+from langchain.prompts.chat import (
+    BaseChatPromptTemplate,
+)
+
+from genworlds.agents.memory_processors.nmk_world_memory import NMKWorldMemory
 
 
 class ExecutionGeneratorPrompt(BaseChatPromptTemplate, BaseModel):
@@ -135,37 +136,18 @@ class ExecutionGeneratorPrompt(BaseChatPromptTemplate, BaseModel):
                 messages.append(personality_message)
                 used_tokens += len(personality_message.content)
 
-        memory: VectorStoreRetriever = kwargs["memory"]
-        relevant_docs = memory.get_relevant_documents(
-            kwargs["previous_brain_outputs"][-1]
-        )
-        relevant_memory = [d.page_content for d in relevant_docs]
-        relevant_memory_tokens = sum(
-            [self.token_counter(doc) for doc in relevant_memory]
-        )
-        while used_tokens + relevant_memory_tokens > 2500:
-            relevant_memory = relevant_memory[:-1]
-            relevant_memory_tokens = sum(
-                [self.token_counter(doc) for doc in relevant_memory]
-            )
-        content_format = (
-            f"This reminds you of these events "
-            f"from your past:\n{relevant_memory}\n\n"
-        )
-        memory_message = SystemMessage(content=content_format)
-        messages.append(memory_message)
-        used_tokens += len(memory_message.content)
-
-        # if "messages" in kwargs:
-        #     previous_messages = kwargs["messages"]
-        #     historical_messages: List[BaseMessage] = []
-        #     for message in previous_messages[-10:][::-1]:
-        #         message_tokens = self.token_counter(message.content)
-        #         if used_tokens + message_tokens > self.send_token_limit - 1000:
-        #             break
-        #         historical_messages = [message] + historical_messages
-
-        #     messages += historical_messages
+        if "memory" in kwargs and kwargs["memory"] is not None:
+            memory: NMKWorldMemory = kwargs["memory"]
+            if len(memory.world_events) > 0:
+                if len(memory.world_events) % 5 == 0:
+                    memory.create_full_summary()
+                relevant_memory = memory.get_event_stream_memories(
+                    query=kwargs["plan"], summarized=True
+                )  # TODO: add token limitations
+                relevant_memory_tokens = self.token_counter(relevant_memory)
+                memory_message = SystemMessage(content=relevant_memory)
+                messages.append(memory_message)
+                used_tokens += relevant_memory_tokens
 
         instruction = HumanMessage(content=self.response_instruction.format(**kwargs))
         messages.append(instruction)

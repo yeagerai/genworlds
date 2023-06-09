@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 from datetime import datetime
 import threading
 from uuid import uuid4
@@ -10,9 +11,6 @@ from pydantic import ValidationError
 from jsonschema import validate
 
 import chromadb
-import faiss
-from langchain.vectorstores import FAISS
-from langchain.docstore import InMemoryDocstore
 from langchain.tools import StructuredTool
 from langchain.tools.human.tool import HumanInputRun
 from langchain.vectorstores.base import VectorStoreRetriever
@@ -25,15 +23,7 @@ from langchain.schema import (
     HumanMessage,
     SystemMessage,
 )
-from genworlds.agents.tree_agent.brains.event_filler_brain import EventFillerBrain
 
-from genworlds.agents.yeager_autogpt.output_parser import (
-    AutoGPTAction,
-    AutoGPTOutputParser,
-)
-from genworlds.agents.yeager_autogpt.prompt_generator import FINISH_NAME
-from genworlds.sockets.world_socket_client import WorldSocketClient
-from genworlds.agents.yeager_autogpt.listening_antenna import ListeningAntenna
 from genworlds.events.basic_events import (
     AgentGetsNearbyEntitiesEvent,
     AgentGetsObjectInfoEvent,
@@ -44,11 +34,18 @@ from genworlds.events.basic_events import (
 )
 from genworlds.utils.logging_factory import LoggingFactory
 
-from genworlds.agents.tree_agent.brains.navigation_brain import (
+from genworlds.sockets.world_socket_client import WorldSocketClient
+from genworlds.agents.world_listeners.listening_antenna import ListeningAntenna
+from genworlds.agents.memory_processors.nmk_world_memory import NMKWorldMemory
+
+from genworlds.agents.tree_agent.brains import (
+    EventFillerBrain,
     NavigationBrain,
+    PodcastBrain,
 )
-from genworlds.agents.tree_agent.brains.podcast_brain import PodcastBrain
-from genworlds.agents.tree_agent.memory_summarizers import MemorySummarizer
+
+FINISH_NAME = "finish"
+
 
 class TreeAgent:
     """Agent class for interacting with Auto-GPT."""
@@ -62,9 +59,8 @@ class TreeAgent:
         description: str,
         goals: List[str],
         openai_api_key: str,
-
         navigation_brain: NavigationBrain,
-        execution_brains: dict,        
+        execution_brains: dict,
         action_brain_map: dict,
         interesting_events: set = {},
         feedback_tool: Optional[HumanInputRun] = None,
@@ -100,14 +96,9 @@ class TreeAgent:
         self.actions = []
 
         # Brain properties
-        self.memory_summarizer = MemorySummarizer(openai_api_key=openai_api_key)
-        self.embeddings_model = OpenAIEmbeddings(openai_api_key=openai_api_key)
-        embedding_size = 1536
-        index = faiss.IndexFlatL2(embedding_size)
-        vectorstore = FAISS(
-            self.embeddings_model.embed_query, index, InMemoryDocstore({}), {}
+        self.nmk_world_memory = NMKWorldMemory(
+            openai_api_key=openai_api_key, n=3, m=3, k=3
         )
-        self.memory = vectorstore.as_retriever()
 
         self.navigation_brain = navigation_brain
         self.execution_brains = execution_brains
@@ -115,11 +106,11 @@ class TreeAgent:
 
         self.full_message_history: List[BaseMessage] = []
         self.next_action_count = 0
-        self.output_parser = AutoGPTOutputParser()
         self.feedback_tool = None  # HumanInputRun() if human_in_the_loop else None
         self.schemas_memory: Chroma
         self.plan: Optional[str] = None
 
+        self.embeddings_model = OpenAIEmbeddings(openai_api_key=openai_api_key)
         self.personality_db_path = personality_db_path
         if self.personality_db_path:
             client_settings = chromadb.config.Settings(
@@ -232,7 +223,7 @@ class TreeAgent:
                 {
                     "goals": self.goals,
                     "messages": self.full_message_history,
-                    "memory": self.memory,
+                    "memory": self.nmk_world_memory,
                     "personality_db": self.personality_db,
                     "nearby_entities": list(
                         filter(lambda e: (e["held_by"] != self.id), nearby_entities)
@@ -243,13 +234,13 @@ class TreeAgent:
                     "plan": self.plan,
                     "user_input": user_input,
                     "agent_world_state": agent_world_state,
-                    "relevant_commands": list(map(
-                        lambda c: c["string_short"], relevant_commands.values()
-                    )),
+                    "relevant_commands": list(
+                        map(lambda c: c["string_short"], relevant_commands.values())
+                    ),
                 }
             )
 
-            try: 
+            try:
                 navigation_plan_parsed = json.loads(navigation_plan)
             except:
                 self.logger.info(f"Failed to parse navigation plan: {navigation_plan}")
@@ -258,10 +249,12 @@ class TreeAgent:
                     "next_action": "Self:wait",
                     "goal": "Failed to select a valid action, waiting...",
                 }
-                
+
             # Print Assistant thoughts
             self.logger.info(navigation_plan_parsed)
-            self.full_message_history.append(AIMessage(content=str(navigation_plan_parsed)))
+            self.full_message_history.append(
+                AIMessage(content=str(navigation_plan_parsed))
+            )
 
             self.plan = navigation_plan_parsed["plan"]
 
@@ -296,7 +289,7 @@ class TreeAgent:
                             {
                                 "goals": self.goals,
                                 "messages": self.full_message_history,
-                                "memory": self.memory,
+                                "memory": self.nmk_world_memory,
                                 "personality_db": self.personality_db,
                                 "nearby_entities": list(
                                     filter(
@@ -323,19 +316,32 @@ class TreeAgent:
                     args = json.loads(final_brain_output)
 
                     if type(args) == dict:
-                        event_sent = self.execute_event_with_args(command["title"], args)
-                        event_sent_summary += "Event timestamp: " + event_sent["created_at"] + "\n"
+                        event_sent = self.execute_event_with_args(
+                            command["title"], args
+                        )
+                        self.nmk_world_memory.add_event(
+                            json.dumps(event_sent), summarize=True
+                        )
+                        event_sent_summary += (
+                            "Event timestamp: " + event_sent["created_at"] + "\n"
+                        )
                         # event_sent_summary += event_sent["sender_id"] + " sent "
                         # event_sent_summary += event_sent["event_type"] + " to "
                         # event_sent_summary += str(event_sent["target_id"]) + "\n"
-                        event_sent_summary += "And this is the summary of what happened: "+ str(event_sent["summary"]) + "\n"
-                        
+                        event_sent_summary += (
+                            "And this is the summary of what happened: "
+                            + str(event_sent["summary"])
+                            + "\n"
+                        )
+
                         result += event_sent_summary
                     else:
                         raise Exception("Unexpected final output")
 
                 except Exception as e:
-                    self.logger.error(f"Problem executing command with {command['title']} with output {final_brain_output}: {e}\n")
+                    self.logger.error(
+                        f"Problem executing command with {command['title']} with output {final_brain_output}: {e}\n"
+                    )
                     result += f"Problem executing command with {command['title']} with output {final_brain_output}: {e}\n"
             else:
                 self.logger.info(f"Invalid command: {selected_action}")
@@ -350,13 +356,7 @@ class TreeAgent:
             last_events = self.listening_antenna.get_last_events()
             memory_to_add = ""
             for event in last_events:
-                memory_to_add += "Event timestamp: " + event["created_at"] + "\n"
-                # memory_to_add += event["sender_id"] + " sent "
-                # memory_to_add += event["event_type"] + " to "
-                # memory_to_add += str(event["target_id"]) + "\n"
-                memory_to_add += "And this is the summary of what happened: "+ str(event["summary"]) + "\n"
-
-            self.logger.debug(f"Adding to memory: {memory_to_add}")
+                self.nmk_world_memory.add_event(json.dumps(event), summarize=True)
 
             if self.feedback_tool is not None:
                 feedback = f"\n{self.feedback_tool.run('Input: ')}"
@@ -365,8 +365,6 @@ class TreeAgent:
                     return "EXITING"
                 memory_to_add += feedback
 
-            if memory_to_add != "":
-                self.memory.add_documents([Document(page_content=memory_to_add)])
             self.full_message_history.append(SystemMessage(content=result))
 
     def get_agent_world_state(self):
@@ -389,7 +387,9 @@ class TreeAgent:
                 "created_at": datetime.now().isoformat(),
             }
             event.update(args)
-            summary = self.memory_summarizer.summarize(json.dumps(event))
+            summary = self.nmk_world_memory.one_line_summarizer.summarize(
+                json.dumps(event)
+            )
             event["summary"] = summary
             self.logger.debug(event)
 
