@@ -11,9 +11,6 @@ from pydantic import ValidationError
 from jsonschema import validate
 
 import chromadb
-import faiss
-from langchain.vectorstores import FAISS
-from langchain.docstore import InMemoryDocstore
 from langchain.tools import StructuredTool
 from langchain.tools.human.tool import HumanInputRun
 from langchain.vectorstores.base import VectorStoreRetriever
@@ -44,10 +41,11 @@ from genworlds.agents.memory_processors.nmk_world_memory import NMKWorldMemory
 from genworlds.agents.tree_agent.brains import (
     EventFillerBrain,
     NavigationBrain,
-    PodcastBrain
+    PodcastBrain,
 )
 
 FINISH_NAME = "finish"
+
 
 class TreeAgent:
     """Agent class for interacting with Auto-GPT."""
@@ -98,14 +96,9 @@ class TreeAgent:
         self.actions = []
 
         # Brain properties
-        self.memory_summarizer = MemorySummarizer(openai_api_key=openai_api_key)
-        self.embeddings_model = OpenAIEmbeddings(openai_api_key=openai_api_key)
-        embedding_size = 1536
-        index = faiss.IndexFlatL2(embedding_size)
-        vectorstore = FAISS(
-            self.embeddings_model.embed_query, index, InMemoryDocstore({}), {}
+        self.nmk_world_memory = NMKWorldMemory(
+            openai_api_key=openai_api_key, n=3, m=3, k=3
         )
-        self.memory = vectorstore.as_retriever()
 
         self.navigation_brain = navigation_brain
         self.execution_brains = execution_brains
@@ -117,6 +110,7 @@ class TreeAgent:
         self.schemas_memory: Chroma
         self.plan: Optional[str] = None
 
+        self.embeddings_model = OpenAIEmbeddings(openai_api_key=openai_api_key)
         self.personality_db_path = personality_db_path
         if self.personality_db_path:
             client_settings = chromadb.config.Settings(
@@ -229,7 +223,7 @@ class TreeAgent:
                 {
                     "goals": self.goals,
                     "messages": self.full_message_history,
-                    "memory": self.memory,
+                    "memory": self.nmk_world_memory,
                     "personality_db": self.personality_db,
                     "nearby_entities": list(
                         filter(lambda e: (e["held_by"] != self.id), nearby_entities)
@@ -295,7 +289,7 @@ class TreeAgent:
                             {
                                 "goals": self.goals,
                                 "messages": self.full_message_history,
-                                "memory": self.memory,
+                                "memory": self.nmk_world_memory,
                                 "personality_db": self.personality_db,
                                 "nearby_entities": list(
                                     filter(
@@ -324,6 +318,9 @@ class TreeAgent:
                     if type(args) == dict:
                         event_sent = self.execute_event_with_args(
                             command["title"], args
+                        )
+                        self.nmk_world_memory.add_event(
+                            json.dumps(event_sent), summarize=True
                         )
                         event_sent_summary += (
                             "Event timestamp: " + event_sent["created_at"] + "\n"
@@ -359,17 +356,7 @@ class TreeAgent:
             last_events = self.listening_antenna.get_last_events()
             memory_to_add = ""
             for event in last_events:
-                memory_to_add += "Event timestamp: " + event["created_at"] + "\n"
-                # memory_to_add += event["sender_id"] + " sent "
-                # memory_to_add += event["event_type"] + " to "
-                # memory_to_add += str(event["target_id"]) + "\n"
-                memory_to_add += (
-                    "And this is the summary of what happened: "
-                    + str(event["summary"])
-                    + "\n"
-                )
-
-            self.logger.debug(f"Adding to memory: {memory_to_add}")
+                self.nmk_world_memory.add_event(json.dumps(event), summarize=True)
 
             if self.feedback_tool is not None:
                 feedback = f"\n{self.feedback_tool.run('Input: ')}"
@@ -378,8 +365,6 @@ class TreeAgent:
                     return "EXITING"
                 memory_to_add += feedback
 
-            if memory_to_add != "":
-                self.memory.add_documents([Document(page_content=memory_to_add)])
             self.full_message_history.append(SystemMessage(content=result))
 
     def get_agent_world_state(self):
@@ -402,7 +387,9 @@ class TreeAgent:
                 "created_at": datetime.now().isoformat(),
             }
             event.update(args)
-            summary = self.memory_summarizer.summarize(json.dumps(event))
+            summary = self.nmk_world_memory.one_line_summarizer.summarize(
+                json.dumps(event)
+            )
             event["summary"] = summary
             self.logger.debug(event)
 

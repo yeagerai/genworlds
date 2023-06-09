@@ -6,6 +6,8 @@ from langchain.chat_models import ChatOpenAI
 from langchain.vectorstores import Chroma
 from langchain.embeddings import OpenAIEmbeddings
 
+from langchain.docstore.document import Document
+
 
 class OneLineEventSummarizer:
     def __init__(self, openai_api_key: str, model_name: str = "gpt-3.5-turbo"):
@@ -71,52 +73,93 @@ class FullEventStreamSummarizer:
         if len(event_stream) <= 100:
             return self.small_summary_chain.run(event_stream=event_stream, k=k)
         else:
-            return self._summarize_large_event_stream(event_stream=event_stream)
+            # needs to be implemented
+            return ""
+
 
 class NMKWorldMemory:
-    def __init__(self, openai_api_key: str, model_name: str = "gpt-3.5-turbo", n: int = 5, m: int = 5, k: int = 5):
-        self.n = n # last events
-        self.m = m # similar events
-        self.k = k # paragraphs in the summary
+    def __init__(
+        self,
+        openai_api_key: str,
+        model_name: str = "gpt-3.5-turbo",
+        n: int = 5,
+        m: int = 5,
+        k: int = 5,
+    ):
+        self.n = n  # last events
+        self.m = m  # similar events
+        self.k = k  # paragraphs in the summary
+        self.full_summary = ""
 
         self.world_events = []
         self.summarized_events = []
         self.one_line_summarizer = OneLineEventSummarizer(
             openai_api_key=openai_api_key, model_name=model_name
         )
-        self.embeddings_model = OpenAIEmbeddings(openai_api_key=openai_api_key)
-        self.embedding_size = 1536
+        self.full_event_stream_summarizer = FullEventStreamSummarizer(
+            openai_api_key=openai_api_key, model_name=model_name
+        )
 
-        self.embeddings_model
-        self.events_chroma_db 
-        self.summarized_events_chroma_db
+        self.embeddings_model = OpenAIEmbeddings(openai_api_key=openai_api_key)
+
+        self.events_chroma_db = Chroma(
+            collection_name="world-events", embedding_function=self.embeddings_model
+        )
+        self.summarized_events_chroma_db = Chroma(
+            collection_name="summarized-world-events",
+            embedding_function=self.embeddings_model,
+        )
 
     def add_event(self, event, summarize: bool = False):
         self.world_events.append(event)
+        self.events_chroma_db.add_documents([Document(page_content=event)])
         if summarize:
             self._add_summarized_event(event)
 
     def _add_summarized_event(self, event):
         sum_event = self.one_line_summarizer.summarize(event)
         self.summarized_events.append(sum_event)
+        self.summarized_events_chroma_db.add_documents(
+            [Document(page_content=sum_event)]
+        )
 
-    def _get_n_last_events(self, n: int = 5, summarized: bool = False):
+    def create_full_summary(self):
+        self.full_summary = self.full_event_stream_summarizer.summarize(
+            event_stream=self.world_events, k=self.k
+        )
+
+    def _get_n_last_events(self, summarized: bool = False):
         if summarized:
-            return self.summarized_events[-n:]
+            return self.summarized_events[-self.n :]
         else:
-            return self.world_events[-n:]
+            return self.world_events[-self.n :]
 
-    def _get_m_similar_events(self, m: int = 5, summarized: bool = False):
+    def _get_m_similar_events(self, query: str, summarized: bool = False):
         if summarized:
-            m_events = self.summarized_events_chroma_db.similarity_search()
-            return m_events
+            m_events = self.summarized_events_chroma_db.similarity_search(
+                k=self.m, query=query
+            )
+            return [el.page_content for el in m_events]
         else:
-            m_events = self.events_chroma_db.similarity_search()
-            return m_events            
+            m_events = self.events_chroma_db.similarity_search(k=self.m, query=query)
+            return [el.page_content for el in m_events]
 
-    def get_event_stream_memories(self, n:int = 5, m:int = 5, summarized: bool = False):
-        last_events = self._get_n_last_events(n=n, summarized=summarized)
-        similar_events = self._get_m_similar_events(m=m, summarized=summarized)
-        n_plus_m_events = "# Last events\n\n"+ "\n".join(last_events) + "\n\n# Similar events\n\n" + "\n".join(similar_events)
-        return n_plus_m_events
-
+    def get_event_stream_memories(self, query: str, summarized: bool = False):
+        if len(self.world_events) < 5:
+            self.create_full_summary()
+            nmk = "\n\n# World Memory\n\n" "## Full Summary\n\n" + self.full_summary
+            return nmk
+        last_events = self._get_n_last_events(n=self.n, summarized=summarized)
+        similar_events = self._get_m_similar_events(
+            m=self.m, query=query, summarized=summarized
+        )
+        nmk = (
+            "\n\n# World Memory\n\n"
+            "## Full Summary\n\n"
+            + self.full_summary
+            + "\n\n## Similar events\n\n"
+            + "\n".join(similar_events)
+            + "\n\n## Last events\n\n"
+            + "\n".join(last_events)
+        )
+        return nmk
