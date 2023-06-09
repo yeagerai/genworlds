@@ -27,6 +27,7 @@ from langchain.schema import (
     HumanMessage,
     SystemMessage,
 )
+from genworlds.agents.world_listeners.listening_antenna import ListeningAntenna
 
 from genworlds.agents.yeager_autogpt.output_parser import (
     AutoGPTAction,
@@ -35,7 +36,6 @@ from genworlds.agents.yeager_autogpt.output_parser import (
 from genworlds.agents.yeager_autogpt.prompt import AutoGPTPrompt
 from genworlds.agents.yeager_autogpt.prompt_generator import FINISH_NAME
 from genworlds.sockets.world_socket_client import WorldSocketClient
-from genworlds.agents.yeager_autogpt.listening_antenna import ListeningAntenna
 from genworlds.agents.yeager_autogpt.memory_summarizers import MemorySummarizer
 from genworlds.events.basic_events import (
     AgentGetsNearbyEntitiesEvent,

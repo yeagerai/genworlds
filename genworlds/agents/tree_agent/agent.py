@@ -25,11 +25,6 @@ from langchain.schema import (
 )
 
 from genworlds.events.basic_events import (
-    AgentGetsNearbyEntitiesEvent,
-    AgentGetsObjectInfoEvent,
-    AgentGetsAgentInfoEvent,
-    AgentGivesObjectToAgentEvent,
-    AgentSpeaksWithAgentEvent,
     EntityRequestWorldStateUpdateEvent,
 )
 from genworlds.utils.logging_factory import LoggingFactory
@@ -39,9 +34,7 @@ from genworlds.agents.world_listeners.listening_antenna import ListeningAntenna
 from genworlds.agents.memory_processors.nmk_world_memory import NMKWorldMemory
 
 from genworlds.agents.tree_agent.brains import (
-    EventFillerBrain,
     NavigationBrain,
-    PodcastBrain,
 )
 
 FINISH_NAME = "finish"
@@ -63,6 +56,8 @@ class TreeAgent:
         execution_brains: dict,
         action_brain_map: dict,
         interesting_events: set = {},
+        can_sleep: bool = True,
+        wakeup_events: dict = {},
         feedback_tool: Optional[HumanInputRun] = None,
         additional_memories: Optional[List[VectorStoreRetriever]] = None,
         id: str = None,
@@ -76,8 +71,12 @@ class TreeAgent:
         self.description = description
         self.goals = goals
         self.interesting_events = interesting_events
+        self.can_sleep = can_sleep
+        self.wakeup_events = wakeup_events
         self.feedback_tool = feedback_tool
         self.additional_memories = additional_memories
+
+        self.is_asleep = False
 
         self.logger = LoggingFactory.get_logger(self.ai_name)
 
@@ -90,6 +89,8 @@ class TreeAgent:
             agent_name=self.ai_name,
             agent_id=self.id,
             websocket_url=websocket_url,
+            wakeup_callback=self.wake_up,
+            wakeup_events=self.wakeup_events,
         )
 
         # Agent actions
@@ -138,6 +139,16 @@ class TreeAgent:
         sleep(5)
 
         while True:
+            # If there are any relevant events in the world for this agent, add them to memory           
+            last_events = self.listening_antenna.get_last_events()
+            for event in last_events:
+                self.nmk_world_memory.add_event(json.dumps(event), summarize=True)
+
+            if self.is_asleep:
+                self.logger.info(f"Sleeping...")
+                sleep(5)
+                continue
+
             agent_world_state = self.listening_antenna.get_agent_world_state()
             nearby_entities = self.listening_antenna.get_nearby_entities()
 
@@ -161,7 +172,16 @@ class TreeAgent:
             else:
                 useful_nearby_entities = []
 
-            relevant_commands = {}
+            relevant_commands = {
+                # Default commands
+                "Self:wait": {
+                    "title": "Self:wait",
+                    "description": "Wait until the state of the world changes",
+                    "args": {},
+                    "string_short": "Self:wait - Wait until the state of the world changes",
+                    "string_full": "Self:wait - Wait until the state of the world changes, args json schema: {}",
+                },
+            }
             for entity in useful_nearby_entities:
                 entity_schemas = self.get_schemas()[entity["entity_class"]]
 
@@ -246,7 +266,7 @@ class TreeAgent:
                 self.logger.info(f"Failed to parse navigation plan: {navigation_plan}")
                 navigation_plan_parsed = {
                     "plan": self.plan,
-                    "next_action": "Self:wait",
+                    "next_action": "Self:wait", # TODO: does this make sense?
                     "goal": "Failed to select a valid action, waiting...",
                 }
 
@@ -263,11 +283,15 @@ class TreeAgent:
 
             result = ""
             event_sent_summary = ""
-            if selected_action == FINISH_NAME:
+            if selected_action == "Self:exit":
+                self.logger.info(f"Exiting...")
                 return "FINISHED"
             elif selected_action == "Self:wait":
-                self.logger.info(f"Waiting, sleeping for 10 seconds")
-                sleep(10)
+                self.logger.info(f"Waiting, entering sleep mode...")
+                if self.can_sleep:
+                    self.is_asleep = True
+                else:
+                    sleep(10)
                 result += f"Waiting...\n"
             # TODO: tools?
             elif selected_action in relevant_commands:
@@ -323,13 +347,10 @@ class TreeAgent:
                             json.dumps(event_sent), summarize=True
                         )
                         event_sent_summary += (
-                            "Event timestamp: " + event_sent["created_at"] + "\n"
+                            "Event at: " + event_sent["created_at"] + "\n"
                         )
-                        # event_sent_summary += event_sent["sender_id"] + " sent "
-                        # event_sent_summary += event_sent["event_type"] + " to "
-                        # event_sent_summary += str(event_sent["target_id"]) + "\n"
                         event_sent_summary += (
-                            "And this is the summary of what happened: "
+                            "What happened: "
                             + str(event_sent["summary"])
                             + "\n"
                         )
@@ -351,21 +372,10 @@ class TreeAgent:
             ## send result and assistant_reply to the socket
             self.logger.info(result)
 
-            # If there are any relevant events in the world for this agent, add them to memory
-            sleep(3)
-            last_events = self.listening_antenna.get_last_events()
-            memory_to_add = ""
-            for event in last_events:
-                self.nmk_world_memory.add_event(json.dumps(event), summarize=True)
-
-            if self.feedback_tool is not None:
-                feedback = f"\n{self.feedback_tool.run('Input: ')}"
-                if feedback in {"q", "stop"}:
-                    self.logger.info("EXITING")
-                    return "EXITING"
-                memory_to_add += feedback
-
             self.full_message_history.append(SystemMessage(content=result))
+            
+            # Allow events to be processed
+            sleep(3)
 
     def get_agent_world_state(self):
         return self.listening_antenna.get_agent_world_state()
@@ -408,55 +418,7 @@ class TreeAgent:
             return f"Validation Error in args: {str(e)}, args: {args}"
         except Exception as e:
             return f"Error: {str(e)}, {type(e).__name__}, args: {args}"
-
-    def agent_gets_nearby_entities_action(self):
-        agent_gets_nearby_entities_event = AgentGetsNearbyEntitiesEvent(
-            created_at=datetime.now(),
-            sender_id=self.id,
-        )
-        self.world_socket_client.send_message(agent_gets_nearby_entities_event.json())
-
-    def agent_gets_object_info_action(
-        self,
-        target_id: str,
-    ):
-        agent_gets_object_info = AgentGetsObjectInfoEvent(
-            created_at=datetime.now(),
-            sender_id=self.id,
-            target_id=target_id,
-        )
-        self.world_socket_client.send_message(agent_gets_object_info.json())
-
-    def agent_gets_agent_info_action(
-        self,
-        target_id: str,
-    ):
-        agent_gets_agent_info = AgentGetsAgentInfoEvent(
-            created_at=datetime.now(),
-            sender_id=self.id,
-            target_id=target_id,
-        )
-        self.world_socket_client.send_message(agent_gets_agent_info.json())
-
-    def agent_interacts_with_object_action(
-        self,
-        created_interaction: str,
-    ):
-        self.world_socket_client.send_message(created_interaction)
-
-    def agent_speaks_with_agent_action(
-        self,
-        target_id: str,
-        message: str,
-    ):
-        agent_speaks_with_agent = AgentSpeaksWithAgentEvent(
-            created_at=datetime.now(),
-            sender_id=self.id,
-            target_id=target_id,
-            message=message,
-        )
-        self.world_socket_client.send_message(agent_speaks_with_agent.json())
-
+        
     def agent_request_world_state_update_action(self):
         agent_request_world_state_update = EntityRequestWorldStateUpdateEvent(
             created_at=datetime.now(),
@@ -464,6 +426,10 @@ class TreeAgent:
             target_id=self.world_spawned_id,
         )
         self.world_socket_client.send_message(agent_request_world_state_update.json())
+
+    def wake_up(self, event):
+        self.logger.info("Waking up", event)
+        self.is_asleep = False
 
     def launch_threads(self):
         threading.Thread(

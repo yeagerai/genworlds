@@ -34,16 +34,20 @@ podcast_host = TreeAgent(
         "agent_speaks_into_microphone",
         "agent_gives_object_to_agent_event",
     },
+    wakeup_events={
+        "agent_gives_object_to_agent_event": {} 
+    },
+
     navigation_brain=NavigationBrain(
         openai_api_key=openai_api_key,
         n_of_thoughts=3,
         generator_role_prompt="You are Maria Podcastonova. You need to choose your next action that helps you achieve your goals. It must be consistent with all of the following information:",
         generator_results_prompt="""# Response type
-                Look at your previous plan, your memories about what you have done recently and your goals, and propose a new plan that advances your goals.
+                Look at your previous plan, your memories about what you have done recently and your goals, and propose {num_thoughts} possible plans that advance your goals.
                 Check if you have already completed a step in your plan, and if so, propose the next step as the first one.
                 Then, select the next action that you want to do to achieve the first step of your plan.
                 Check that the action is in the list of available actions, and that you meet all the preconditions for the action.
-                Use the following format:
+                Use the following format and output {num_thoughts} lines of text AND NOTHING ELSE:
                 - {{ "steps_completed": "Here are the steps of the previous plan I have completed with my recent actions.", "plan": "A numbered list of the updated plan", "goal": "Here is what I want to achieve in my next step using the next_action I select",  "next_action": "EntityClass:action_type_1", "is_action_valid": "Assess whether the action is valid based on the current state of the world."}}
                 - {{ "steps_completed": "Here are the steps of the previous plan I have completed with my recent actions.", "plan": "A numbered list of an alternative updated plan", "goal": "Here is what I want to achieve in my next step using the next_action I select", "next_action": "EntityClass:action_type_1", "is_action_valid": "Assess whether the action is valid based on the current state of the world."}}
                 - {{ "steps_completed": "Here are the steps of the previous plan I have completed with my recent actions.", "plan": "A numbered list of a third updated plan", , "goal": "Here is what I want to achieve in my next step using the next_action I select", "next_action": "EntityClass:action_type_2", "is_action_valid": "Assess whether the action is valid based on the current state of the world."}}
@@ -130,16 +134,20 @@ podcast_guest = TreeAgent(
         "agent_speaks_into_microphone",
         "agent_gives_object_to_agent_event",
     },
+    wakeup_events={
+        "agent_gives_object_to_agent_event": {} 
+    },
+
     navigation_brain=NavigationBrain(
         openai_api_key=openai_api_key,
         n_of_thoughts=3,
         generator_role_prompt="You are Jimmy Artificles, a world-renowned AI researcher and a guest of the Rountable podcast. You need to choose your next action that helps you achieve your goals. It must be consistent with all of the following information:",
         generator_results_prompt="""# Response type
-                Look at your previous plan, your memories about what you have done recently and your goals, and propose a new plan that advances your goals.
+                Look at your previous plan, your memories about what you have done recently and your goals, and propose {num_thoughts} possible plans that advance your goals.
                 Check if you have already completed a step in your plan, and if so, propose the next step as the first one.
                 Then, select the next action that you want to do to achieve the first step of your plan.
                 Check that the action is in the list of available actions, and that you meet all the preconditions for the action.
-                Use the following format:
+                Use the following format and output {num_thoughts} lines of text AND NOTHING ELSE:
                 - {{ "steps_completed": "Here are the steps of the previous plan I have completed with my recent actions.", "plan": "A numbered list of the updated plan", "goal": "Here is what I want to achieve in my next step using the next_action I select",  "next_action": "EntityClass:action_type_1", "is_action_valid": "Assess whether the action is valid based on the current state of the world."}}
                 - {{ "steps_completed": "Here are the steps of the previous plan I have completed with my recent actions.", "plan": "A numbered list of an alternative updated plan", "goal": "Here is what I want to achieve in my next step using the next_action I select", "next_action": "EntityClass:action_type_1", "is_action_valid": "Assess whether the action is valid based on the current state of the world."}}
                 - {{ "steps_completed": "Here are the steps of the previous plan I have completed with my recent actions.", "plan": "A numbered list of a third updated plan", , "goal": "Here is what I want to achieve in my next step using the next_action I select", "next_action": "EntityClass:action_type_2", "is_action_valid": "Assess whether the action is valid based on the current state of the world."}}

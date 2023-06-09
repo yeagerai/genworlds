@@ -118,6 +118,10 @@ class PodcastBrain:
 
     def run(self, llm_params: LLMParams):
         thoughts = self.gen_thoughts("", self.n_of_thoughts, llm_params)
+        if self.n_of_thoughts == 1 and self.value_threshold == 0:
+            return thoughts[0]
+
+        
         thought_values = self.eval_thoughts(thoughts, llm_params)
         print(thought_values)
 
