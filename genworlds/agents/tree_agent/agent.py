@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 from datetime import datetime
 import threading
 from uuid import uuid4
@@ -25,15 +26,7 @@ from langchain.schema import (
     HumanMessage,
     SystemMessage,
 )
-from genworlds.agents.tree_agent.brains.event_filler_brain import EventFillerBrain
 
-from genworlds.agents.yeager_autogpt.output_parser import (
-    AutoGPTAction,
-    AutoGPTOutputParser,
-)
-from genworlds.agents.yeager_autogpt.prompt_generator import FINISH_NAME
-from genworlds.sockets.world_socket_client import WorldSocketClient
-from genworlds.agents.yeager_autogpt.listening_antenna import ListeningAntenna
 from genworlds.events.basic_events import (
     AgentGetsNearbyEntitiesEvent,
     AgentGetsObjectInfoEvent,
@@ -44,12 +37,17 @@ from genworlds.events.basic_events import (
 )
 from genworlds.utils.logging_factory import LoggingFactory
 
-from genworlds.agents.tree_agent.brains.navigation_brain import (
-    NavigationBrain,
-)
-from genworlds.agents.tree_agent.brains.podcast_brain import PodcastBrain
-from genworlds.agents.tree_agent.memory_summarizers import MemorySummarizer
+from genworlds.sockets.world_socket_client import WorldSocketClient
+from genworlds.agents.world_listeners.listening_antenna import ListeningAntenna
+from genworlds.agents.memory_processors.nmk_world_memory import NMKWorldMemory
 
+from genworlds.agents.tree_agent.brains import (
+    EventFillerBrain,
+    NavigationBrain,
+    PodcastBrain
+)
+
+FINISH_NAME = "finish"
 
 class TreeAgent:
     """Agent class for interacting with Auto-GPT."""
@@ -115,7 +113,6 @@ class TreeAgent:
 
         self.full_message_history: List[BaseMessage] = []
         self.next_action_count = 0
-        self.output_parser = AutoGPTOutputParser()
         self.feedback_tool = None  # HumanInputRun() if human_in_the_loop else None
         self.schemas_memory: Chroma
         self.plan: Optional[str] = None

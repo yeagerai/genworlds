@@ -121,6 +121,9 @@ class NavigationGeneratorPrompt(BaseChatPromptTemplate, BaseModel):
                 messages.append(personality_message)
                 used_tokens += len(personality_message.content)
 
+        # n last
+        # m from chroma like similarity
+        # 3 paragraphs like overall summary (llm call to gpt3 to summarize all the shiiiit)
         memory: VectorStoreRetriever = kwargs["memory"]
         relevant_docs = memory.get_relevant_documents(str(kwargs["goals"]))
         relevant_memory = [d.page_content for d in relevant_docs]
