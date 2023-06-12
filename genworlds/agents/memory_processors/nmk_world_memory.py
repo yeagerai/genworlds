@@ -83,13 +83,13 @@ class NMKWorldMemory:
         self,
         openai_api_key: str,
         model_name: str = "gpt-3.5-turbo",
-        n: int = 5,
-        m: int = 5,
-        k: int = 5,
+        n_of_last_events: int = 5,
+        n_of_similar_events: int = 5,
+        n_of_paragraphs_in_summary: int = 5,
     ):
-        self.n = n  # last events
-        self.m = m  # similar events
-        self.k = k  # paragraphs in the summary
+        self.n_of_last_events = n_of_last_events  # last events
+        self.n_of_similar_events = n_of_similar_events  # similar events
+        self.n_of_paragraphs_in_summary = n_of_paragraphs_in_summary  # paragraphs in the summary
         self.full_summary = ""
 
         self.world_events = []
@@ -126,27 +126,27 @@ class NMKWorldMemory:
 
     def create_full_summary(self):
         self.full_summary = self.full_event_stream_summarizer.summarize(
-            event_stream=self.world_events, k=self.k
+            event_stream=self.world_events, k=self.n_of_paragraphs_in_summary
         )
 
     def _get_n_last_events(self, summarized: bool = False):
         if summarized:
-            return self.summarized_events[-self.n :]
+            return self.summarized_events[-self.n_of_last_events :]
         else:
-            return self.world_events[-self.n :]
+            return self.world_events[-self.n_of_last_events :]
 
     def _get_m_similar_events(self, query: str, summarized: bool = False):
         if summarized:
             m_events = self.summarized_events_chroma_db.similarity_search(
-                k=self.m, query=query
+                k=self.n_of_similar_events, query=query
             )
             return [el.page_content for el in m_events]
         else:
-            m_events = self.events_chroma_db.similarity_search(k=self.m, query=query)
+            m_events = self.events_chroma_db.similarity_search(k=self.n_of_similar_events, query=query)
             return [el.page_content for el in m_events]
 
     def get_event_stream_memories(self, query: str, summarized: bool = False):
-        if len(self.world_events) <= self.n:
+        if len(self.world_events) <= self.n_of_last_events:
             last_events = self._get_n_last_events(summarized=summarized)
             nmk = "\n\n# World Memory\n\n" "## Last events\n\n" + "\n".join(last_events)
             return nmk

@@ -70,7 +70,7 @@ class ListeningAntenna:
         self.handle_wakeup(event)
 
     def get_last_events(self):
-        events_to_return = self.last_events
+        events_to_return = self.last_events.copy()
         self.last_events = []
         return events_to_return
 

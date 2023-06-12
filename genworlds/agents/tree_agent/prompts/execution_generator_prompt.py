@@ -142,7 +142,7 @@ class ExecutionGeneratorPrompt(BaseChatPromptTemplate, BaseModel):
                 if len(memory.world_events) % 5 == 0:
                     memory.create_full_summary()
                 relevant_memory = memory.get_event_stream_memories(
-                    query=kwargs["previous_brain_outputs"][-1], summarized=True
+                    query=kwargs["plan"], summarized=True
                 )  # TODO: add token limitations
                 relevant_memory_tokens = self.token_counter(relevant_memory)
                 memory_message = SystemMessage(content=relevant_memory)

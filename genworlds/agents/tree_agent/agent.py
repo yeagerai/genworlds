@@ -98,7 +98,7 @@ class TreeAgent:
 
         # Brain properties
         self.nmk_world_memory = NMKWorldMemory(
-            openai_api_key=openai_api_key, n=3, m=3, k=3
+            openai_api_key=openai_api_key, n_of_last_events=3, n_of_similar_events=3, n_of_paragraphs_in_summary=3
         )
 
         self.navigation_brain = navigation_brain
@@ -141,6 +141,7 @@ class TreeAgent:
         while True:
             # If there are any relevant events in the world for this agent, add them to memory           
             last_events = self.listening_antenna.get_last_events()
+            self.logger.debug(f"Last events: {last_events}")
             for event in last_events:
                 self.nmk_world_memory.add_event(json.dumps(event), summarize=True)
 
