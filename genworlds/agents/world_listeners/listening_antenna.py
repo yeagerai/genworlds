@@ -34,6 +34,7 @@ class ListeningAntenna:
             "world_sends_schemas_event",
             "entity_world_state_update_event",
             "world_sends_nearby_entities_event",
+            "world_sends_all_entities_event",
         }
         self.schemas = {}
         self.nearby_entities = []
@@ -58,10 +59,15 @@ class ListeningAntenna:
         elif event["event_type"] == "world_sends_nearby_entities_event":
             if event["target_id"] == self.agent_id:
                 self.nearby_entities = event["nearby_entities"]
+        elif event["event_type"] in self.special_events:
+            # Ignore other "subconscious" events
+            return
         elif (
-            (event["target_id"] == self.agent_id
-            or event["target_id"] == None)
-            and event["event_type"] in self.important_event_types
+            event["sender_id"] != self.agent_id 
+            and
+            (event["target_id"] == self.agent_id or 
+            event["target_id"] == None or
+            event["event_type"] in self.important_event_types)
         ):
             self.last_events.append(event)
             self.all_events.append(event)

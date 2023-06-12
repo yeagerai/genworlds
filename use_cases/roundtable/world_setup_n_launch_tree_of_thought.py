@@ -48,19 +48,19 @@ podcast_host = TreeAgent(
                 Then, select the next action that you want to do to achieve the first step of your plan.
                 Check that the action is in the list of available actions, and that you meet all the preconditions for the action.
                 Use the following format and output {num_thoughts} lines of text AND NOTHING ELSE:
-                - {{ "step_completed": "If you completed a step of your plan, put it here, as well as an explanation of how you did it", "plan": "A numbered list of the updated plan", "goal": "Here is what I want to achieve in my next step using the next_action I select",  "next_action": "EntityClass:action_type_1", "is_action_valid": "Assess whether the action is valid based on the current state of the world."}}
+                - {{ "step_completed": "If you completed a step of your plan, put it here, as well as an explanation of how you did it", "plan": "A numbered list of an updated plan", "goal": "Here is what I want to achieve in my next step using the next_action I select",  "next_action": "EntityClass:action_type_1", "is_action_valid": "Assess whether the action is valid based on the current state of the world."}}
                 - {{ "step_completed": "If you completed a step of your plan, put it here, as well as an explanation of how you did it", "plan": "A numbered list of an alternative updated plan", "goal": "Here is what I want to achieve in my next step using the next_action I select", "next_action": "EntityClass:action_type_1", "is_action_valid": "Assess whether the action is valid based on the current state of the world."}}
                 - {{ "step_completed": "If you completed a step of your plan, put it here, as well as an explanation of how you did it", "plan": "A numbered list of a third updated plan", , "goal": "Here is what I want to achieve in my next step using the next_action I select", "next_action": "EntityClass:action_type_2", "is_action_valid": "Assess whether the action is valid based on the current state of the world."}}
                 """,
         evaluator_role_prompt="You are Maria Podcastonova, an expert in evaluating which actions get you closer to achieving your goals based on:",
-        evaluator_results_prompt="""## Action to evaluate
-                Evaluate the following plan by rating it from 0 to 1, where 0 means that the plan is not useful or possible, or inconsistent with the past events, and 1 means that the plan is the best next step you can take.
+        evaluator_results_prompt="""## Choose the Best Action
+                From the following options, pick the best plan and next action
                 Check that the proposed action is in the list of available actions, and that you meet all the preconditions for the action, like having the correct items in your inventory.
-                Here's the plan to evaluate:
+                Here are the plans to choose from:
                 {thought_to_evaluate}
 
                 # Response type
-                Return the evaluation of the plan as a float between 0 and 1, and NOTHING ELSE:
+                Return the best plan of the options, and NOTHING ELSE:
             """,
         verbose=True,
     ),
@@ -77,12 +77,12 @@ podcast_host = TreeAgent(
                 - A second possible paragraph
             """,
             evaluator_role_prompt="You are Maria Podcastonova, an expert in evaluating the quality and the depth of a podcast response based on:",
-            evaluator_results_prompt="""## Thought to evaluate
-                Evaluate the following thought by rating it from 0 to 1, where 0 means that the thought is not useful at all, and 1 means that the thought is very useful:
+            evaluator_results_prompt="""## Outputs to evaluate
+                Evaluate the following paragraphs of text and choose the best one to say next.
                 {thought_to_evaluate}
 
                 # Response type
-                Return the evaluation of the thought as a float between 0 and 1, and NOTHING ELSE:      
+                Output the best paragraph, and NOTHING ELSE:      
             """,
             verbose=True,
         ),
@@ -99,11 +99,11 @@ podcast_host = TreeAgent(
             """,
             evaluator_role_prompt="You are Maria Podcastonova, an expert podcaster and the host of the Rountable podcast. You need to evaluate the provided set of JSON parameters based on their correctness, with respect to all of the following information:",
             evaluator_results_prompt="""## Parameters to evaluate
-                Evaluate the following set of parameters by rating them from 0 to 1, where 0 means that the parameters are not correct, and 1 means that the parameters completely correct:
+                Evaluate the following list of possible parameter set in terms of their correctness:
                 {thought_to_evaluate}
 
                 # Response type
-                Return the evaluation of the parameters as a float between 0 and 1, and NOTHING ELSE:      
+                Return the best parameter set and NOTHING ELSE:      
             """,
             verbose=True,
         ),
@@ -148,19 +148,19 @@ podcast_guest = TreeAgent(
                 Then, select the next action that you want to do to achieve the first step of your plan.
                 Check that the action is in the list of available actions, and that you meet all the preconditions for the action.
                 Use the following format and output {num_thoughts} lines of text AND NOTHING ELSE:
-                - {{ "step_completed": "If you completed a step of your plan, put it here, as well as an explanation of how you did it", "plan": "A numbered list of the updated plan", "goal": "Here is what I want to achieve in my next step using the next_action I select",  "next_action": "EntityClass:action_type_1", "is_action_valid": "Assess whether the action is valid based on the current state of the world."}}
+                - {{ "step_completed": "If you completed a step of your plan, put it here, as well as an explanation of how you did it", "plan": "A numbered list of an updated plan", "goal": "Here is what I want to achieve in my next step using the next_action I select",  "next_action": "EntityClass:action_type_1", "is_action_valid": "Assess whether the action is valid based on the current state of the world."}}
                 - {{ "step_completed": "If you completed a step of your plan, put it here, as well as an explanation of how you did it", "plan": "A numbered list of an alternative updated plan", "goal": "Here is what I want to achieve in my next step using the next_action I select", "next_action": "EntityClass:action_type_1", "is_action_valid": "Assess whether the action is valid based on the current state of the world."}}
                 - {{ "step_completed": "If you completed a step of your plan, put it here, as well as an explanation of how you did it", "plan": "A numbered list of a third updated plan", , "goal": "Here is what I want to achieve in my next step using the next_action I select", "next_action": "EntityClass:action_type_2", "is_action_valid": "Assess whether the action is valid based on the current state of the world."}}
                 """,
         evaluator_role_prompt="You are Jimmy Artificles, a world-renowned AI researcher and a guest of the Rountable podcast, an expert in evaluating which events get you closer to achieving your goals based on:",
-        evaluator_results_prompt="""## Action to evaluate
-                Evaluate the following plan by rating it from 0 to 1, where 0 means that the plan is not useful or possible, or inconsistent with the past events, and 1 means that the plan is the best next step you can take.
+        evaluator_results_prompt="""## Choose the Best Action
+                From the following options, pick the best plan and next action
                 Check that the proposed action is in the list of available actions, and that you meet all the preconditions for the action, like having the correct items in your inventory.
-                Here's the plan to evaluate:
+                Here are the plans to choose from:
                 {thought_to_evaluate}
 
                 # Response type
-                Return the evaluation of the plan as a float between 0 and 1, and NOTHING ELSE:
+                Return the best plan of the options, and NOTHING ELSE:
             """,
         verbose=True,
     ),
@@ -177,12 +177,12 @@ podcast_guest = TreeAgent(
                 - A second possible paragraph
             """,
             evaluator_role_prompt="You are Jimmy Artificles, a world-renowned AI researcher and a guest of the Rountable podcast, an expert in evaluating the quality and the depth of a podcast response based on:",
-            evaluator_results_prompt="""## Thought to evaluate
-                Evaluate the following thought by rating it from 0 to 1, where 0 means that the thought is not useful at all, and 1 means that the thought is very useful:
+            evaluator_results_prompt="""## Outputs to evaluate
+                Evaluate the following paragraphs of text and choose the best one to say next.
                 {thought_to_evaluate}
 
                 # Response type
-                Return the evaluation of the thought as a float between 0 and 1, and NOTHING ELSE:      
+                Output the best paragraph, and NOTHING ELSE:      
             """,
             verbose=True,
         ),
@@ -199,11 +199,11 @@ podcast_guest = TreeAgent(
             """,
             evaluator_role_prompt="You are Jimmy Artificles, a world-renowned AI researcher and a guest of the Rountable podcast. You need to evaluate the provided set of JSON parameters based on their correctness, with respect to all of the following information:",
             evaluator_results_prompt="""## Parameters to evaluate
-                Evaluate the following set of parameters by rating them from 0 to 1, where 0 means that the parameters are not correct, and 1 means that the parameters completely correct:
+                Evaluate the following list of possible parameter set in terms of their correctness:
                 {thought_to_evaluate}
 
                 # Response type
-                Return the evaluation of the parameters as a float between 0 and 1, and NOTHING ELSE:      
+                Return the best parameter set and NOTHING ELSE:      
             """,
             verbose=True,
         ),

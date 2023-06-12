@@ -44,6 +44,7 @@ class NavigationBrain:
     ):
         self.n_of_thoughts = n_of_thoughts
         self.value_threshold = value_threshold
+        self.verbose = verbose
 
         llm = ChatOpenAI(
             temperature=temperature,
@@ -97,41 +98,31 @@ class NavigationBrain:
             **llm_params,
         )
 
-        return list(map(lambda s: s.removeprefix("- "), response.strip().split("\n")))
+        if self.verbose:
+            print("Generated: " + response)
+        
+        return response
 
     def eval_thoughts(
         self,
-        thoughts_to_evaluate: list[str],
+        thoughts_to_evaluate: str,
         llm_params: LLMParams,
     ):
-        thought_values = {}
+        response = self.eval_llm_chain.run(
+            thought_to_evaluate=thoughts_to_evaluate,
+            **llm_params,
+        )
 
-        for thought in thoughts_to_evaluate:
-            response = self.eval_llm_chain.run(
-                thought_to_evaluate=thought,
-                **llm_params,
-            )
+        if self.verbose:
+            print("Evaluated: " + response)
+        
+        return response
 
-            try:
-                thought_values[thought] = float(response)
-            except:
-                thought_values[thought] = 0
-
-        print(thought_values)
-
-        return thought_values
-
-    def run(self, llm_params: LLMParams):
+    def run(self, llm_params: LLMParams):        
         thoughts = self.gen_thoughts("", self.n_of_thoughts, llm_params)
-        if self.n_of_thoughts == 1 and self.value_threshold == 0:
-            return thoughts[0]
+        if self.n_of_thoughts == 1:
+            return thoughts.strip().removeprefix("- ")
 
-        thought_values = self.eval_thoughts(thoughts, llm_params)
-        print(thought_values)
-
-        best_thought = max(thought_values, key=thought_values.get)
-
-        if thought_values[best_thought] < self.value_threshold:
-            return None
-        else:
-            return best_thought
+        best_thought = self.eval_thoughts(thoughts, llm_params)
+        
+        return best_thought
