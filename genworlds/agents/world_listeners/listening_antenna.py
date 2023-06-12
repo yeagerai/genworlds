@@ -20,8 +20,6 @@ class ListeningAntenna:
         important_event_types: set[str],
         agent_name,
         agent_id,
-        wakeup_events: dict = {},
-        wakeup_callback: callable = None,
         websocket_url: str = "ws://127.0.0.1:7456/ws",
     ):
         self.world_socket_client = WorldSocketClient(
@@ -43,9 +41,6 @@ class ListeningAntenna:
 
         self.important_event_types = self.special_events.copy()
         self.important_event_types.update(important_event_types)
-
-        self.wakeup_events = wakeup_events
-        self.wakeup_callback = wakeup_callback
 
         self.agent_name = agent_name
         self.agent_id = agent_id
@@ -72,9 +67,6 @@ class ListeningAntenna:
             self.last_events.append(event)
             self.all_events.append(event)
 
-        # Check if the agent needs to be woke
-        self.handle_wakeup(event)
-
     def get_last_events(self):
         events_to_return = self.last_events.copy()
         self.last_events = []
@@ -91,24 +83,3 @@ class ListeningAntenna:
 
     def get_schemas(self):
         return self.schemas
-
-    def handle_wakeup(self, event):
-        if self.wakeup_callback == None:
-            return
-
-        event_type = event["event_type"]
-        if event_type not in self.wakeup_events:
-            return
-
-        wakeup_event_property_filters = self.wakeup_events[event_type]
-
-        # Check if the event matches the filters
-        is_match = True
-        for wakeup_event_property in wakeup_event_property_filters.keys():
-            expected_value = wakeup_event_property_filters[wakeup_event_property]
-            if event[wakeup_event_property] != expected_value:
-                is_match = False
-                break
-
-        if is_match:
-            self.wakeup_callback(event)

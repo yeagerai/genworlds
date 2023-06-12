@@ -89,8 +89,6 @@ class TreeAgent:
             agent_name=self.ai_name,
             agent_id=self.id,
             websocket_url=websocket_url,
-            wakeup_callback=self.wake_up,
-            wakeup_events=self.wakeup_events,
         )
 
         # Agent actions
@@ -144,6 +142,7 @@ class TreeAgent:
             self.logger.debug(f"Last events: {last_events}")
             for event in last_events:
                 self.nmk_world_memory.add_event(json.dumps(event), summarize=True)
+                self.handle_wakeup(event)
 
             if self.is_asleep:
                 self.logger.info(f"Sleeping...")
@@ -428,9 +427,24 @@ class TreeAgent:
         )
         self.world_socket_client.send_message(agent_request_world_state_update.json())
 
-    def wake_up(self, event):
-        self.logger.info("Waking up", event)
-        self.is_asleep = False
+    def handle_wakeup(self, event):
+        event_type = event["event_type"]
+        if event_type not in self.wakeup_events:
+            return
+
+        wakeup_event_property_filters = self.wakeup_events[event_type]
+
+        # Check if the event matches the filters
+        is_match = True
+        for wakeup_event_property in wakeup_event_property_filters.keys():
+            expected_value = wakeup_event_property_filters[wakeup_event_property]
+            if event[wakeup_event_property] != expected_value:
+                is_match = False
+                break
+
+        if is_match:
+            self.logger.info("Waking up", event)
+            self.is_asleep = False
 
     def launch_threads(self):
         threading.Thread(

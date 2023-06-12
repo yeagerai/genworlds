@@ -41,6 +41,7 @@ class NavigationBrain:
         model_name="gpt-4",
         temperature=0.7,
         verbose=False,
+        request_timeout=120,
     ):
         self.n_of_thoughts = n_of_thoughts
         self.value_threshold = value_threshold
@@ -50,6 +51,7 @@ class NavigationBrain:
             temperature=temperature,
             openai_api_key=openai_api_key,
             model_name=model_name,
+            request_timeout=request_timeout,
         )
 
         self.gen_prompt = NavigationGeneratorPrompt(
