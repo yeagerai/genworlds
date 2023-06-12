@@ -1,3 +1,4 @@
+import json
 from typing import List
 
 from langchain import PromptTemplate, LLMChain
@@ -118,7 +119,7 @@ class NMKWorldMemory:
 
     def _add_summarized_event(self, event):
         sum_event = self.one_line_summarizer.summarize(event)
-        self.summarized_events.append(sum_event)
+        self.summarized_events.append(json.loads(event)["created_at"]+" "+sum_event)
         self.summarized_events_chroma_db.add_documents(
             [Document(page_content=sum_event)]
         )
@@ -145,13 +146,13 @@ class NMKWorldMemory:
             return [el.page_content for el in m_events]
 
     def get_event_stream_memories(self, query: str, summarized: bool = False):
-        if len(self.world_events) < 5:
-            self.create_full_summary()
-            nmk = "\n\n# World Memory\n\n" "## Full Summary\n\n" + self.full_summary
+        if len(self.world_events) <= self.n:
+            last_events = self._get_n_last_events(summarized=summarized)
+            nmk = "\n\n# World Memory\n\n" "## Last events\n\n" + "\n".join(last_events)
             return nmk
-        last_events = self._get_n_last_events(n=self.n, summarized=summarized)
+        last_events = self._get_n_last_events(summarized=summarized)
         similar_events = self._get_m_similar_events(
-            m=self.m, query=query, summarized=summarized
+            query=query, summarized=summarized
         )
         nmk = (
             "\n\n# World Memory\n\n"
