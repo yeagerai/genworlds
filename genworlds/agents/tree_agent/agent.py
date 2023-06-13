@@ -95,7 +95,7 @@ class TreeAgent:
         # Brain properties
         self.nmk_world_memory = NMKWorldMemory(
             openai_api_key=openai_api_key, 
-            n_of_last_events=5, 
+            n_of_last_events=10, 
             n_of_similar_events=0, 
             n_of_paragraphs_in_summary=3
         )
