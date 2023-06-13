@@ -1,49 +1,39 @@
-from typing import TypedDict
-from langchain import PromptTemplate, LLMChain
+from textwrap import dedent
+from typing import Optional, Type, TypedDict
+from langchain import BasePromptTemplate, PromptTemplate, LLMChain
 from langchain.chat_models import ChatOpenAI
+from genworlds.agents.tree_agent.brains.brain import Brain
 from genworlds.agents.tree_agent.prompts.execution_generator_prompt import (
     ExecutionGeneratorPrompt,
 )
-from genworlds.agents.tree_agent.tree_of_thoughts import TreeOfThoughts
 
 from langchain.vectorstores import Chroma
 from langchain.schema import BaseRetriever
 
 
-class PodcastBrain:
-    LLMParams = TypedDict(
-        "LLMParams",
-        {
-            # "plan": str,  # iterative
-            "goals": list[str],  # fixed by the user list
-            "memory": BaseRetriever,  # this is no good, we have to improve it before sending it to the AI, a summary of everything in one paragraph
-            "personality_db": Chroma | None,
-            "agent_world_state": str,  # listening_antena input
-            "nearby_entities": list[str],  # name description and location
-            # "inventory": list[str],  # name description
-            "command_to_execute": str,
-            # "messages": list,
-            "previous_brain_outputs": list[str],
-        },
-    )
+class SingleEvalBrain(Brain):
+    """This brain generates a number of thoughts and passes them all to the evaluator, which selects one of them."""
 
     def __init__(
         self,
-        openai_api_key,
+        openai_api_key: str,
+        prompt_template_class: Type[BasePromptTemplate],
+        llm_params: list[str],
         generator_role_prompt: str,
         generator_results_prompt: str,
         evaluator_role_prompt: str,
         evaluator_results_prompt: str,
         n_of_thoughts: int,
-        value_threshold: float = 0,
         model_name="gpt-4",
         temperature=0.7,
         verbose=False,
         request_timeout=120,
     ):
         self.n_of_thoughts = n_of_thoughts
-        self.value_threshold = value_threshold
         self.verbose = verbose
+
+        self.prompt_template_class = prompt_template_class
+        self.llm_params = llm_params
 
         llm = ChatOpenAI(
             temperature=temperature,
@@ -52,15 +42,15 @@ class PodcastBrain:
             request_timeout=request_timeout,
         )
 
-        self.gen_prompt = ExecutionGeneratorPrompt(
+        self.gen_prompt = prompt_template_class(
             token_counter=llm.get_num_tokens,
             input_variables=[
                 "previous_thoughts",  # iterative
                 "num_thoughts",  # num
             ]
-            + list(self.LLMParams.__annotations__.keys()),
-            ai_role=generator_role_prompt,
-            response_instruction=generator_results_prompt,
+            + llm_params,
+            ai_role=dedent(generator_role_prompt),
+            response_instruction=dedent(generator_results_prompt),
         )
 
         self.gen_llm_chain = LLMChain(
@@ -68,14 +58,14 @@ class PodcastBrain:
             llm=llm,
             verbose=verbose,
         )
-        self.eval_prompt = ExecutionGeneratorPrompt(
+        self.eval_prompt = prompt_template_class(
             token_counter=llm.get_num_tokens,
             input_variables=[
                 "thought_to_evaluate",
             ]
-            + list(self.LLMParams.__annotations__.keys()),
-            ai_role=evaluator_role_prompt,
-            response_instruction=evaluator_results_prompt,
+            + llm_params,
+            ai_role=dedent(evaluator_role_prompt),
+            response_instruction=dedent(evaluator_results_prompt),
         )
 
         self.eval_llm_chain = LLMChain(
@@ -88,7 +78,7 @@ class PodcastBrain:
         self,
         previous_thoughts,
         num_thoughts: int,
-        llm_params: LLMParams,
+        llm_params: dict,
     ):
         # prepare the input variables
         response = self.gen_llm_chain.run(
@@ -105,7 +95,7 @@ class PodcastBrain:
     def eval_thoughts(
         self,
         thoughts_to_evaluate: str,
-        llm_params: LLMParams,
+        llm_params: dict,
     ):
         response = self.eval_llm_chain.run(
             thought_to_evaluate=thoughts_to_evaluate,
@@ -117,7 +107,7 @@ class PodcastBrain:
         
         return response
 
-    def run(self, llm_params: LLMParams):        
+    def run(self, llm_params: dict):        
         thoughts = self.gen_thoughts("", self.n_of_thoughts, llm_params)
         if self.n_of_thoughts == 1:
             return thoughts.strip().removeprefix("- ")

@@ -23,14 +23,14 @@ class NavigationGeneratorPrompt(BaseChatPromptTemplate, BaseModel):
     send_token_limit: int = 4196
 
     basic_template = """
-        # Basic rules
-        {ai_role}
+# Basic rules
+{ai_role}
 
-        ## Your Goals
-        {goals}
+## Your Goals
+{goals}
 
-        ## World State
-        {agent_world_state}
+## World State
+{agent_world_state}
         """
 
     def construct_full_prompt(self, agent_world_state: str, goals: List[str]) -> str:

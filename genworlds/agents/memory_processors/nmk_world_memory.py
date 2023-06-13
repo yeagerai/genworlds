@@ -136,6 +136,9 @@ class NMKWorldMemory:
             return self.world_events[-self.n_of_last_events :]
 
     def _get_m_similar_events(self, query: str, summarized: bool = False):
+        if self.n_of_similar_events < 1:
+            return []
+
         if summarized:
             m_events = self.summarized_events_chroma_db.similarity_search(
                 k=self.n_of_similar_events, query=query
@@ -155,12 +158,12 @@ class NMKWorldMemory:
             query=query, summarized=summarized
         )
         nmk = (
-            "\n\n# World Memory\n\n"
+            "\n\n# My Memories\n\n"
             "## Full Summary\n\n"
             + self.full_summary
             + "\n\n## Similar events\n\n"
             + "\n".join(similar_events)
-            + "\n\n## Last events\n\n"
+            + "\n\n## Last events from older to most recent\n\n"
             + "\n".join(last_events)
         )
         return nmk

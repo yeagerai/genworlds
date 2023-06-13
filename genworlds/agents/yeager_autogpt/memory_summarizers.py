@@ -5,9 +5,10 @@ from langchain.chat_models import ChatOpenAI
 class MemorySummarizer:
     def __init__(self, openai_api_key: str, model_name: str = "gpt-3.5-turbo"):
         self.summary_template = """
-        This is The last event coming from a web-socket, it is in JSON format:
-        {memory}
-        Summarize what happened in one line.
+The following is an event in JSON format:
+{memory}
+Summarize what happened in one line.
+Follow the general format of - who did what, to whom if applicable.
         """
 
         self.summary_prompt = PromptTemplate(

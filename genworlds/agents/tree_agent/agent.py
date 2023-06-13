@@ -23,6 +23,7 @@ from langchain.schema import (
     HumanMessage,
     SystemMessage,
 )
+from genworlds.agents.tree_agent.brains.brain import Brain
 
 from genworlds.events.basic_events import (
     EntityRequestWorldStateUpdateEvent,
@@ -33,18 +34,15 @@ from genworlds.sockets.world_socket_client import WorldSocketClient
 from genworlds.agents.world_listeners.listening_antenna import ListeningAntenna
 from genworlds.agents.memory_processors.nmk_world_memory import NMKWorldMemory
 
-from genworlds.agents.tree_agent.brains import (
-    NavigationBrain,
-)
-
 FINISH_NAME = "finish"
 
 
 class TreeAgent:
-    """Agent class for interacting with Auto-GPT."""
+    """Agent class for structured tree-of-thought execution."""
 
     world_spawned_id: str
     personality_db = None
+
 
     def __init__(
         self,
@@ -52,8 +50,8 @@ class TreeAgent:
         description: str,
         goals: List[str],
         openai_api_key: str,
-        navigation_brain: NavigationBrain,
-        execution_brains: dict,
+        navigation_brain: Brain,
+        execution_brains: dict[str, Brain],
         action_brain_map: dict,
         interesting_events: set = {},
         can_sleep: bool = True,
@@ -96,7 +94,10 @@ class TreeAgent:
 
         # Brain properties
         self.nmk_world_memory = NMKWorldMemory(
-            openai_api_key=openai_api_key, n_of_last_events=10, n_of_similar_events=3, n_of_paragraphs_in_summary=3
+            openai_api_key=openai_api_key, 
+            n_of_last_events=5, 
+            n_of_similar_events=0, 
+            n_of_paragraphs_in_summary=3
         )
 
         self.navigation_brain = navigation_brain
