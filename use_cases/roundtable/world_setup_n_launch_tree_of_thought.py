@@ -18,7 +18,7 @@ openai_api_key = os.getenv("OPENAI_API_KEY")
 
 ABS_PATH = os.path.dirname(os.path.abspath(__file__))
 
-def navigation_brain_factory(name, background):
+def navigation_brain_factory(name, background, personality):
     return SingleEvalBrain(
         openai_api_key=openai_api_key,
         prompt_template_class=NavigationGeneratorPrompt,
@@ -34,7 +34,13 @@ def navigation_brain_factory(name, background):
             "messages",
         ],
         n_of_thoughts=3,
-        generator_role_prompt=f"You are {name}, {background}. You need to come up with the next step to get you closer to your goals. It must be consistent with all of the following information:",
+        generator_role_prompt=
+f"""
+You are {name}, {background}. You need to come up with the next step to get you closer to your goals. It must be consistent with all of the following information:
+
+## Personality
+{personality}
+""",
         generator_results_prompt=
 """
 # Response type
@@ -63,7 +69,7 @@ Return the best plan of the options, and NOTHING ELSE:
         # model_name="gpt-4-0613",
     )
 
-def podcast_brain_factory(name, background):
+def podcast_brain_factory(name, background, personality):
     return SingleEvalBrain(
         openai_api_key=openai_api_key,
         prompt_template_class=ExecutionGeneratorPrompt,
@@ -79,7 +85,12 @@ def podcast_brain_factory(name, background):
             "previous_brain_outputs",
         ],
         n_of_thoughts=1,
-        generator_role_prompt=f"You are {name}, {background}. You have to generate a podcast response based on:",
+        generator_role_prompt=
+f"""
+You are {name}, {background}. You have to generate a podcast response based on:
+## Personality
+{personality}
+""",
         generator_results_prompt=
 """
 # Response type
@@ -103,7 +114,7 @@ Output the best paragraph, and NOTHING ELSE:
         # model_name="gpt-4-0613",
     )
 
-def event_filler_brain_factory(name, background):
+def event_filler_brain_factory(name, background, personality):
     return SingleEvalBrain(
         openai_api_key=openai_api_key,
         prompt_template_class=ExecutionGeneratorPrompt,
@@ -122,6 +133,9 @@ def event_filler_brain_factory(name, background):
         generator_role_prompt=
 f"""You are {name}, {background}. In previous steps, you have selected an action to execute, and possibly generated some of the response parameters - make sure to include those exactly. 
 You now need to generate a valid set of JSON parameters for the command to execute, based on the following information:
+
+## Personality
+{personality}
 """,
         generator_results_prompt=
 """
@@ -168,10 +182,22 @@ podcast_host = TreeAgent(
         "agent_gives_object_to_agent_event": {} 
     },
 
-    navigation_brain=navigation_brain_factory("Maria Podcastonova", "an expert podcaster and the host of the Rountable podcast"),
+    navigation_brain=navigation_brain_factory(
+        "Maria Podcastonova", 
+        "an expert podcaster and the host of the Rountable podcast",
+        "Maria is known for her enthusiasm and energetic delivery. She speaks with passion and conviction, often expressing strong opinions on various topics."
+        ),
     execution_brains={
-        "podcast_brain": podcast_brain_factory("Maria Podcastonova", "an expert podcaster and the host of the Rountable podcast"),
-        "event_filler_brain": event_filler_brain_factory("Maria Podcastonova", "an expert podcaster and the host of the Rountable podcast"),
+        "podcast_brain": podcast_brain_factory(
+            "Maria Podcastonova", 
+            "an expert podcaster and the host of the Rountable podcast",
+            "Maria is known for her enthusiasm and energetic delivery. She speaks with passion and conviction, often expressing strong opinions on various topics."
+        ),
+        "event_filler_brain": event_filler_brain_factory(
+            "Maria Podcastonova", 
+            "an expert podcaster and the host of the Rountable podcast",
+            "Maria is known for her enthusiasm and energetic delivery. She speaks with passion and conviction, often expressing strong opinions on various topics."
+        ),
     },
     action_brain_map={
         "Microphone:agent_speaks_into_microphone": [
@@ -204,10 +230,22 @@ podcast_guest = TreeAgent(
         "agent_gives_object_to_agent_event": {} 
     },
 
-    navigation_brain=navigation_brain_factory("Jimmy Artificles", "a world-renowned AI researcher and a guest of the Rountable podcast"),
+    navigation_brain=navigation_brain_factory(
+        "Jimmy Artificles", 
+        "a world-renowned AI researcher and a guest of the Rountable podcast",
+        "Jimmy often uses dry humor, which involves delivering humorous remarks in a deadpan or understated manner. His jokes may be subtle and delivered with a straight face, adding a touch of wit to the conversation."
+    ),
     execution_brains={
-        "podcast_brain": podcast_brain_factory("Jimmy Artificles", "a world-renowned AI researcher and a guest of the Rountable podcast"),
-        "event_filler_brain": event_filler_brain_factory("Jimmy Artificles", "a world-renowned AI researcher and a guest of the Rountable podcast"),
+        "podcast_brain": podcast_brain_factory(
+            "Jimmy Artificles", 
+            "a world-renowned AI researcher and a guest of the Rountable podcast",
+            "Jimmy often uses dry humor, which involves delivering humorous remarks in a deadpan or understated manner. His jokes may be subtle and delivered with a straight face, adding a touch of wit to the conversation."
+        ),
+        "event_filler_brain": event_filler_brain_factory(
+            "Jimmy Artificles", 
+            "a world-renowned AI researcher and a guest of the Rountable podcast",
+            "Jimmy often uses dry humor, which involves delivering humorous remarks in a deadpan or understated manner. His jokes may be subtle and delivered with a straight face, adding a touch of wit to the conversation."
+        ),
     },
     action_brain_map={
         "Microphone:agent_speaks_into_microphone": [
