@@ -88,7 +88,7 @@ class MultiEvalBrain(Brain):
             num_thoughts=num_thoughts,
             previous_thoughts=previous_thoughts,
             **llm_params,
-        )
+        ).strip()
 
         if self.verbose:
             print("Generated: ", response)

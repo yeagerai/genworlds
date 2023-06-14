@@ -35,7 +35,8 @@ def navigation_brain_factory(name, background):
         ],
         n_of_thoughts=3,
         generator_role_prompt=f"You are {name}, {background}. You need to come up with the next step to get you closer to your goals. It must be consistent with all of the following information:",
-        generator_results_prompt="""
+        generator_results_prompt=
+"""
 # Response type
 Look at your previous plan, your memories about what you have done recently and your goals, and propose {num_thoughts} possible plans that advance your goals.
 Check if you have already completed a step in your plan, and if so, propose the next step as the first one.
@@ -45,9 +46,10 @@ Use the following format and output {num_thoughts} lines of text AND NOTHING ELS
 - {{ "step_completed": "If you completed a step of your plan, put it here, as well as an explanation of how you did it", "plan": "A numbered list of an updated plan", "goal": "Here is what I want to achieve in my next step using the next_action I select",  "next_action": "EntityClass:action_type_1", "is_action_valid": "Assess whether the action is valid based on the current state of the world."}}
 - {{ "step_completed": "If you completed a step of your plan, put it here, as well as an explanation of how you did it", "plan": "A numbered list of an alternative updated plan", "goal": "Here is what I want to achieve in my next step using the next_action I select", "next_action": "EntityClass:action_type_1", "is_action_valid": "Assess whether the action is valid based on the current state of the world."}}
 - {{ "step_completed": "If you completed a step of your plan, put it here, as well as an explanation of how you did it", "plan": "A numbered list of a third updated plan", , "goal": "Here is what I want to achieve in my next step using the next_action I select", "next_action": "EntityClass:action_type_2", "is_action_valid": "Assess whether the action is valid based on the current state of the world."}}
-                """,
+""",
         evaluator_role_prompt=f"You are {name}, {background}. You are trying to evaluate a number of actions to see which will get you closer to your goals. It must be consistent with the following information:",
-        evaluator_results_prompt="""
+        evaluator_results_prompt=
+"""
 ## Choose the Best Action
 From the following options, pick the best plan and next action
 Check that the proposed action is in the list of available actions, and that you meet all the preconditions for the action, like having the correct items in your inventory.
@@ -56,8 +58,9 @@ Here are the plans to choose from:
 
 # Response type
 Return the best plan of the options, and NOTHING ELSE:
-            """,
+""",
         verbose=True,
+        # model_name="gpt-4-0613",
     )
 
 def podcast_brain_factory(name, background):
@@ -77,24 +80,27 @@ def podcast_brain_factory(name, background):
         ],
         n_of_thoughts=1,
         generator_role_prompt=f"You are {name}, {background}. You have to generate a podcast response based on:",
-        generator_results_prompt="""
+        generator_results_prompt=
+"""
 # Response type
 Output {num_thoughts} possible paragraphs of text that would be a good next line for your to say in line with the goal you set for yourself, which moves the conversation forward and matches stylistically something you would say AND NOTHING ELSE.               
 Do not narrate any actions you might take, only generate a piece of text.
 Use the following format:
 - The first possible paragraph
 - A second possible paragraph
-                """,
+""",
         evaluator_role_prompt=f"You are {name}, {background}. You are trying to evaluate a number possible things to next on the podcast. It must be consistent with the following information:",
-        evaluator_results_prompt="""
+        evaluator_results_prompt=
+"""
 ## Outputs to evaluate
 Evaluate the following paragraphs of text and choose the best one to say next.
 {thought_to_evaluate}
 
 # Response type
 Output the best paragraph, and NOTHING ELSE:      
-                """,
+""",
         verbose=True,
+        # model_name="gpt-4-0613",
     )
 
 def event_filler_brain_factory(name, background):
@@ -113,25 +119,29 @@ def event_filler_brain_factory(name, background):
             "previous_brain_outputs",
         ],
         n_of_thoughts=1,
-        generator_role_prompt=f"""You are {name}, {background}. In previous steps, you have selected an action to execute, and possibly generated some of the response parameters - make sure to include those exactly. 
+        generator_role_prompt=
+f"""You are {name}, {background}. In previous steps, you have selected an action to execute, and possibly generated some of the response parameters - make sure to include those exactly. 
 You now need to generate a valid set of JSON parameters for the command to execute, based on the following information:
-                """,
-        generator_results_prompt="""
+""",
+        generator_results_prompt=
+"""
 # Response type
 {num_thoughts} lines of json containing possible options for completing the arguments of the command to execute, each one with the following format AND NOTHING ELSE:
 - {{"arg name": "value1", "arg name 2": "value2", ...}}
 - {{"arg name": "alt value1", "arg name 2": "alt value2", ...}} 
-            """,
+""",
         evaluator_role_prompt=f"You are {name}, {background}. ou need to evaluate the provided set of JSON parameters based on their correctness, with respect to all of the following information:",
-        evaluator_results_prompt="""
+        evaluator_results_prompt=
+"""
 ## Parameters to evaluate
 Evaluate the following list of possible parameter set in terms of their correctness:
 {thought_to_evaluate}
 
 # Response type
 Return the best parameter set and NOTHING ELSE:      
-            """,
+""",
         verbose=True,
+        # model_name="gpt-4-0613",
     )
 
 

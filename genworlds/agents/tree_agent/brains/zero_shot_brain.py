@@ -58,7 +58,7 @@ class ZeroShotBrain(Brain):
         # prepare the input variables
         response = self.gen_llm_chain.run(
             **llm_params,
-        )
+        ).strip()
 
         if self.verbose:
             print("Generated: " + response)
