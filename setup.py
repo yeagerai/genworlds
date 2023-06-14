@@ -8,7 +8,7 @@ setup(
     author_email="jm@yeager.ai",
     packages=["genworlds", "genworlds.sockets"],
     install_requires=[
-        "chromadb==0.3.21",
+        "python==3.11",
         "click==8.1.3",
         "colorama==0.4.6",
         "colorlog==6.7.0",
@@ -20,6 +20,7 @@ setup(
         "prompt-toolkit==3.0.38",
         "pydantic==1.10.7",
         "python-dotenv==1.0.0",
+        "qdrant-client==1.2.0",
         "threadpoolctl==3.1.0",
         "tiktoken==0.4.0",
         "uvicorn==0.21.1",

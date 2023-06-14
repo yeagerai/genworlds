@@ -16,7 +16,10 @@ from genworlds.interfaces.cli.initial_setup_layout_screen import (
 )
 from genworlds.interfaces.cli.render_main_screen import render_main_screen
 
-GENWORLDS_CONFIG_PATH = os.path.join(os.path.expanduser("~"), ".genworlds")
+if os.getenv("IS_REPLIT") == "True":
+    GENWORLDS_CONFIG_PATH = os.path.join(os.getcwd(), ".replit_config")
+else:
+    GENWORLDS_CONFIG_PATH = os.path.join(os.path.expanduser("~"), ".genworlds")
 
 
 class CLI:

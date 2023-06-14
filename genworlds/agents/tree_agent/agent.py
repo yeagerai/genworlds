@@ -43,7 +43,6 @@ class TreeAgent:
     world_spawned_id: str
     personality_db = None
 
-
     def __init__(
         self,
         ai_name: str,
@@ -94,10 +93,10 @@ class TreeAgent:
 
         # Brain properties
         self.nmk_world_memory = NMKWorldMemory(
-            openai_api_key=openai_api_key, 
-            n_of_last_events=10, 
-            n_of_similar_events=0, 
-            n_of_paragraphs_in_summary=3
+            openai_api_key=openai_api_key,
+            n_of_last_events=10,
+            n_of_similar_events=0,
+            n_of_paragraphs_in_summary=3,
         )
 
         self.navigation_brain = navigation_brain
@@ -138,7 +137,7 @@ class TreeAgent:
         sleep(5)
 
         while True:
-            # If there are any relevant events in the world for this agent, add them to memory           
+            # If there are any relevant events in the world for this agent, add them to memory
             last_events = self.listening_antenna.get_last_events()
             self.logger.debug(f"Last events: {last_events}")
             for event in last_events:
@@ -267,7 +266,7 @@ class TreeAgent:
                 self.logger.info(f"Failed to parse navigation plan: {navigation_plan}")
                 navigation_plan_parsed = {
                     "plan": self.plan,
-                    "next_action": "Self:wait", # TODO: does this make sense?
+                    "next_action": "Self:wait",  # TODO: does this make sense?
                     "goal": "Failed to select a valid action, waiting...",
                 }
 
@@ -351,9 +350,7 @@ class TreeAgent:
                             "Event at: " + event_sent["created_at"] + "\n"
                         )
                         event_sent_summary += (
-                            "What happened: "
-                            + str(event_sent["summary"])
-                            + "\n"
+                            "What happened: " + str(event_sent["summary"]) + "\n"
                         )
 
                         result += event_sent_summary
@@ -374,7 +371,7 @@ class TreeAgent:
             self.logger.info(result)
 
             self.full_message_history.append(SystemMessage(content=result))
-            
+
             # Allow events to be processed
             sleep(3)
 
@@ -419,7 +416,7 @@ class TreeAgent:
             return f"Validation Error in args: {str(e)}, args: {args}"
         except Exception as e:
             return f"Error: {str(e)}, {type(e).__name__}, args: {args}"
-        
+
     def agent_request_world_state_update_action(self):
         agent_request_world_state_update = EntityRequestWorldStateUpdateEvent(
             created_at=datetime.now(),
