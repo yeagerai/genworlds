@@ -19,7 +19,7 @@ class AutoGPTPrompt(BaseChatPromptTemplate, BaseModel):
     ai_role: str
     tools: List[BaseTool]
     token_counter: Callable[[str], int]
-    send_token_limit: int = 4196
+    send_token_limit: int = 8192
 
     def construct_full_prompt(self, agent_world_state: str, goals: List[str]) -> str:
         prompt_start = (

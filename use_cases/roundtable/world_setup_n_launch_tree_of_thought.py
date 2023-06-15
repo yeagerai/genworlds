@@ -1,6 +1,8 @@
 import os
 from dotenv import load_dotenv
 import concurrent.futures
+
+from qdrant_client import QdrantClient
 from genworlds.agents.tree_agent.brains.single_eval_brain import SingleEvalBrain
 from genworlds.agents.tree_agent.prompts.execution_generator_prompt import ExecutionGeneratorPrompt
 from genworlds.agents.tree_agent.prompts.navigation_generator_prompt import NavigationGeneratorPrompt
@@ -9,6 +11,7 @@ from genworlds.agents.tree_agent.prompts.navigation_generator_prompt import Navi
 from genworlds.simulation.simulation import Simulation
 from genworlds.agents.tree_agent.agent import TreeAgent
 from genworlds.worlds.world_2d.world_2d import World2D
+from use_cases.roundtable.migrations.chroma_to_qdrant_migration import run_chroma_to_qdrant_migration
 from use_cases.roundtable.objects.microphone import Microphone
 
 thread_pool_ref = concurrent.futures.ThreadPoolExecutor
@@ -17,6 +20,8 @@ load_dotenv(dotenv_path=".env")
 openai_api_key = os.getenv("OPENAI_API_KEY")
 
 ABS_PATH = os.path.dirname(os.path.abspath(__file__))
+
+personality_db_qdrant_client = QdrantClient(path=os.path.join(ABS_PATH, "databases/all_in_summaries_qdrant"))
 
 def navigation_brain_factory(name, background, personality):
     return SingleEvalBrain(
@@ -49,9 +54,9 @@ Check if you have already completed a step in your plan, and if so, propose the 
 Then, select the next action that you want to do to achieve the first step of your plan.
 Check that the action is in the list of available actions, and that you meet all the preconditions for the action.
 Use the following format and output {num_thoughts} lines of text AND NOTHING ELSE:
-- {{ "step_completed": "If you completed a step of your plan, put it here, as well as an explanation of how you did it", "plan": "A numbered list of an updated plan", "goal": "Here is what I want to achieve in my next step using the next_action I select",  "next_action": "EntityClass:action_type_1", "is_action_valid": "Assess whether the action is valid based on the current state of the world."}}
-- {{ "step_completed": "If you completed a step of your plan, put it here, as well as an explanation of how you did it", "plan": "A numbered list of an alternative updated plan", "goal": "Here is what I want to achieve in my next step using the next_action I select", "next_action": "EntityClass:action_type_1", "is_action_valid": "Assess whether the action is valid based on the current state of the world."}}
-- {{ "step_completed": "If you completed a step of your plan, put it here, as well as an explanation of how you did it", "plan": "A numbered list of a third updated plan", , "goal": "Here is what I want to achieve in my next step using the next_action I select", "next_action": "EntityClass:action_type_2", "is_action_valid": "Assess whether the action is valid based on the current state of the world."}}
+- {{ "inventory": "list the ids of the items in your inventory", "step_completed": "If you completed a step of your plan, put it here, as well as an explanation of how you did it", "plan": "A numbered list of an updated plan", "goal": "Here is what I want to achieve in my next step using the next_action I select",  "next_action": "EntityClass:action_type_1", "is_action_valid": "Assess whether the action is valid based on the current state of the world.", "action_goal_alignment": "Asses whether the action matches ALL of your goals"}}
+- {{ "inventory": "list the ids of the items in your inventory", "step_completed": "If you completed a step of your plan, put it here, as well as an explanation of how you did it", "plan": "A numbered list of an alternative updated plan", "goal": "Here is what I want to achieve in my next step using the next_action I select", "next_action": "EntityClass:action_type_1", "is_action_valid": "Assess whether the action is valid based on the current state of the world.", "action_goal_alignment": "Asses whether the action matches ALL of your goals"}}
+- {{ "inventory": "list the ids of the items in your inventory", "step_completed": "If you completed a step of your plan, put it here, as well as an explanation of how you did it", "plan": "A numbered list of a third updated plan", , "goal": "Here is what I want to achieve in my next step using the next_action I select", "next_action": "EntityClass:action_type_2", "is_action_valid": "Assess whether the action is valid based on the current state of the world.", "action_goal_alignment": "Asses whether the action matches ALL of your goals"}}
 """,
         evaluator_role_prompt=f"You are {name}, {background}. You are trying to evaluate a number of actions to see which will get you closer to your goals. It must be consistent with the following information:",
         evaluator_results_prompt=
@@ -66,7 +71,7 @@ Here are the plans to choose from:
 Return the best plan of the options, and NOTHING ELSE:
 """,
         verbose=True,
-        # model_name="gpt-4-0613",
+        model_name="gpt-4-0613",
     )
 
 def podcast_brain_factory(name, background, personality):
@@ -94,11 +99,12 @@ You are {name}, {background}. You have to generate a podcast response based on:
         generator_results_prompt=
 """
 # Response type
-Output {num_thoughts} possible paragraphs of text that would be a good next line for your to say in line with the goal you set for yourself, which moves the conversation forward and matches stylistically something you would say AND NOTHING ELSE.               
+Output exactly {num_thoughts} different possible paragraphs of text that would be a good next line for your to say in line with the goal you set for yourself, which moves the conversation forward and matches stylistically something you would say AND NOTHING ELSE.               
 Do not narrate any actions you might take, only generate a piece of text.
 Use the following format:
 - The first possible paragraph
 - A second possible paragraph
+- ... (up to {num_thoughts} paragraphs)
 """,
         evaluator_role_prompt=f"You are {name}, {background}. You are trying to evaluate a number possible things to next on the podcast. It must be consistent with the following information:",
         evaluator_results_prompt=
@@ -111,7 +117,7 @@ Evaluate the following paragraphs of text and choose the best one to say next.
 Output the best paragraph, and NOTHING ELSE:      
 """,
         verbose=True,
-        # model_name="gpt-4-0613",
+        model_name="gpt-4-0613",
     )
 
 def event_filler_brain_factory(name, background, personality):
@@ -140,9 +146,10 @@ You now need to generate a valid set of JSON parameters for the command to execu
         generator_results_prompt=
 """
 # Response type
-{num_thoughts} lines of json containing possible options for completing the arguments of the command to execute, each one with the following format AND NOTHING ELSE:
+Generate exactly {num_thoughts} lines of json containing possible options for completing the arguments of the command to execute, each one with the following format AND NOTHING ELSE:
 - {{"arg name": "value1", "arg name 2": "value2", ...}}
 - {{"arg name": "alt value1", "arg name 2": "alt value2", ...}} 
+- ... (up to {num_thoughts} lines)
 """,
         evaluator_role_prompt=f"You are {name}, {background}. ou need to evaluate the provided set of JSON parameters based on their correctness, with respect to all of the following information:",
         evaluator_results_prompt=
@@ -155,24 +162,31 @@ Evaluate the following list of possible parameter set in terms of their correctn
 Return the best parameter set and NOTHING ELSE:      
 """,
         verbose=True,
-        # model_name="gpt-4-0613",
+        model_name="gpt-4-0613",
     )
 
 
+world_goals = [
+    "Only the holder of the microphone can speak to the audience, if you don't have the microphone in your inventory, wait to receive it from the previous speaker.",
+    "Don't repeat yourself, ask insightful questions to the guests of the podcast to advance the conversation.",
+    "Don't hog the microphone for a long time, make sure to give it to other participants.",
+    "If you have asked a question, make sure to give the microphone to the guest so they can answer.",
+    "If you have completed your statement, make sure to give the microphone to the next speaker.",
+    "Do not wait if you still have the microphone, speak or pass the microphone to the next speaker.",
+]
 
 
+name = "Maria Podcastonova"
+background = "the host of the Roundtable podcast"
+personality = "Maria is known for her enthusiasm and energetic delivery. She speaks with passion and conviction, often expressing strong opinions on various topics."
 podcast_host = TreeAgent(
     id="maria",
-    ai_name="Maria Podcastonova",
-    description="The host of the Rountable podcast",
+    ai_name=name,
+    description=background,
     goals=[
         "Host an episode of the Roundtable podcast, discussing AI technology.",
         "Only the holder of the microphone can speak to the audience, if you don't have the microphone in your inventory, wait to receive it from the previous speaker.",
-        "Don't repeat yourself, ask insightful questions to the guests of the podcast to advance the conversation.",
-        "If you have asked a question, make sure to give the microphone to the guest so they can answer.",
-        "Don't hog the microphone for a long time, make sure to give it to other participants.",
-        "If you have completed your statement, make sure to pass the microphone to the next speaker.",
-    ],
+    ] + world_goals,
     openai_api_key=openai_api_key,
     interesting_events={
         "agent_speaks_into_microphone",
@@ -183,68 +197,20 @@ podcast_host = TreeAgent(
     },
 
     navigation_brain=navigation_brain_factory(
-        "Maria Podcastonova", 
-        "an expert podcaster and the host of the Rountable podcast",
-        "Maria is known for her enthusiasm and energetic delivery. She speaks with passion and conviction, often expressing strong opinions on various topics."
-        ),
-    execution_brains={
-        "podcast_brain": podcast_brain_factory(
-            "Maria Podcastonova", 
-            "an expert podcaster and the host of the Rountable podcast",
-            "Maria is known for her enthusiasm and energetic delivery. She speaks with passion and conviction, often expressing strong opinions on various topics."
-        ),
-        "event_filler_brain": event_filler_brain_factory(
-            "Maria Podcastonova", 
-            "an expert podcaster and the host of the Rountable podcast",
-            "Maria is known for her enthusiasm and energetic delivery. She speaks with passion and conviction, often expressing strong opinions on various topics."
-        ),
-    },
-    action_brain_map={
-        "Microphone:agent_speaks_into_microphone": [
-            "podcast_brain",
-            "event_filler_brain",
-        ],
-        "World:agent_gives_object_to_agent_event": ["event_filler_brain"],
-        "default": ["event_filler_brain"],
-    },
-)
-
-podcast_guest = TreeAgent(
-    id="jimmy",
-    ai_name="Jimmy Artificles",
-    description="A guest of the podcast, a world-renowned AI researcher.",
-    goals=[
-        "Participate in an episode of the Roundtable podcast, discussing AI technology.",
-        "Only the holder of the microphone can speak to the audience, if you don't have the microphone in your inventory, wait to receive it from the previous speaker.",
-        "Don't repeat yourself, respond to questions and points made by the host to advance the conversation.",
-        "If you have asked a question, or have finished speaking, pass the microphone back to the host.",
-        "Don't hog the microphone for a long time, make sure to give it to other participants.",
-        "If you have completed your statement, make sure to pass the microphone to the next speaker.",
-    ],
-    openai_api_key=openai_api_key,
-    interesting_events={
-        "agent_speaks_into_microphone",
-        "agent_gives_object_to_agent_event",
-    },
-    wakeup_events={
-        "agent_gives_object_to_agent_event": {} 
-    },
-
-    navigation_brain=navigation_brain_factory(
-        "Jimmy Artificles", 
-        "a world-renowned AI researcher and a guest of the Rountable podcast",
-        "Jimmy often uses dry humor, which involves delivering humorous remarks in a deadpan or understated manner. His jokes may be subtle and delivered with a straight face, adding a touch of wit to the conversation."
+        name, 
+        background,
+        personality
     ),
     execution_brains={
         "podcast_brain": podcast_brain_factory(
-            "Jimmy Artificles", 
-            "a world-renowned AI researcher and a guest of the Rountable podcast",
-            "Jimmy often uses dry humor, which involves delivering humorous remarks in a deadpan or understated manner. His jokes may be subtle and delivered with a straight face, adding a touch of wit to the conversation."
+            name, 
+            background,
+            personality
         ),
         "event_filler_brain": event_filler_brain_factory(
-            "Jimmy Artificles", 
-            "a world-renowned AI researcher and a guest of the Rountable podcast",
-            "Jimmy often uses dry humor, which involves delivering humorous remarks in a deadpan or understated manner. His jokes may be subtle and delivered with a straight face, adding a touch of wit to the conversation."
+            name, 
+            background,
+            personality
         ),
     },
     action_brain_map={
@@ -257,6 +223,52 @@ podcast_guest = TreeAgent(
     },
 )
 
+
+name = "Jimmy Artificles"
+background = "a world-renowned AI researcher and a guest of the Rountable podcast"
+personality = "Jimmy often uses dry humor, which involves delivering humorous remarks in a deadpan or understated manner. His jokes may be subtle and delivered with a straight face, adding a touch of wit to the conversation."
+podcast_guest = TreeAgent(
+    id="jimmy",
+    ai_name=name,
+    description="A guest of the podcast, a world-renowned AI researcher.",
+    goals=[
+        "Participate in an episode of the Roundtable podcast, discussing AI technology.",
+    ] + world_goals,
+    openai_api_key=openai_api_key,
+    interesting_events={
+        "agent_speaks_into_microphone",
+        "agent_gives_object_to_agent_event",
+    },
+    wakeup_events={
+        "agent_gives_object_to_agent_event": {} 
+    },
+
+    navigation_brain=navigation_brain_factory(
+        name, 
+        background,
+        personality
+    ),
+    execution_brains={
+        "podcast_brain": podcast_brain_factory(
+            name, 
+            background,
+            personality
+        ),
+        "event_filler_brain": event_filler_brain_factory(
+            name, 
+            background,
+            personality
+        ),
+    },
+    action_brain_map={
+        "Microphone:agent_speaks_into_microphone": [
+            "podcast_brain",
+            "event_filler_brain",
+        ],
+        "World:agent_gives_object_to_agent_event": ["event_filler_brain"],
+        "default": ["event_filler_brain"],
+    },
+)
 
 microphone = Microphone(
     id="microphone",

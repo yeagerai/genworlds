@@ -11,7 +11,7 @@ from langchain.prompts.chat import (
 from langchain.schema import BaseMessage, HumanMessage, SystemMessage
 from langchain.tools.base import BaseTool
 from langchain.vectorstores.base import VectorStoreRetriever
-from langchain.vectorstores import Qdrant
+from langchain.vectorstores import VectorStore
 
 from genworlds.agents.memory_processors.nmk_world_memory import NMKWorldMemory
 
@@ -20,7 +20,7 @@ class NavigationGeneratorPrompt(BaseChatPromptTemplate, BaseModel):
     ai_role: str
     response_instruction: str
     token_counter: Callable[[str], int]
-    send_token_limit: int = 4196
+    send_token_limit: int = 8192
 
     basic_template = """
 # Basic rules
@@ -105,20 +105,25 @@ class NavigationGeneratorPrompt(BaseChatPromptTemplate, BaseModel):
 
         if "plan" in kwargs and kwargs["plan"] is not None:
             plan: Optional[str] = kwargs["plan"]
-            plan_message = SystemMessage(content=f"## My Previous Plan:\n{plan}")
+            plan_message = SystemMessage(content=f"## Your Previous Plan:\n{plan}")
             messages.append(plan_message)
             used_tokens += len(plan_message.content)
 
-        personality_db: Qdrant = kwargs["personality_db"]
+            similarity_query_key = kwargs["plan"]
+        else:
+            similarity_query_key = kwargs["goals"]
+
+        personality_db: VectorStore = kwargs["personality_db"]
         if personality_db is not None:
             past_statements = list(
                 map(
                     lambda d: d.page_content,
-                    personality_db.similarity_search(str(kwargs["goals"])),
+                    personality_db.similarity_search(str(similarity_query_key)),
                 )
             )
             if len(past_statements) > 0:
-                past_statements_format = f"You have said the following things in the past on this topic:\n{past_statements}\n\n"
+                past_statements_bullet_list = "\n".join(map(lambda s: f'- {s}', past_statements))
+                past_statements_format = f"You have said the following things on this topic in the past:\n{past_statements_bullet_list}\n\n"
                 personality_message = SystemMessage(content=past_statements_format)
                 messages.append(personality_message)
                 used_tokens += len(personality_message.content)
@@ -129,7 +134,7 @@ class NavigationGeneratorPrompt(BaseChatPromptTemplate, BaseModel):
                 if len(memory.world_events) % 5 == 0:
                     memory.create_full_summary()
                 relevant_memory = memory.get_event_stream_memories(
-                    query=kwargs["plan"], summarized=True
+                    query=similarity_query_key, summarized=False
                 )  # TODO: add token limitations
                 relevant_memory_tokens = self.token_counter(relevant_memory)
                 memory_message = SystemMessage(content=relevant_memory)

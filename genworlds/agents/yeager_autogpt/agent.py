@@ -17,6 +17,7 @@ from langchain.tools.human.tool import HumanInputRun
 from langchain.vectorstores.base import VectorStoreRetriever
 
 from langchain.vectorstores import Qdrant
+from qdrant_client import QdrantClient
 from genworlds.agents.memory_processors.nmk_world_memory import NMKWorldMemory
 
 from langchain.embeddings import OpenAIEmbeddings
@@ -65,7 +66,7 @@ class YeagerAutoGPT:
         feedback_tool: Optional[HumanInputRun] = None,
         additional_memories: Optional[List[VectorStoreRetriever]] = None,
         id: str = None,
-        personality_db_path: str = None,
+        personality_db_qdrant_client: QdrantClient = None,
         personality_db_collection_name: str = None,
         websocket_url: str = "ws://127.0.0.1:7456/ws",
     ):
@@ -128,16 +129,12 @@ class YeagerAutoGPT:
         self.schemas_memory: Qdrant
         self.plan: Optional[str] = None
 
-        self.personality_db_path = personality_db_path
-        if self.personality_db_path:
+        self.personality_db_qdrant_client = personality_db_qdrant_client
+        if self.personality_db_qdrant_client:
             self.personality_db = Qdrant(
                 collection_name=personality_db_collection_name,
                 embedding_function=self.embeddings_model,
-                persist_directory=self.personality_db_path,
-            )
-            # self.personality_db.persist()
-            self.logger.info(
-                "Testing DB", self.personality_db.similarity_search("hello")
+                client=self.personality_db_qdrant_client,
             )
 
     def think(self):

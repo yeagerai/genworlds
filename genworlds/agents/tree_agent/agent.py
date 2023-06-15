@@ -22,6 +22,7 @@ from langchain.schema import (
     HumanMessage,
     SystemMessage,
 )
+from qdrant_client import QdrantClient
 from genworlds.agents.tree_agent.brains.brain import Brain
 
 from genworlds.events.basic_events import (
@@ -57,7 +58,7 @@ class TreeAgent:
         feedback_tool: Optional[HumanInputRun] = None,
         additional_memories: Optional[List[VectorStoreRetriever]] = None,
         id: str = None,
-        personality_db_path: str = None,
+        personality_db_qdrant_client: QdrantClient = None,
         personality_db_collection_name: str = None,
         websocket_url: str = "ws://127.0.0.1:7456/ws",
     ):
@@ -109,14 +110,14 @@ class TreeAgent:
         self.plan: Optional[str] = None
 
         self.embeddings_model = OpenAIEmbeddings(openai_api_key=openai_api_key)
-        self.personality_db_path = personality_db_path
-        if self.personality_db_path:
+        self.personality_db_qdrant_client = personality_db_qdrant_client
+        if self.personality_db_qdrant_client:
             self.personality_db = Qdrant(
                 collection_name=personality_db_collection_name,
-                embedding_function=self.embeddings_model,
-                persist_directory=self.personality_db_path,
+                embedding_function=self.embeddings_model.embed_query,
+                client=self.personality_db_qdrant_client,
             )
-
+            
     def think(self):
         self.logger.info(f" The agent {self.ai_name} is thinking...")
         user_input = (

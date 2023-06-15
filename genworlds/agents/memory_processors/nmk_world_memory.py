@@ -128,12 +128,12 @@ class NMKWorldMemory:
         self.events_db = Qdrant(
             client=client,
             collection_name="world-events",
-            embeddings=self.embeddings_model,
+            embedding_function=self.embeddings_model.embed_query,
         )
         self.summarized_events_db = Qdrant(
             client=client,
             collection_name="summarized-world-events",
-            embeddings=self.embeddings_model,
+            embedding_function=self.embeddings_model.embed_query,
         )
 
     def add_event(self, event, summarize: bool = False):
@@ -176,17 +176,17 @@ class NMKWorldMemory:
     def get_event_stream_memories(self, query: str, summarized: bool = False):
         if len(self.world_events) <= self.n_of_last_events:
             last_events = self._get_n_last_events(summarized=summarized)
-            nmk = "\n\n# World Memory\n\n" "## Last events\n\n" + "\n".join(last_events)
+            nmk = "\n\n# Your Memories\n\n" "## Last events from oldest to most recent\n\n" + "\n".join(last_events)
             return nmk
         last_events = self._get_n_last_events(summarized=summarized)
         similar_events = self._get_m_similar_events(query=query, summarized=summarized)
         nmk = (
-            "\n\n# My Memories\n\n"
+            "\n\n# Your Memories\n\n"
             "## Full Summary\n\n"
             + self.full_summary
             + "\n\n## Similar events\n\n"
             + "\n".join(similar_events)
-            + "\n\n## Last events from older to most recent\n\n"
+            + "\n\n## Last events from oldest to most recent\n\n"
             + "\n".join(last_events)
         )
         return nmk

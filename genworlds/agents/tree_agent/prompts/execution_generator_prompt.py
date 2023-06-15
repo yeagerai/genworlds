@@ -7,7 +7,7 @@ from pydantic import BaseModel
 from langchain.schema import BaseMessage, HumanMessage, SystemMessage
 from langchain.tools.base import BaseTool
 from langchain.vectorstores.base import VectorStoreRetriever
-from langchain.vectorstores import Qdrant
+from langchain.vectorstores import VectorStore
 from langchain.prompts.chat import (
     BaseChatPromptTemplate,
 )
@@ -19,7 +19,7 @@ class ExecutionGeneratorPrompt(BaseChatPromptTemplate, BaseModel):
     ai_role: str
     response_instruction: str
     token_counter: Callable[[str], int]
-    send_token_limit: int = 4196
+    send_token_limit: int = 8192
 
     basic_template = """
 # Basic rules
@@ -116,12 +116,12 @@ class ExecutionGeneratorPrompt(BaseChatPromptTemplate, BaseModel):
 
         if "plan" in kwargs:
             plan = kwargs["plan"]
-            plan_message = SystemMessage(content=f"## Plan:\n{plan}")
+            plan_message = SystemMessage(content=f"## Your Plan:\n{plan}")
             messages.append(plan_message)
-            used_tokens += len(plan_message.content)
+            used_tokens += len(plan_message.content)   
 
         if "personality_db" in kwargs and kwargs["personality_db"] is not None:
-            personality_db: Qdrant = kwargs["personality_db"]
+            personality_db: VectorStore = kwargs["personality_db"]
             past_statements = list(
                 map(
                     lambda d: d.page_content,
@@ -131,7 +131,8 @@ class ExecutionGeneratorPrompt(BaseChatPromptTemplate, BaseModel):
                 )
             )
             if len(past_statements) > 0:
-                past_statements_format = f"You have said the following things in the past on this topic:\n{past_statements}\n\n"
+                past_statements_bullet_list = "\n".join(map(lambda s: f'- {s}', past_statements))
+                past_statements_format = f"You have said the following things on this topic in the past:\n{past_statements_bullet_list}\n\n"
                 personality_message = SystemMessage(content=past_statements_format)
                 messages.append(personality_message)
                 used_tokens += len(personality_message.content)
@@ -142,7 +143,7 @@ class ExecutionGeneratorPrompt(BaseChatPromptTemplate, BaseModel):
                 if len(memory.world_events) % 5 == 0:
                     memory.create_full_summary()
                 relevant_memory = memory.get_event_stream_memories(
-                    query=kwargs["previous_brain_outputs"][-1], summarized=True
+                    query=kwargs["previous_brain_outputs"][-1], summarized=False
                 )  # TODO: add token limitations
                 relevant_memory_tokens = self.token_counter(relevant_memory)
                 memory_message = SystemMessage(content=relevant_memory)
