@@ -1,9 +1,9 @@
 # The command that runs the program. If the interpreter field is set, it will have priority and this run command will do nothing
-run = "python3 main.py"
+run = "python3 .replit_config/main.py"
 
 # The primary language of the repl. There can be others, though!
 language = "python3"
-entrypoint = "main.py"
+entrypoint = ".replit_config/main.py"
 # A list of globs that specify which files and directories should
 # be hidden in the workspace.
 hidden = ["venv", ".config", "**/__pycache__", "**/.mypy_cache", "**/*.pyc"]
@@ -45,7 +45,7 @@ support = true
   # How to start the debugger.
   [debugger.interactive]
   transport = "localhost:0"
-  startCommand = ["dap-python", "main.py"]
+  startCommand = ["dap-python", ".replit_config/main.py"]
 
     # How to communicate with the debugger.
     [debugger.interactive.integratedAdapter]
@@ -105,4 +105,4 @@ pattern = "**/*.py"
 start = "pylsp"
 
 [deployment]
-run = ["sh", "-c", "python3 main.py"]
+run = ["sh", "-c", "python3 .replit_config/main.py"]

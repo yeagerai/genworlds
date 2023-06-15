@@ -1,5 +1,5 @@
 [tool.poetry]
-name = "python-template"
+name = "genworlds"
 version = "0.1.0"
 description = ""
 authors = ["Your Name <you@example.com>"]
@@ -18,11 +18,13 @@ prompt-toolkit="3.0.38"
 pydantic="1.10.7"
 python-dotenv="1.0.0"
 qdrant-client="1.2.0"
+setuptools="67.8.0"
 threadpoolctl="3.1.0"
 tiktoken="0.4.0"
 uvicorn="0.21.1"
 websocket-client="1.5.1"
 websockets="11.0.3"
+websocket = "^0.2.1"
 
 
 [tool.poetry.dev-dependencies]
