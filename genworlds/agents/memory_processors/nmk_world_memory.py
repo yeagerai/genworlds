@@ -125,12 +125,12 @@ class NMKWorldMemory:
                 ),
             },
         )
-        self.events_qdrant_db = Qdrant(
+        self.events_db = Qdrant(
             client=client,
             collection_name="world-events",
             embeddings=self.embeddings_model,
         )
-        self.summarized_events_qdrant_db = Qdrant(
+        self.summarized_events_db = Qdrant(
             client=client,
             collection_name="summarized-world-events",
             embeddings=self.embeddings_model,
@@ -138,16 +138,14 @@ class NMKWorldMemory:
 
     def add_event(self, event, summarize: bool = False):
         self.world_events.append(event)
-        self.events_qdrant_db.add_documents([Document(page_content=event)])
+        self.events_db.add_documents([Document(page_content=event)])
         if summarize:
             self._add_summarized_event(event)
 
     def _add_summarized_event(self, event):
         sum_event = self.one_line_summarizer.summarize(event)
         self.summarized_events.append(json.loads(event)["created_at"] + " " + sum_event)
-        self.summarized_events_qdrant_db.add_documents(
-            [Document(page_content=sum_event)]
-        )
+        self.summarized_events_db.add_documents([Document(page_content=sum_event)])
 
     def create_full_summary(self):
         self.full_summary = self.full_event_stream_summarizer.summarize(
