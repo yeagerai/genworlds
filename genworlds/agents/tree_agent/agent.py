@@ -10,11 +10,10 @@ from typing import List, Optional
 from pydantic import ValidationError
 from jsonschema import validate
 
-import chromadb
 from langchain.tools import StructuredTool
 from langchain.tools.human.tool import HumanInputRun
 from langchain.vectorstores.base import VectorStoreRetriever
-from langchain.vectorstores import Chroma
+from langchain.vectorstores import Qdrant
 from langchain.embeddings import OpenAIEmbeddings
 from langchain.schema import (
     AIMessage,
@@ -106,22 +105,15 @@ class TreeAgent:
         self.full_message_history: List[BaseMessage] = []
         self.next_action_count = 0
         self.feedback_tool = None  # HumanInputRun() if human_in_the_loop else None
-        self.schemas_memory: Chroma
+        self.schemas_memory: Qdrant
         self.plan: Optional[str] = None
 
         self.embeddings_model = OpenAIEmbeddings(openai_api_key=openai_api_key)
         self.personality_db_path = personality_db_path
         if self.personality_db_path:
-            client_settings = chromadb.config.Settings(
-                chroma_db_impl="duckdb+parquet",
-                persist_directory=self.personality_db_path,
-                anonymized_telemetry=False,
-            )
-
-            self.personality_db = Chroma(
+            self.personality_db = Qdrant(
                 collection_name=personality_db_collection_name,
                 embedding_function=self.embeddings_model,
-                client_settings=client_settings,
                 persist_directory=self.personality_db_path,
             )
 
@@ -153,8 +145,10 @@ class TreeAgent:
             nearby_entities = self.listening_antenna.get_nearby_entities()
 
             if len(nearby_entities) > 0:
-                nearby_entities_store = Chroma.from_texts(
-                    list(map(json.dumps, nearby_entities)), self.embeddings_model
+                nearby_entities_store = Qdrant.from_texts(
+                    list(map(json.dumps, nearby_entities)),
+                    self.embeddings_model,
+                    location=":memory:",
                 )
 
                 if self.plan:

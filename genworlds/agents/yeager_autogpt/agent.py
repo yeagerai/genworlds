@@ -10,14 +10,15 @@ from pydantic import ValidationError
 
 from jsonschema import validate
 
-import faiss
 from langchain.chat_models import ChatOpenAI
-from langchain.vectorstores import FAISS
 from langchain.docstore import InMemoryDocstore
 from langchain.tools import StructuredTool
 from langchain.tools.human.tool import HumanInputRun
 from langchain.vectorstores.base import VectorStoreRetriever
-from langchain.vectorstores import Chroma
+
+from langchain.vectorstores import Qdrant
+from genworlds.agents.memory_processors.nmk_world_memory import NMKWorldMemory
+
 from langchain.embeddings import OpenAIEmbeddings
 from langchain.chains.llm import LLMChain
 from langchain.schema import (
@@ -46,8 +47,6 @@ from genworlds.events.basic_events import (
     EntityRequestWorldStateUpdateEvent,
 )
 from genworlds.utils.logging_factory import LoggingFactory
-
-import chromadb
 
 
 class YeagerAutoGPT:
@@ -94,14 +93,12 @@ class YeagerAutoGPT:
         self.actions = []
 
         # Brain properties
-        self.memory_summarizer = MemorySummarizer(openai_api_key=openai_api_key)
-        self.embeddings_model = OpenAIEmbeddings(openai_api_key=openai_api_key)
-        embedding_size = 1536
-        index = faiss.IndexFlatL2(embedding_size)
-        vectorstore = FAISS(
-            self.embeddings_model.embed_query, index, InMemoryDocstore({}), {}
+        self.nmk_world_memory = NMKWorldMemory(
+            openai_api_key=openai_api_key,
+            n_of_last_events=10,
+            n_of_similar_events=0,
+            n_of_paragraphs_in_summary=3,
         )
-        self.memory = vectorstore.as_retriever()
 
         llm = ChatOpenAI(openai_api_key=openai_api_key, model_name="gpt-4")
         prompt = AutoGPTPrompt(
@@ -128,21 +125,14 @@ class YeagerAutoGPT:
         self.next_action_count = 0
         self.output_parser = AutoGPTOutputParser()
         self.feedback_tool = None  # HumanInputRun() if human_in_the_loop else None
-        self.schemas_memory: Chroma
+        self.schemas_memory: Qdrant
         self.plan: Optional[str] = None
 
         self.personality_db_path = personality_db_path
         if self.personality_db_path:
-            client_settings = chromadb.config.Settings(
-                chroma_db_impl="duckdb+parquet",
-                persist_directory=self.personality_db_path,
-                anonymized_telemetry=False,
-            )
-
-            self.personality_db = Chroma(
+            self.personality_db = Qdrant(
                 collection_name=personality_db_collection_name,
                 embedding_function=self.embeddings_model,
-                client_settings=client_settings,
                 persist_directory=self.personality_db_path,
             )
             # self.personality_db.persist()
@@ -166,7 +156,7 @@ class YeagerAutoGPT:
             nearby_entities = self.listening_antenna.get_nearby_entities()
 
             if len(nearby_entities) > 0:
-                nearby_entities_store = Chroma.from_texts(
+                nearby_entities_store = Qdrant.from_texts(
                     list(map(json.dumps, nearby_entities)), self.embeddings_model
                 )
 

@@ -5,7 +5,7 @@ colorlog==6.7.0
 fastapi==0.88.0
 fastjsonschema==2.16.3
 jsonschema==4.17.3
-langchain==0.0.157
+langchain==0.0.200
 openai==0.27.4
 prompt-toolkit==3.0.38
 pydantic==1.10.7
