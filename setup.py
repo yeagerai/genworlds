@@ -8,7 +8,6 @@ setup(
     author_email="jm@yeager.ai",
     packages=["genworlds", "genworlds.sockets"],
     install_requires=[
-        "python==3.11",
         "click==8.1.3",
         "colorama==0.4.6",
         "colorlog==6.7.0",

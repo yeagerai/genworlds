@@ -1,21 +1,18 @@
-import os
-import chromadb
-from dotenv import load_dotenv
-from langchain.vectorstores import Chroma, Qdrant
-from langchain.embeddings import OpenAIEmbeddings
-from qdrant_client.http import models as rest
-from qdrant_client import QdrantClient
-
-load_dotenv(dotenv_path=".env")
-openai_api_key = os.getenv("OPENAI_API_KEY")
-
-ABS_PATH = os.path.dirname(os.path.abspath(__file__))
-
 # DB migration
-
-
-
 def run_chroma_to_qdrant_migration(collections: list[str], chroma_db_path: str, qdrant_db_path: str):
+    import os
+    import chromadb
+    from dotenv import load_dotenv
+    from langchain.vectorstores import Chroma, Qdrant
+    from langchain.embeddings import OpenAIEmbeddings
+    from qdrant_client.http import models as rest
+    from qdrant_client import QdrantClient
+
+    load_dotenv(dotenv_path=".env")
+    openai_api_key = os.getenv("OPENAI_API_KEY")
+
+    ABS_PATH = os.path.dirname(os.path.abspath(__file__))
+
     embeddings_model = OpenAIEmbeddings(openai_api_key=openai_api_key)
 
     qdrant_client = QdrantClient(path=qdrant_db_path)

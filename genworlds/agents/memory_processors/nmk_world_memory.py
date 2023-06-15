@@ -128,12 +128,12 @@ class NMKWorldMemory:
         self.events_db = Qdrant(
             client=client,
             collection_name="world-events",
-            embedding_function=self.embeddings_model.embed_query,
+            embeddings=self.embeddings_model,
         )
         self.summarized_events_db = Qdrant(
             client=client,
             collection_name="summarized-world-events",
-            embedding_function=self.embeddings_model.embed_query,
+            embeddings=self.embeddings_model,
         )
 
     def add_event(self, event, summarize: bool = False):

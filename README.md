@@ -45,7 +45,7 @@ Before installing the package with pip, you need to set up your conda environmen
 First, set up a new conda environment:
 
 ```bash
-conda create -n genworlds python=3.10
+conda create -n genworlds python=3.11
 conda activate genworlds
 ```
 
@@ -226,7 +226,9 @@ As the framework is in alpha, expect large changes to the codebase.
 
 ## Building locally
 
-`pip install -r requirements.txt`
+```bash
+pip install -r requirements.txt
+```
 
 # Running locally for development
 

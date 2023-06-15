@@ -114,7 +114,7 @@ class TreeAgent:
         if self.personality_db_qdrant_client:
             self.personality_db = Qdrant(
                 collection_name=personality_db_collection_name,
-                embedding_function=self.embeddings_model.embed_query,
+                embeddings=self.embeddings_model,
                 client=self.personality_db_qdrant_client,
             )
             
