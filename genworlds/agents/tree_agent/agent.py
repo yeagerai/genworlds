@@ -10,11 +10,10 @@ from typing import List, Optional
 from pydantic import ValidationError
 from jsonschema import validate
 
-import chromadb
 from langchain.tools import StructuredTool
 from langchain.tools.human.tool import HumanInputRun
 from langchain.vectorstores.base import VectorStoreRetriever
-from langchain.vectorstores import Chroma
+from langchain.vectorstores import Qdrant
 from langchain.embeddings import OpenAIEmbeddings
 from langchain.schema import (
     AIMessage,
@@ -42,7 +41,6 @@ class TreeAgent:
 
     world_spawned_id: str
     personality_db = None
-
 
     def __init__(
         self,
@@ -94,10 +92,10 @@ class TreeAgent:
 
         # Brain properties
         self.nmk_world_memory = NMKWorldMemory(
-            openai_api_key=openai_api_key, 
-            n_of_last_events=10, 
-            n_of_similar_events=0, 
-            n_of_paragraphs_in_summary=3
+            openai_api_key=openai_api_key,
+            n_of_last_events=10,
+            n_of_similar_events=0,
+            n_of_paragraphs_in_summary=3,
         )
 
         self.navigation_brain = navigation_brain
@@ -107,22 +105,15 @@ class TreeAgent:
         self.full_message_history: List[BaseMessage] = []
         self.next_action_count = 0
         self.feedback_tool = None  # HumanInputRun() if human_in_the_loop else None
-        self.schemas_memory: Chroma
+        self.schemas_memory: Qdrant
         self.plan: Optional[str] = None
 
         self.embeddings_model = OpenAIEmbeddings(openai_api_key=openai_api_key)
         self.personality_db_path = personality_db_path
         if self.personality_db_path:
-            client_settings = chromadb.config.Settings(
-                chroma_db_impl="duckdb+parquet",
-                persist_directory=self.personality_db_path,
-                anonymized_telemetry=False,
-            )
-
-            self.personality_db = Chroma(
+            self.personality_db = Qdrant(
                 collection_name=personality_db_collection_name,
                 embedding_function=self.embeddings_model,
-                client_settings=client_settings,
                 persist_directory=self.personality_db_path,
             )
 
@@ -138,7 +129,7 @@ class TreeAgent:
         sleep(5)
 
         while True:
-            # If there are any relevant events in the world for this agent, add them to memory           
+            # If there are any relevant events in the world for this agent, add them to memory
             last_events = self.listening_antenna.get_last_events()
             self.logger.debug(f"Last events: {last_events}")
             for event in last_events:
@@ -154,8 +145,10 @@ class TreeAgent:
             nearby_entities = self.listening_antenna.get_nearby_entities()
 
             if len(nearby_entities) > 0:
-                nearby_entities_store = Chroma.from_texts(
-                    list(map(json.dumps, nearby_entities)), self.embeddings_model
+                nearby_entities_store = Qdrant.from_texts(
+                    list(map(json.dumps, nearby_entities)),
+                    self.embeddings_model,
+                    location=":memory:",
                 )
 
                 if self.plan:
@@ -267,7 +260,7 @@ class TreeAgent:
                 self.logger.info(f"Failed to parse navigation plan: {navigation_plan}")
                 navigation_plan_parsed = {
                     "plan": self.plan,
-                    "next_action": "Self:wait", # TODO: does this make sense?
+                    "next_action": "Self:wait",  # TODO: does this make sense?
                     "goal": "Failed to select a valid action, waiting...",
                 }
 
@@ -351,9 +344,7 @@ class TreeAgent:
                             "Event at: " + event_sent["created_at"] + "\n"
                         )
                         event_sent_summary += (
-                            "What happened: "
-                            + str(event_sent["summary"])
-                            + "\n"
+                            "What happened: " + str(event_sent["summary"]) + "\n"
                         )
 
                         result += event_sent_summary
@@ -374,7 +365,7 @@ class TreeAgent:
             self.logger.info(result)
 
             self.full_message_history.append(SystemMessage(content=result))
-            
+
             # Allow events to be processed
             sleep(3)
 
@@ -419,7 +410,7 @@ class TreeAgent:
             return f"Validation Error in args: {str(e)}, args: {args}"
         except Exception as e:
             return f"Error: {str(e)}, {type(e).__name__}, args: {args}"
-        
+
     def agent_request_world_state_update_action(self):
         agent_request_world_state_update = EntityRequestWorldStateUpdateEvent(
             created_at=datetime.now(),

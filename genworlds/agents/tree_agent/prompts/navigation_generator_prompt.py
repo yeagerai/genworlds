@@ -11,7 +11,7 @@ from langchain.prompts.chat import (
 from langchain.schema import BaseMessage, HumanMessage, SystemMessage
 from langchain.tools.base import BaseTool
 from langchain.vectorstores.base import VectorStoreRetriever
-from langchain.vectorstores import Chroma
+from langchain.vectorstores import Qdrant
 
 from genworlds.agents.memory_processors.nmk_world_memory import NMKWorldMemory
 
@@ -109,7 +109,7 @@ class NavigationGeneratorPrompt(BaseChatPromptTemplate, BaseModel):
             messages.append(plan_message)
             used_tokens += len(plan_message.content)
 
-        personality_db: Chroma = kwargs["personality_db"]
+        personality_db: Qdrant = kwargs["personality_db"]
         if personality_db is not None:
             past_statements = list(
                 map(

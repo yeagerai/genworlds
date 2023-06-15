@@ -7,7 +7,6 @@ from genworlds.agents.tree_agent.prompts.execution_generator_prompt import (
     ExecutionGeneratorPrompt,
 )
 
-from langchain.vectorstores import Chroma
 from langchain.schema import BaseRetriever
 
 
@@ -62,8 +61,8 @@ class ZeroShotBrain(Brain):
 
         if self.verbose:
             print("Generated: " + response)
-        
+
         return response
 
-    def run(self, llm_params: dict):        
-        return  self.gen_thoughts(llm_params)
+    def run(self, llm_params: dict):
+        return self.gen_thoughts(llm_params)

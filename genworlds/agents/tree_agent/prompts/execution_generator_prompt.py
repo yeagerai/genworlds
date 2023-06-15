@@ -7,7 +7,7 @@ from pydantic import BaseModel
 from langchain.schema import BaseMessage, HumanMessage, SystemMessage
 from langchain.tools.base import BaseTool
 from langchain.vectorstores.base import VectorStoreRetriever
-from langchain.vectorstores import Chroma
+from langchain.vectorstores import Qdrant
 from langchain.prompts.chat import (
     BaseChatPromptTemplate,
 )
@@ -121,7 +121,7 @@ class ExecutionGeneratorPrompt(BaseChatPromptTemplate, BaseModel):
             used_tokens += len(plan_message.content)
 
         if "personality_db" in kwargs and kwargs["personality_db"] is not None:
-            personality_db: Chroma = kwargs["personality_db"]
+            personality_db: Qdrant = kwargs["personality_db"]
             past_statements = list(
                 map(
                     lambda d: d.page_content,

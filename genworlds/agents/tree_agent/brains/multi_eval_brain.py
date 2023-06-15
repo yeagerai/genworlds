@@ -7,13 +7,13 @@ from genworlds.agents.tree_agent.prompts.execution_generator_prompt import (
     ExecutionGeneratorPrompt,
 )
 
-from langchain.vectorstores import Chroma
 from langchain.schema import BaseRetriever
 
 
 class MultiEvalBrain(Brain):
     """This brain generates a number of thoughts, and passes them to the evaluator one by one to be rated.
-    It then selects the highest rated thought and returns it, or None if no thought was rated above the threshold."""
+    It then selects the highest rated thought and returns it, or None if no thought was rated above the threshold.
+    """
 
     def __init__(
         self,

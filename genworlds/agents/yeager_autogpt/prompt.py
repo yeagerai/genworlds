@@ -11,7 +11,7 @@ from langchain.prompts.chat import (
 from langchain.schema import BaseMessage, HumanMessage, SystemMessage
 from langchain.tools.base import BaseTool
 from langchain.vectorstores.base import VectorStoreRetriever
-from langchain.vectorstores import Chroma
+from langchain.vectorstores import Qdrant
 
 
 class AutoGPTPrompt(BaseChatPromptTemplate, BaseModel):
@@ -96,7 +96,7 @@ class AutoGPTPrompt(BaseChatPromptTemplate, BaseModel):
         messages.append(relevant_commands_message)
         used_tokens += self.token_counter(relevant_commands_message.content)
 
-        personality_db: Chroma = kwargs["personality_db"]
+        personality_db: Qdrant = kwargs["personality_db"]
         if personality_db is not None:
             previous_messages = kwargs["messages"]
             past_statements = list(

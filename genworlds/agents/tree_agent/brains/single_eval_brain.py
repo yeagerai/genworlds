@@ -7,7 +7,6 @@ from genworlds.agents.tree_agent.prompts.execution_generator_prompt import (
     ExecutionGeneratorPrompt,
 )
 
-from langchain.vectorstores import Chroma
 from langchain.schema import BaseRetriever
 
 
@@ -89,7 +88,7 @@ class SingleEvalBrain(Brain):
 
         if self.verbose:
             print("Generated: " + response)
-        
+
         return response
 
     def eval_thoughts(
@@ -104,14 +103,14 @@ class SingleEvalBrain(Brain):
 
         if self.verbose:
             print("Evaluated: " + response)
-        
+
         return response
 
-    def run(self, llm_params: dict):        
+    def run(self, llm_params: dict):
         thoughts = self.gen_thoughts("", self.n_of_thoughts, llm_params)
         if self.n_of_thoughts == 1:
             return thoughts.strip().removeprefix("- ")
 
         best_thought = self.eval_thoughts(thoughts, llm_params)
-        
+
         return best_thought
