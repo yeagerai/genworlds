@@ -3,15 +3,16 @@ from dotenv import load_dotenv
 import concurrent.futures
 
 from qdrant_client import QdrantClient
+from langchain.chains.openai_functions.utils import get_llm_kwargs
+from langchain.output_parsers.openai_functions import JsonKeyOutputFunctionsParser
+
 from genworlds.agents.tree_agent.brains.single_eval_brain import SingleEvalBrain
 from genworlds.agents.tree_agent.prompts.execution_generator_prompt import ExecutionGeneratorPrompt
 from genworlds.agents.tree_agent.prompts.navigation_generator_prompt import NavigationGeneratorPrompt
 
-
 from genworlds.simulation.simulation import Simulation
 from genworlds.agents.tree_agent.agent import TreeAgent
 from genworlds.worlds.world_2d.world_2d import World2D
-from use_cases.roundtable.migrations.chroma_to_qdrant_migration import run_chroma_to_qdrant_migration
 from use_cases.roundtable.objects.microphone import Microphone
 
 thread_pool_ref = concurrent.futures.ThreadPoolExecutor
@@ -24,6 +25,25 @@ ABS_PATH = os.path.dirname(os.path.abspath(__file__))
 personality_db_qdrant_client = QdrantClient(path=os.path.join(ABS_PATH, "databases/all_in_summaries_qdrant"))
 
 def navigation_brain_factory(name, background, personality):
+    navigation_function = {
+        "name": "select_next_action",
+        "description": "Selects which will be the next action for the agent based on previous context.",
+        "parameters": {
+            "type": "object",
+            "properties": {
+                "rationale": {"type": "string"},
+                "next_action": {"type": "string", 
+                                "enum":[
+                                    "wait",
+                                    "agent_speaks_into_microphone",
+                                    "agent_gives_object_to_agent_event" # all the events that the agent has access to
+                                ]}
+            },
+            "required": ["rationale", "next_action"],
+        },
+    }
+    llm_kwargs = get_llm_kwargs(navigation_function)
+    output_parser = JsonKeyOutputFunctionsParser(key_name="next_action")
     return SingleEvalBrain(
         openai_api_key=openai_api_key,
         prompt_template_class=NavigationGeneratorPrompt,
@@ -38,6 +58,8 @@ def navigation_brain_factory(name, background, personality):
             "relevant_commands",
             "messages",
         ],
+        llm_kwargs=llm_kwargs,
+        output_parser=output_parser,
         n_of_thoughts=3,
         generator_role_prompt=
 f"""

@@ -8,6 +8,7 @@ from genworlds.agents.tree_agent.prompts.execution_generator_prompt import (
 )
 
 from langchain.schema import BaseRetriever
+from langchain.output_parsers.openai_functions import JsonKeyOutputFunctionsParser
 
 
 class SingleEvalBrain(Brain):
@@ -23,6 +24,8 @@ class SingleEvalBrain(Brain):
         evaluator_role_prompt: str,
         evaluator_results_prompt: str,
         n_of_thoughts: int,
+        llm_kwargs: Optional[dict[str, str]] = None,
+        output_parser: Optional[JsonKeyOutputFunctionsParser] = None,
         model_name="gpt-4",
         temperature=0.7,
         verbose=False,
@@ -51,12 +54,20 @@ class SingleEvalBrain(Brain):
             ai_role=dedent(generator_role_prompt),
             response_instruction=dedent(generator_results_prompt),
         )
-
-        self.gen_llm_chain = LLMChain(
-            prompt=self.gen_prompt,
-            llm=llm,
-            verbose=verbose,
-        )
+        if llm_kwargs and output_parser:
+            self.gen_llm_chain = LLMChain(
+                prompt=self.gen_prompt,
+                llm=llm,
+                llm_kwargs=llm_kwargs,
+                output_parser=output_parser,
+                verbose=verbose,
+            )
+        else:
+            self.gen_llm_chain = LLMChain(
+                prompt=self.gen_prompt,
+                llm=llm,
+                verbose=verbose,
+            )
         self.eval_prompt = prompt_template_class(
             token_counter=llm.get_num_tokens,
             input_variables=[

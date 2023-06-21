@@ -86,10 +86,10 @@ genworlds-start-chat-room
 Then in another terminal run the example:
 
 ```bash
-python use_cases/roundtable/world_setup_n_launch.py
+python use_cases/roundtable/world_setup_tot.py
 ```
 
-See (use_cases/roundtable/world_setup_n_launch.py) for the code.
+See (use_cases/roundtable/world_setup_tot.py) for the code.
 
 # Usage in your own project
 Importing the framework:
