@@ -62,13 +62,13 @@ class NavigationGeneratorPrompt(BaseChatPromptTemplate, BaseModel):
             messages.append(previous_thoughts_message)
             used_tokens += self.token_counter(previous_thoughts_message.content)
 
-        # time_prompt = SystemMessage(
-        #     content=f"The current time and date is {time.strftime('%c')}"
-        # )
-        # messages.append(time_prompt)
-        # used_tokens = self.token_counter(base_prompt.content) + self.token_counter(
-        #     time_prompt.content
-        # )
+        time_prompt = SystemMessage(
+            content=f"The current time and date is {time.strftime('%c')}"
+        )
+        messages.append(time_prompt)
+        used_tokens = self.token_counter(base_prompt.content) + self.token_counter(
+            time_prompt.content
+        )
 
         inventory = kwargs["inventory"]
         inventory_prompt = f"## Inventory:\n"
@@ -93,7 +93,7 @@ class NavigationGeneratorPrompt(BaseChatPromptTemplate, BaseModel):
         used_tokens += self.token_counter(nearby_entities_message.content)
 
         if "relevant_commands" in kwargs and len(kwargs["relevant_commands"]) > 0:
-            relevant_commands = kwargs["relevant_commands"]
+            relevant_commands =  map(lambda c: c["string_short"], kwargs["relevant_commands"].values())
             relevant_commands_prompt = (
                 f"You can perform the following actions with the entities nearby:\n"
             )
@@ -104,7 +104,7 @@ class NavigationGeneratorPrompt(BaseChatPromptTemplate, BaseModel):
             used_tokens += self.token_counter(relevant_commands_message.content)
 
         if "plan" in kwargs and kwargs["plan"] is not None:
-            plan: Optional[str] = kwargs["plan"]
+            plan = "\n".join([f"{i+1}. {goal}" for i, goal in enumerate(kwargs["plan"])]) 
             plan_message = SystemMessage(content=f"## Your Previous Plan:\n{plan}")
             messages.append(plan_message)
             used_tokens += len(plan_message.content)
