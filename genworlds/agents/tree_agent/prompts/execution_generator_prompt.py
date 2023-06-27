@@ -75,13 +75,13 @@ class ExecutionGeneratorPrompt(BaseChatPromptTemplate, BaseModel):
             messages.append(previous_brain_outputs_message)
             used_tokens += self.token_counter(previous_brain_outputs_message.content)
 
-        # time_prompt = SystemMessage(
-        #     content=f"The current time and date is {time.strftime('%c')}"
-        # )
-        # messages.append(time_prompt)
-        # used_tokens = self.token_counter(base_prompt.content) + self.token_counter(
-        #     time_prompt.content
-        # )
+        time_prompt = SystemMessage(
+            content=f"The current time and date is {time.strftime('%c')}"
+        )
+        messages.append(time_prompt)
+        used_tokens = self.token_counter(base_prompt.content) + self.token_counter(
+            time_prompt.content
+        )
 
         if "inventory" in kwargs:
             inventory = kwargs["inventory"]
@@ -108,14 +108,15 @@ class ExecutionGeneratorPrompt(BaseChatPromptTemplate, BaseModel):
             used_tokens += self.token_counter(nearby_entities_message.content)
 
         if "command_to_execute" in kwargs:
+            command_to_execute = kwargs["command_to_execute"]["string_full"]
             command_to_execute_message = SystemMessage(
-                content=f"## You have selected the following command to execute:\n{kwargs['command_to_execute']}"
+                content=f"## You have selected the following command to execute:\n{command_to_execute}"
             )
             messages.append(command_to_execute_message)
             used_tokens += len(command_to_execute_message.content)
 
         if "plan" in kwargs:
-            plan = kwargs["plan"]
+            plan = "\n".join([f"{i+1}. {goal}" for i, goal in enumerate(kwargs["plan"])]) 
             plan_message = SystemMessage(content=f"## Your Plan:\n{plan}")
             messages.append(plan_message)
             used_tokens += len(plan_message.content)   

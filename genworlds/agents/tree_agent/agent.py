@@ -154,7 +154,7 @@ class TreeAgent:
 
                 if self.plan:
                     useful_nearby_entities = nearby_entities_store.similarity_search(
-                        self.plan
+                        str(self.plan)
                     )
                 else:
                     useful_nearby_entities = nearby_entities_store.similarity_search(
@@ -194,14 +194,14 @@ class TreeAgent:
                         ]:
                             args[property_name] = property_details
 
-                    command = {
+                    selected_command = {
                         "title": f"{entity['entity_class']}:{event_type}",
                         "description": description,
                         "args": args,
                         "string_short": f"{entity['entity_class']}:{event_type} - {description}",
                         "string_full": f"\"{entity['entity_class']}:{event_type}\" - {description}, args json schema: {json.dumps(args)}",
                     }
-                    relevant_commands[command["title"]] = command
+                    relevant_commands[selected_command["title"]] = selected_command
 
             # Add world
             entity_class = "World"
@@ -224,17 +224,17 @@ class TreeAgent:
                     ]:
                         args[property_name] = property_details
 
-                command = {
+                selected_command = {
                     "title": f"{entity_class}:{event_type}",
                     "description": description,
                     "args": args,
                     "string_short": f"{entity_class}:{event_type} - {description}",
                     "string_full": f'"{entity_class}:{event_type}" - {description}, args json schema: {json.dumps(args)}',
                 }
-                relevant_commands[command["title"]] = command
+                relevant_commands[selected_command["title"]] = selected_command
 
             # Send message to AI, get response
-            navigation_plan = self.navigation_brain.run(
+            navigation_plan_parsed = self.navigation_brain.run(
                 {
                     "goals": self.goals,
                     "messages": self.full_message_history,
@@ -249,21 +249,9 @@ class TreeAgent:
                     "plan": self.plan,
                     "user_input": user_input,
                     "agent_world_state": agent_world_state,
-                    "relevant_commands": list(
-                        map(lambda c: c["string_short"], relevant_commands.values())
-                    ),
+                    "relevant_commands": relevant_commands,
                 }
             )
-
-            try:
-                navigation_plan_parsed = json.loads(navigation_plan)
-            except:
-                self.logger.info(f"Failed to parse navigation plan: {navigation_plan}")
-                navigation_plan_parsed = {
-                    "plan": self.plan,
-                    "next_action": "Self:wait",  # TODO: does this make sense?
-                    "goal": "Failed to select a valid action, waiting...",
-                }
 
             # Print Assistant thoughts
             self.logger.info(navigation_plan_parsed)
@@ -274,7 +262,7 @@ class TreeAgent:
             self.plan = navigation_plan_parsed["plan"]
 
             selected_action = navigation_plan_parsed["next_action"]
-            action_goal_description = navigation_plan_parsed["goal"]
+            action_goal_description = navigation_plan_parsed["next_action_aim"]
 
             result = ""
             event_sent_summary = ""
@@ -290,7 +278,7 @@ class TreeAgent:
                 result += f"Waiting...\n"
             # TODO: tools?
             elif selected_action in relevant_commands:
-                command = relevant_commands[selected_action]
+                selected_command = relevant_commands[selected_action]
 
                 if selected_action in self.action_brain_map:
                     action_brains = self.action_brain_map[selected_action]
@@ -325,18 +313,18 @@ class TreeAgent:
                                 "plan": self.plan,
                                 "user_input": user_input,
                                 "agent_world_state": agent_world_state,
-                                "command_to_execute": command["string_full"],
+                                "command_to_execute": selected_command,
                                 "previous_brain_outputs": previous_brain_outputs,
                             }
                         )
                     )
                 final_brain_output = previous_brain_outputs[-1]
                 try:
-                    args = json.loads(final_brain_output)
+                    args = final_brain_output
 
                     if type(args) == dict:
                         event_sent = self.execute_event_with_args(
-                            command["title"], args
+                            selected_command["title"], args
                         )
                         self.nmk_world_memory.add_event(
                             json.dumps(event_sent), summarize=True
@@ -354,9 +342,9 @@ class TreeAgent:
 
                 except Exception as e:
                     self.logger.error(
-                        f"Problem executing command with {command['title']} with output {final_brain_output}: {e}\n"
+                        f"Problem executing command with {selected_command['title']} with output {final_brain_output}: {e}\n"
                     )
-                    result += f"Problem executing command with {command['title']} with output {final_brain_output}: {e}\n"
+                    result += f"Problem executing command with {selected_command['title']} with output {final_brain_output}: {e}\n"
             else:
                 self.logger.info(f"Invalid command: {selected_action}")
                 result += f"Error: {selected_action} is not recognized. \n"
