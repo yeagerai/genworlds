@@ -39,7 +39,6 @@ def render_main_screen(cli: interfaces.CLI):
             focusable=True,
             input_processors=[FormatText()],
         ),
-        wrap_lines=True,
         right_margins=[ScrollbarMargin(display_arrows=True)],
     )
     prompt_buffer = Window(height=1)  # TODO: Create a reasonable prompt_buffer
