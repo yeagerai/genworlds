@@ -8,6 +8,7 @@ from prompt_toolkit.widgets import MenuContainer, MenuItem
 from prompt_toolkit.layout import WindowAlign
 from prompt_toolkit.layout.dimension import D
 from prompt_toolkit.keys import Keys
+from prompt_toolkit.layout.margins import ScrollbarMargin
 
 import genworlds.interfaces as interfaces
 from genworlds.interfaces.cli.render_help_screen import render_help_screen
@@ -39,6 +40,7 @@ def render_main_screen(cli: interfaces.CLI):
             input_processors=[FormatText()],
         ),
         wrap_lines=True,
+        right_margins=[ScrollbarMargin(display_arrows=True)],
     )
     prompt_buffer = Window(height=1)  # TODO: Create a reasonable prompt_buffer
     main_container = HSplit(
