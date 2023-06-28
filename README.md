@@ -34,12 +34,18 @@ The current version of GenWorlds is powered by [OpenAI's GPT4](https://openai.co
 
 - ⚡ **Scalability:** Benefit from threading and WebSocket communication for real-time interaction between agents, ensuring the platform can easily scale up as your needs grow.
 
-# Requirements
+# Running on Replit
 
-Currently it needs to be run in a [Conda](https://docs.conda.io/en/latest/) environment, because some of the dependencies can only be installed with conda.
+The easiest way to get started with the Genworlds framework is on Replit.
 
-# Installation
-## Conda
+Simply go [here]() and clone the the project, and start playing around.
+
+# Running locally
+## Requirements
+
+Currently the framework needs to be run in a [Conda](https://docs.conda.io/en/latest/) environment, because some of the dependencies can only be installed with conda.
+## Installation
+### Conda
 Before installing the package with pip, you need to set up your conda environment.
 
 First, set up a new conda environment:
@@ -51,7 +57,7 @@ conda activate genworlds
 
 Then, install the following dependencies:
 
-### On Windows
+#### On Windows
 
 You also need to install [Faiss](https://github.com/facebookresearch/faiss)
 
@@ -59,7 +65,7 @@ You also need to install [Faiss](https://github.com/facebookresearch/faiss)
 conda install -c conda-forge faiss-cpu
 ```
 
-### On Mac OS
+#### On Mac OS
 
 ```bash
 conda install scipy
@@ -67,7 +73,7 @@ conda install scikit-learn
 conda install -c pytorch faiss-cpu
 ```
 
-## Pip
+### Pip
 
 After that, you can use pip to install the package:
 
@@ -75,12 +81,14 @@ After that, you can use pip to install the package:
 pip install genworlds
 ```
 
-# Run the Rountable example
+## Run the Rountable example
 
 Start the websocket server and the CLI:
 
 ```bash
-genworlds-start-chat-room
+genworlds-socket-server
+genworlds-cli
+
 ```
 
 Then in another terminal run the example:
@@ -91,7 +99,7 @@ python use_cases/roundtable/world_setup_tot.py
 
 See (use_cases/roundtable/world_setup_tot.py) for the code.
 
-# Usage in your own project
+## Usage in your own project
 Importing the framework:
 
 ```bash
@@ -103,120 +111,19 @@ See examples for more details.
 Before running a simulation, you also need to run the websocket server that will be used for communication between the agents and the world. And also the CLI to visualize what the simulated agents are doing.
 
 ```bash
-genworlds-start-chat-room
+genworlds-socket-server
 ```
 
 The default port is 7456, but you can change it with the `--port` argument.
 You can also set the host with the `--host` argument.
 
 ```bash
-genworlds-start-chat-room --port 1234 --host 0.0.0.0
+genworlds-socket-server --port 1234 --host 0.0.0.0
 ```
 
-## Set up a simulations
+# Documentation
 
-A simulation consists of a world, a set of agents, and a set of objects.
-
-```python
-simulation = Simulation(
-    name="roundtable",
-    description="This is a podcast studio. There is a microphone, and only the holder of the microphone can speak to the audience",
-    world=world,
-    objects=[
-        (microphone, {"held_by": podcast_host.id}),
-    ],
-    agents=[
-        (podcast_host, {"location": "roundtable"}),
-        (podcast_guest, {"location": "roundtable"}),
-    ],
-)
-```
-
-Running `simulation.launch()` will start the simulation - start all of the threads for the agents, objects and world.
-
-## World
-The 'World' in GenWorlds serves as the setting for all the action. It keeps track of all the agents, objects, and world properties such as agent inventories. 
-
-The World ensures every agent is informed about the world state, entities nearby, and the events that are available to them to interact with the world.
-
-The BaseWorld class has been designed with extensibility in mind, enabling the introduction of new world properties. An example of this is the World2D class in our examples, which introduces a location property, adding a spatial dimension to the world.
-
-```python
-world = World2D(
-    id="world",
-    name="roundtable",
-    description="This is a podcast studio, where you record the Roundtable podcast. There is a microphone, and only the holder of the microphone can speak to the audience",
-    locations=["roundtable"],
-)
-```
-
-## Agents
-
-Agents are the entities that interact with the world. They have a set of goals and try to accomplish them by planning a series of actions.
-
-The agents interact with their environment by sending events through a WebSocket server initiated by the world. They dynamically learn about the world and the objects around them, figuring out how to utilize these objects to achieve their goals.
-
-```python
-podcast_host = YeagerAutoGPT(
-    id="maria",
-    ai_name="Maria",
-    description="The host of the podcast",
-    goals=[(
-        "Host an episode of the Roundtable podcast, discussing AI technology. \n",
-        "Only the holder of the microphone can speak to the audience, if you don't have the microphone in your inventory, wait to receive it from the previous speaker. \n",
-        "Don't repeat yourself, respond to questions and points made by other co-hosts to advance the conversation. \n",
-        "Don't hog the microphone for a long time, make sure to give it to other participants. \n",
-    )],
-    openai_api_key=openai_api_key,
-    interesting_events={"agent_speaks_into_microphone", "agent_gives_object_to_agent_event"},
-)
-```
-
-`interesting_events` are the events that will be fed to the agent's prompt, allowing them to pay attention to things that are happening in the world.
-
-### Custom memories 
-
-Each agent can be pre-loaded with unique memories, enhancing its unique personality traits and subject matter expertise. These memories are injected on their prompts based on their relevance to the agent's current goals, allowing for more focused and reliable interactions.
-
-Setting up these custom memories is straightforward with the [Chroma](https://www.trychroma.com/) vector database. Just pass the following parameters to the agent constructor:
-
-```python
-personality_db_path="/path/to/db",
-personality_db_collection_name="jimmy-sentences",
-```
-
-### Agent Mental Model
-
-The Generative Agents within GenWorlds follow a specific mental model at each step of their interaction with the world:
-
-1. **Reviewing the world state and surrounding entities:** The agent assesses the environment it's in and the entities present around it to understand the context before planning any actions.
-   
-2. **Reviewing new events:** The agent evaluates any new occurrences. These could be actions taken by other agents or changes in the world state due to object interactions.
-   
-3. **Remembering past events and relevant information:** Using its stored memories, the agent recalls past experiences and data that might affect its current decision-making process.
-   
-4. **Updating the plan and deciding actions:** Based on the world state, new events, and past memories, the agent updates its action plan and decides on the next actions. These could involve interacting with the world, other agents, or objects. Importantly, an agent can execute multiple actions in one step, improving overall efficiency.
-   
-5. **Executing the actions:** Finally, the agent implements its plan, influencing the world state and potentially triggering responses from other agents.
-   
-This interactive process fosters the emergence of complex, autonomous behavior, making each agent an active participant in the GenWorld.
-
-While we are currently focused on enhancing each of these steps, we foresee potential developments in the short-medium term. For instance, we're exploring the value and nature of "reflection" as an aspect of an agent's mental model. This would enable the agent to draw new conclusions from a set of recent memories and maintain high-level goals. We're also considering improvements to the communication systems between agents to facilitate more effective collaboration.
-
-## Objects
-
-Objects are the entities that agents interact with. Each object defines a set of events that the agents can use to interact with them to accomplish their goals.
-
-Agents dynamically learn about nearby objects, and figure out how to use them based on the events that these objects define. Furthermore, objects can be held in an agent's inventory, providing an added layer of interaction.
-
-```python
-microphone = Microphone(
-    id="microphone",
-    name="Microphone",
-    description="A podcast microphone that allows the holder of it to speak to the audience",
-    host=podcast_host.id
-)
-```
+The full documentation can be found at [https://genworlds.netlify.app/]
 
 # Contributing  
 
@@ -226,20 +133,17 @@ As the framework is in alpha, expect large changes to the codebase.
 
 ## Building locally
 
+Clone the repository
+
 ```bash
 pip install -r requirements.txt
 ```
 
-# Running locally for development
-
-Running the socket server server
-
-```bash
-cd genworlds/sockets/
-uvicorn world_socket_server:app --host 0.0.0.0 --port 7456
-```
+### Running in VS Code
 
 The easiest way to run the world is using the Visual Studio Code run configuration.
+
+This will launch all 3 components of the framework - the socket server, the CLI and the example use case - with a debugger attached.
 
 # License
 

@@ -24,17 +24,11 @@ openai_api_key = os.getenv("OPENAI_API_KEY")
 
 ABS_PATH = os.path.dirname(os.path.abspath(__file__))
 
-personality_db_qdrant_client = QdrantClient(path=os.path.join(ABS_PATH, "databases/all_in_summaries_qdrant"))
-
-
-
-
 def load_yaml(yaml_path):
     with open(yaml_path, 'r', encoding='utf-8') as stream:
         yaml_data = yaml.safe_load(stream)
 
     return yaml_data
-
 
 def load_class(class_path):
     module_path, class_name = class_path.rsplit(".", 1)
@@ -63,7 +57,7 @@ def construct_object(data):
 
     return obj, world_properties
 
-def construct_agent(agent_data, base_agent_data):
+def construct_agent(agent_data, base_agent_data, qdrant_client: QdrantClient = None):
     if not isinstance(agent_data, dict):
         raise ValueError("Object must be a dictionary")
     if not isinstance(base_agent_data, dict):
@@ -108,16 +102,19 @@ def construct_world(data):
 
     world_def = data['world']
 
+    # Extnal memories
+    if 'pato_to_external_memory' in world_def and world_def['pato_to_external_memory'] != None:
+        pato_to_external_memory = world_def['pato_to_external_memory']
+        personality_db_qdrant_client = QdrantClient(path=os.path.join(ABS_PATH, path_to_external_memory))
+
     # Construct all objects
     objects = [construct_object(obj) for obj in world_def.get('objects', [])]
 
     # Get the base agent data
     base_agent_data = world_def.get('base_agent', {})
 
-    print( world_def.get('agents', []))
-
     # Construct all agents
-    agents = [construct_agent(agent, base_agent_data) for agent in world_def.get('agents', [])]  # Assuming you have a construct_agent function
+    agents = [construct_agent(agent, base_agent_data, personality_db_qdrant_client) for agent in world_def.get('agents', [])]  # Assuming you have a construct_agent function
 
     # Extract class
     klass = load_class(world_def['class'])

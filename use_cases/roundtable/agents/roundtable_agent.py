@@ -19,6 +19,9 @@ class RoundtableAgent(TreeAgent):
         goals: list[str],
         constraints: list[str],
         evaluation_principles: list[str],
+        personality_db_qdrant_client: QdrantClient = None,
+        personality_db_collection_name: str = None,
+
     ):
         super().__init__(
             id=id,
@@ -75,4 +78,7 @@ class RoundtableAgent(TreeAgent):
                 "World:agent_gives_object_to_agent_event": ["event_filler_brain"],
                 "default": ["event_filler_brain"],
             },
+
+            personality_db_qdrant_client=personality_db_qdrant_client,
+            personality_db_collection_name=personality_db_collection_name,
         )

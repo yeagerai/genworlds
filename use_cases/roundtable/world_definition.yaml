@@ -38,6 +38,8 @@ world_definition:
           - Ask interesting questions that will help the audience understand the topic in depth from different points of view. 
         world_properties: 
           location: roundtable
+        # personality_db_collection_name: maria
+
 
       - id: jimmy
         class: use_cases.roundtable.agents.roundtable_agent.RoundtableAgent
@@ -53,6 +55,7 @@ world_definition:
           - Be engaging, clear and didactical 
         world_properties: 
           location: roundtable
+        # personality_db_collection_name: jimmy
 
     base_agent:
       goals:
