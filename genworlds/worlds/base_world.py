@@ -181,7 +181,7 @@ class BaseWorld(Generic[WorldEntityType], WebsocketEventHandler):
             id=agent.id,
             entity_type=EntityTypeEnum.AGENT,
             entity_class=class_name,
-            name=agent.ai_name,
+            name=agent.name,
             description=agent.description,
             events=self.entity_schemas[class_name],
             **kwargs,
