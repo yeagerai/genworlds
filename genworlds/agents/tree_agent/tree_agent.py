@@ -45,7 +45,7 @@ class TreeAgent:
 
     def __init__(
         self,
-        ai_name: str,
+        name: str,
         description: str,
         goals: List[str],
         openai_api_key: str,
@@ -64,7 +64,7 @@ class TreeAgent:
     ):
         # Its own properties
         self.id = id if id else str(uuid4())
-        self.ai_name = ai_name
+        self.name = name
         self.description = description
         self.goals = goals
         self.interesting_events = interesting_events
@@ -75,7 +75,7 @@ class TreeAgent:
 
         self.is_asleep = False
 
-        self.logger = LoggingFactory.get_logger(self.ai_name)
+        self.logger = LoggingFactory.get_logger(self.name)
 
         self.world_socket_client = WorldSocketClient(
             process_event=None, url=websocket_url
@@ -83,7 +83,7 @@ class TreeAgent:
 
         self.listening_antenna = ListeningAntenna(
             self.interesting_events,
-            agent_name=self.ai_name,
+            agent_name=self.name,
             agent_id=self.id,
             websocket_url=websocket_url,
         )
@@ -119,7 +119,7 @@ class TreeAgent:
             )
             
     def think(self):
-        self.logger.info(f" The agent {self.ai_name} is thinking...")
+        self.logger.info(f" The agent {self.name} is thinking...")
         user_input = (
             "Determine which next command to use, "
             "and respond using the format specified above:"
@@ -430,19 +430,19 @@ class TreeAgent:
     def launch_threads(self):
         threading.Thread(
             target=self.listening_antenna.world_socket_client.websocket.run_forever,
-            name=f"Agent {self.ai_name} Listening Thread",
+            name=f"Agent {self.name} Listening Thread",
             daemon=True,
         ).start()
         sleep(0.1)
         threading.Thread(
             target=self.world_socket_client.websocket.run_forever,
-            name=f"Agent {self.ai_name} Speaking Thread",
+            name=f"Agent {self.name} Speaking Thread",
             daemon=True,
         ).start()
         sleep(0.1)
         threading.Thread(
             target=self.think,
-            name=f"Agent {self.ai_name} Thinking Thread",
+            name=f"Agent {self.name} Thinking Thread",
             daemon=True,
         ).start()
         self.logger.info("Threads launched")
