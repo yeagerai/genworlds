@@ -64,7 +64,7 @@ class RoundtableAgent(TreeAgent):
                     background=background,
                     constraints=constraints,
                     evaluation_principles=evaluation_principles,
-                    n_of_thoughts=3,
+                    n_of_thoughts=1,
                 ),
             },
             action_brain_map={
