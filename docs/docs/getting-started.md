@@ -8,7 +8,11 @@ sidebar_position: 2
 
 The easiest way to get started with the Genworlds framework is on Replit.
 
-Simply go [here]() and clone the the project, and start playing around.
+Simply go [here]() and clone the the project.
+
+You also need to set your OpenAI API key.
+
+After that, you can start playing around with the world setup in the [usecases/rountable/world-definition.yaml] file to try your ideas.
 
 ## Running locally
 
