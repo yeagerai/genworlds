@@ -8,7 +8,7 @@ sidebar_position: 2
 
 The easiest way to get started with the Genworlds framework is on Replit.
 
-Simply go [here]() and clone the the project.
+Simply go [here](https://github.com/yeagerai/genworlds-community) and clone the the project.
 
 You also need to set your OpenAI API key.
 
