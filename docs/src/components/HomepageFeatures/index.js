@@ -4,32 +4,33 @@ import styles from './styles.module.css';
 
 const FeatureList = [
   {
-    title: 'Easy to Use',
-    Svg: require('@site/static/img/undraw_docusaurus_mountain.svg').default,
+    title: 'Customizable Interactive Environments',
+    Svg: require('@site/static/img/openmoji_globe_with_meridians.svg').default,
     description: (
       <>
-        Docusaurus was designed from the ground up to be easily installed and
-        used to get your website up and running quickly.
+        Design unique GenWorld environments, tailored to your project's needs, 
+        filled with interactive objects and potential actions for your agents.
       </>
     ),
   },
   {
-    title: 'Focus on What Matters',
-    Svg: require('@site/static/img/undraw_docusaurus_tree.svg').default,
+    title: 'Goal-Oriented Generative Autonomous Agents',
+    Svg: require('@site/static/img/openmoji_bullseye.svg').default,
     description: (
       <>
-        Docusaurus lets you focus on your docs, and we&apos;ll do the chores. Go
-        ahead and move your docs into the <code>docs</code> directory.
+        Utilize AI agents powered by Langchain that are driven by specific objectives 
+        and can be easily extended and programmed to simulate complex behaviors 
+        and solve intricate problems.
       </>
     ),
   },
   {
-    title: 'Powered by React',
-    Svg: require('@site/static/img/undraw_docusaurus_react.svg').default,
+    title: 'Scalability',
+    Svg: require('@site/static/img/openmoji_high_voltage.svg').default,
     description: (
       <>
-        Extend or customize your website layout by reusing React. Docusaurus can
-        be extended while reusing the same header and footer.
+        Benefit from threading and WebSocket communication for real-time interaction between agents, 
+        ensuring the platform can easily scale up as your needs grow.
       </>
     ),
   },

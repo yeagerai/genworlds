@@ -67,7 +67,7 @@ const config = {
         title: 'GenWorlds',
         logo: {
           alt: 'GenWorlds Logo',
-          src: 'img/logo.svg',
+          src: 'img/logo.png',
         },
         items: [
           {
