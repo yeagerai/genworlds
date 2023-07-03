@@ -1,4 +1,7 @@
 world_definition:
+  base_args:
+    websocket_url: ws://127.0.0.1:7456/ws
+
   world:
     id: world
     class: genworlds.worlds.world_2d.world_2d.World2D
@@ -9,6 +12,7 @@ world_definition:
     locations: 
       - roundtable
     # pato_to_external_memory: ./databases/summaries_qdrant
+
 
     objects:
       - id: mic1

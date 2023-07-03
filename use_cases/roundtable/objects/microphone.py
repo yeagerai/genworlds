@@ -20,11 +20,13 @@ class Microphone(BaseObject):
         description: str,
         host: str,
         id: str = None,
+        websocket_url: str = "ws://127.0.0.1:7456/ws",
     ):
         super().__init__(
             name,
             description,
             id=id,
+            websocket_url=websocket_url,
         )
 
         self.host = host

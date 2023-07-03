@@ -12,12 +12,16 @@ class BaseObject(WebsocketEventHandler):
         name: str,
         description: str,
         id: str = None,
+        websocket_url: str = "ws://127.0.0.1:7456/ws",
     ):
         self.id = id if id else str(uuid4())
         self.name = name
         self.description = description
 
-        super().__init__(self.id)
+        super().__init__(
+            id=self.id,
+            websocket_url=websocket_url,
+        )
         self.register_event_listeners(
             [
                 # (AgentGetsObjectInfoEvent, self.agent_gets_object_info_listener)

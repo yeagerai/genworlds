@@ -13,8 +13,19 @@ class FormatText(Processor):
         return Transformation(fragments)
 
 
-def html_from_json_format(format, content):
-    for el in format.split(" "):
+def html_from_json_format(format, content, max_width=100):
+    new_lines = []
+    while len(content) > max_width:
+        new_lines.append(content[0:max_width])
+        content = content[max_width:]
+    new_lines.append(content)    
+    
+    new_lines_styled = [apply_style(format, line) for line in new_lines]
+
+    return "\n".join(new_lines_styled)
+
+def apply_style(style, content):
+    for el in style.split(" "):
         if el.startswith("fg:"):
             content = f'<style fg="{el[3:]}">{content}</style>'
         elif el.startswith("bg:"):
