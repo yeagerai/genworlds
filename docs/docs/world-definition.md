@@ -10,4 +10,4 @@ It allows anyone without any coding experience to set up and modify the simulati
 
 The `base_agent` properties such as goals are applied to every agent in the world.
 
-Find the world-definition.yaml file at [usecases/roundable/world-definition.yaml]
+Find the world-definition.yaml file at [use_cases/roundable/world-definition.yaml]

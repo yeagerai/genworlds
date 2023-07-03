@@ -38,7 +38,9 @@ The current version of GenWorlds is powered by [OpenAI's GPT4](https://openai.co
 
 The easiest way to get started with the Genworlds framework is on Replit.
 
-Simply go [here]() and clone the the project, and start playing around.
+Simply go to the [Replit Genworlds-Community Fork](https://replit.com/@yeagerai/genworlds-community) and click RUN.
+
+After that, you can fork the project and start playing around with the world setup in the [use_cases/rountable/world-definition.yaml] file to try out your ideas.
 
 # Running locally
 ## Requirements
