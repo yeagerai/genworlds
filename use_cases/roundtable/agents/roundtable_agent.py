@@ -19,6 +19,7 @@ class RoundtableAgent(TreeAgent):
         goals: list[str],
         constraints: list[str],
         evaluation_principles: list[str],
+        websocket_url: str = "ws://127.0.0.1:7456/ws",
     ):
         super().__init__(
             id=id,
@@ -26,6 +27,7 @@ class RoundtableAgent(TreeAgent):
             description=role,
             goals=goals,
             openai_api_key=openai_api_key,
+            websocket_url=websocket_url,
 
 
             interesting_events={

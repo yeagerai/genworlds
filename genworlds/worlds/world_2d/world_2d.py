@@ -22,12 +22,14 @@ class World2D(BaseWorld[WorldEntity2D]):
         description: str,
         locations: list[str],
         id: str = None,
+        websocket_url: str = "ws://127.0.0.1:7456/ws",
     ):
         super().__init__(
             world_entity_constructor=WorldEntity2D,
             name=name,
             description=description,
             id=id,
+            websocket_url=websocket_url,
         )
 
         self.locations = locations
