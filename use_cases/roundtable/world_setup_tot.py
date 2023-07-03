@@ -42,32 +42,32 @@ def load_class(class_path):
     class_ = getattr(module, class_name)
     return class_
 
-def construct_object(data):
-    if not isinstance(data, dict):
+def construct_object(object_data, base_kwargs):
+    if not isinstance(object_data, dict):
         raise ValueError("Object must be a dictionary")
 
     # Extract class
-    klass = load_class(data['class'])
+    cls = load_class(object_data['class'])
 
     # Retrieve the argument names from the constructor
-    arg_names = inspect.getfullargspec(klass.__init__).args
+    arg_names = inspect.getfullargspec(cls.__init__).args
 
     # Filter the dictionary to only include keys that correspond to the class constructor's parameters
-    filtered_data = {k: v for k, v in data.items() if k in arg_names}
+    filtered_data = {k: v for k, v in object_data.items() if k in arg_names}
 
     # Separate out world-specific properties
-    world_properties = data.get('world_properties', {})
+    world_properties = object_data.get('world_properties', {})
 
     # Create the object
-    obj = klass(**filtered_data)
+    obj = cls(**base_kwargs, **filtered_data)
 
     return obj, world_properties
 
-def construct_agent(agent_data, base_agent_data):
+def construct_agent(agent_data, base_agent_data, base_kwargs):
     if not isinstance(agent_data, dict):
-        raise ValueError("Object must be a dictionary")
+        raise ValueError("Agent data must be a dictionary")
     if not isinstance(base_agent_data, dict):
-        raise ValueError("Object must be a dictionary")
+        raise ValueError("Base agent data must be a dictionary")
     
     # Add base agent data
     combined_agent_data = {}
@@ -79,13 +79,11 @@ def construct_agent(agent_data, base_agent_data):
         elif k in base_agent_data and base_agent_data[k] != None:
             combined_agent_data[k] = base_agent_data[k]
 
-    print(combined_agent_data)
-
     # Extract class
-    klass = load_class(combined_agent_data['class'])
+    cls = load_class(combined_agent_data['class'])
 
     # Retrieve the argument names from the constructor
-    arg_names = inspect.getfullargspec(klass.__init__).args
+    arg_names = inspect.getfullargspec(cls.__init__).args
 
     # Filter the dictionary to only include keys that correspond to the class constructor's parameters
     filtered_agent_data = {k: v for k, v in combined_agent_data.items() if k in arg_names}    
@@ -94,9 +92,10 @@ def construct_agent(agent_data, base_agent_data):
     world_properties = combined_agent_data.get('world_properties', {})
 
     # Create the agent
-    agent = klass(
+    agent = cls(
         openai_api_key=openai_api_key,
-        **filtered_agent_data
+        **base_kwargs,
+        **filtered_agent_data,
     )
 
     return agent, world_properties
@@ -105,31 +104,32 @@ def construct_agent(agent_data, base_agent_data):
 def construct_world(data):
     if 'world' not in data:
         raise ValueError("Missing 'world' in data")
+    
+    base_kwargs = data.get('base_args', {})
 
     world_def = data['world']
 
     # Construct all objects
-    objects = [construct_object(obj) for obj in world_def.get('objects', [])]
+    objects = [construct_object(obj, base_kwargs) for obj in world_def.get('objects', [])]
 
     # Get the base agent data
     base_agent_data = world_def.get('base_agent', {})
 
-    print( world_def.get('agents', []))
-
     # Construct all agents
-    agents = [construct_agent(agent, base_agent_data) for agent in world_def.get('agents', [])]  # Assuming you have a construct_agent function
+    agents = [construct_agent(agent, base_agent_data, base_kwargs) for agent in world_def.get('agents', [])]  # Assuming you have a construct_agent function
 
     # Extract class
-    klass = load_class(world_def['class'])
+    cls = load_class(world_def['class'])
 
     # Retrieve the argument names from the constructor
-    arg_names = inspect.getfullargspec(klass.__init__).args
+    arg_names = inspect.getfullargspec(cls.__init__).args
+    print(arg_names)
 
     # Filter the dictionary to only include keys that correspond to the class constructor's parameters
     filtered_world_def = {k: v for k, v in world_def.items() if k in arg_names}
 
     # Construct the world object
-    world = klass(**filtered_world_def)
+    world = cls(**base_kwargs, **filtered_world_def)
 
     # Extract locations
     locations = world_def.get('locations', [])
