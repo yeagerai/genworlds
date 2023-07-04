@@ -10,6 +10,8 @@ class NavigationBrain(SingleEvalBrain):
         name: str,
         role: str,
         background: str,
+        personality: str,
+        topic_of_conversation: str,
         constraints: list[str],
         evaluation_principles: list[str],
         n_of_thoughts: int,
@@ -81,8 +83,14 @@ Example: "Yes, opening the door is valid because I have the key to the door in m
 f"""
 You are {name}, {role}. You need to come up with the next step to get you closer to your goals. It must be consistent with all of the following information:
 
-## Personality
+## Your background
 {background}
+
+## Your personality
+{personality}
+
+## Topic of conversation
+{topic_of_conversation}
     """,
             generator_results_prompt=
 f"""
@@ -99,10 +107,10 @@ If you do not have a plan, propose a new plan.
             evaluator_role_prompt=f"You are {name}, {role}. You are trying to evaluate a number of actions to see which will get you closer to your goals. It must be consistent with the following information:",
             evaluator_results_prompt=
 f"""
-## Choose the Best Action
+## Choose the best action
 In a previous step, you have generated some possible plans. Now, you need to evaluate them and choose the best one.
 
-## Evaluation Principles
+## Evaluation principles
 {evaluation_principles}
 
 ## Constraints

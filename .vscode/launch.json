@@ -26,7 +26,7 @@
             "name": "Start Roundtable World",
             "type": "python",
             "request": "launch",
-            "program": "use_cases/roundtable/world_setup_tot.py",
+            "program": "use_cases/roundtable/world_setup.py",
             "console": "integratedTerminal",
             "env": {
                 "PYTHONPATH": "${workspaceRoot}"

@@ -24,9 +24,7 @@ openai_api_key = os.getenv("OPENAI_API_KEY")
 
 ABS_PATH = os.path.dirname(os.path.abspath(__file__))
 
-personality_db_qdrant_client = QdrantClient(path=os.path.join(ABS_PATH, "databases/all_in_summaries_qdrant"))
-
-
+personality_db_qdrant_client = None
 
 
 def load_yaml(yaml_path):
@@ -108,6 +106,10 @@ def construct_world(data):
     base_kwargs = data.get('base_args', {})
 
     world_def = data['world']
+
+    if 'path_to_external_memory' in world_def:
+        personality_db_qdrant_client = QdrantClient(path=os.path.join(ABS_PATH, world_def['path_to_external_memory']))
+        base_kwargs['personality_db_qdrant_client'] = personality_db_qdrant_client
 
     # Construct all objects
     objects = [construct_object(obj, base_kwargs) for obj in world_def.get('objects', [])]

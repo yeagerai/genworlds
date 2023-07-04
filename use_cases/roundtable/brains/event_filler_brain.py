@@ -10,6 +10,7 @@ class EventFillerBrain(SingleEvalBrain):
         name: str,
         role: str,
         background: str,
+        topic_of_conversation: str,
         constraints: list[str],
         evaluation_principles: list[str],
         n_of_thoughts: int,
@@ -37,8 +38,11 @@ class EventFillerBrain(SingleEvalBrain):
 f"""You are {name}, {role}. In previous steps, you have selected an action to execute, and possibly generated some of the response parameters - make sure to include those exactly. 
 You now need to generate a valid set of JSON parameters for the command to execute, based on the following information:
 
-## Personality
+## Your background
 {background}
+
+## The topic of conversation
+{topic_of_conversation}
 """,
             generator_results_prompt=
 f"""
@@ -55,11 +59,11 @@ f"""
 Evaluate the following list of possible parameter sets in terms of their correctness:
 {{thought_to_evaluate}}
 
-## Evaluation Principles
+## Evaluation principles
 {evaluation_principles}
 
 ## Constraints
-- targer_id must be the ID of the entity that provides the action
+- target_id must be the ID of the entity that provides the action
 {constraints}
 
 # Response type
