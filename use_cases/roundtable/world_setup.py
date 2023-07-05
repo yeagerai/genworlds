@@ -139,18 +139,21 @@ def construct_world(data):
     return world, objects, agents, locations
 
 
-yaml_data = load_yaml(os.path.join(ABS_PATH, "world_definition.yaml"))
+def launch_use_case(world_definition="default_world_definition.yaml"):
+    yaml_data = load_yaml(os.path.join(ABS_PATH, "world_definitions", world_definition))
 
-world, objects, agents, locations = construct_world(yaml_data['world_definition'])
+    world, objects, agents, locations = construct_world(yaml_data['world_definition'])
 
-simulation = Simulation(
-    name=world.name,
-    description=world.description,
-    world=world,
-    objects=objects,
-    agents=agents,
-)
+    simulation = Simulation(
+        name=world.name,
+        description=world.description,
+        world=world,
+        objects=objects,
+        agents=agents,
+    )
 
+    # this attaches to the websocket all the objects and agents in the world
+    simulation.launch()
 
-# this attaches to the websocket all the objects and agents in the world
-simulation.launch()
+if __name__ == "__main__":
+    launch_use_case()
