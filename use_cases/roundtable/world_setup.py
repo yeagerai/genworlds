@@ -1,6 +1,7 @@
 import importlib
 import inspect
 import os
+import threading
 from dotenv import load_dotenv
 import concurrent.futures
 
@@ -138,7 +139,7 @@ def construct_world(data):
     return world, objects, agents, locations
 
 
-def launch_use_case(world_definition="default_world_definition.yaml"):
+def launch_use_case(world_definition="default_world_definition.yaml", stop_event: threading.Event = None):
     yaml_data = load_yaml(os.path.join(ABS_PATH, "world_definitions", world_definition))
 
     world, objects, agents, locations = construct_world(yaml_data['world_definition'])
@@ -149,6 +150,7 @@ def launch_use_case(world_definition="default_world_definition.yaml"):
         world=world,
         objects=objects,
         agents=agents,
+        stop_event=stop_event,
     )
 
     # this attaches to the websocket all the objects and agents in the world

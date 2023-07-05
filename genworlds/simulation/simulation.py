@@ -15,6 +15,7 @@ class Simulation:
         world: BaseWorld,
         objects: List[tuple[BaseObject, dict]],
         agents: List[tuple[BaseObject, dict]],
+        stop_event: threading.Event = None,
     ):
         self.id = str(uuid4())
         self.name = name
@@ -22,6 +23,7 @@ class Simulation:
         self.world = world
         self.objects = objects
         self.agents = agents
+        self.stop_event = stop_event
 
     def launch(self):
         # Register agents and objects with the world
@@ -50,7 +52,11 @@ class Simulation:
 
         # Make the application terminate gracefully
         while True:
+            # TODO: pass the stop event to the world and the objects and the agents
+            if self.stop_event and self.stop_event.is_set():
+                break
+
             try:
-                time.sleep(100)
+                time.sleep(1)
             except KeyboardInterrupt:
                 break
