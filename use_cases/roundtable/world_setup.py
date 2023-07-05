@@ -107,15 +107,14 @@ def construct_world(data):
 
     world_def = data['world']
 
-    if 'path_to_external_memory' in world_def:
-        personality_db_qdrant_client = QdrantClient(path=os.path.join(ABS_PATH, world_def['path_to_external_memory']))
-        base_kwargs['personality_db_qdrant_client'] = personality_db_qdrant_client
-
     # Construct all objects
     objects = [construct_object(obj, base_kwargs) for obj in world_def.get('objects', [])]
 
     # Get the base agent data
     base_agent_data = world_def.get('base_agent', {})
+    if 'path_to_external_memory' in world_def:
+        personality_db_qdrant_client = QdrantClient(path=os.path.join(ABS_PATH, world_def['path_to_external_memory']))
+        base_agent_data['personality_db_qdrant_client'] = personality_db_qdrant_client
 
     # Construct all agents
     agents = [construct_agent(agent, base_agent_data, base_kwargs) for agent in world_def.get('agents', [])]  # Assuming you have a construct_agent function
@@ -156,4 +155,4 @@ def launch_use_case(world_definition="default_world_definition.yaml"):
     simulation.launch()
 
 if __name__ == "__main__":
-    launch_use_case()
+    launch_use_case("all_in_podcast.yaml")
