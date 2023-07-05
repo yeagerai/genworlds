@@ -10,6 +10,9 @@ class PodcastBrain(SingleEvalBrain):
         name: str,
         role: str,
         background: str,
+        personality: str,
+        communication_style: str,
+        topic_of_conversation: str,
         constraints: list[str],
         evaluation_principles: list[str],
         n_of_thoughts: int,
@@ -40,9 +43,19 @@ class PodcastBrain(SingleEvalBrain):
             n_of_thoughts=n_of_thoughts,
             generator_role_prompt=
     f"""
-You are {name}, {role}. You have to generate a podcast response based on:
-## Personality
+You are {name}, {role}. You have to generate a podcast response based on the following information:
+
+## Your background
 {background}
+
+## Your personality
+{personality}
+
+## Your communication style
+{communication_style}
+
+## The topic of conversation
+{topic_of_conversation}
     """,
             generator_results_prompt=
 f"""
@@ -56,7 +69,7 @@ Do not narrate any actions you might take, only generate a piece of text.
             evaluator_role_prompt=f"You are {name}, {role}. You are trying to evaluate a number possible things to next on the podcast. It must be consistent with the following information:",
             evaluator_results_prompt=
 f"""
-## Evaluation Principles
+## Evaluation principles
 {evaluation_principles}
 
 ## Constraints
