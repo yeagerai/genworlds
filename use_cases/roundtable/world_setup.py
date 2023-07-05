@@ -155,4 +155,4 @@ def launch_use_case(world_definition="default_world_definition.yaml"):
     simulation.launch()
 
 if __name__ == "__main__":
-    launch_use_case("all_in_podcast.yaml")
+    launch_use_case()
