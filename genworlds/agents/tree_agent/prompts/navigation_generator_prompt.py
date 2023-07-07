@@ -113,8 +113,9 @@ class NavigationGeneratorPrompt(BaseChatPromptTemplate, BaseModel):
         else:
             similarity_query_key = kwargs["goals"]
 
-        personality_db: VectorStore = kwargs["personality_db"]
-        if personality_db is not None:
+        
+        if "personality_db" in kwargs and kwargs["personality_db"] is not None:
+            personality_db: VectorStore = kwargs["personality_db"]
             past_statements = list(
                 map(
                     lambda d: d.page_content,

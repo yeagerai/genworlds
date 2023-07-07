@@ -138,9 +138,20 @@ def construct_world(data):
 
     return world, objects, agents, locations
 
+def merge_dicts(d1, d2):
+    for key, value in d2.items():
+        if isinstance(value, dict):
+            # get node or create one
+            node = d1.setdefault(key, {})
+            merge_dicts(node, value)
+        else:
+            d1[key] = value
 
-def launch_use_case(world_definition="default_world_definition.yaml", stop_event: threading.Event = None):
-    yaml_data = load_yaml(os.path.join(ABS_PATH, "world_definitions", world_definition))
+    return d1
+
+def launch_use_case(world_definition="default_world_definition.yaml", stop_event: threading.Event = None, yaml_data_override={}):
+    yaml_data = merge_dicts(load_yaml(os.path.join(ABS_PATH, "world_definitions", world_definition)), yaml_data_override)
+    print(yaml_data)
 
     world, objects, agents, locations = construct_world(yaml_data['world_definition'])
 

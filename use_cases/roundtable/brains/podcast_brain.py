@@ -60,8 +60,10 @@ You are {name}, {role}. You have to generate a podcast response based on the fol
             generator_results_prompt=
 f"""
 # Response type
-Output exactly {{num_thoughts}} different possible paragraphs of text that would be a good next line for your to say in line with the goal you set for yourself, which moves the conversation forward and matches stylistically something you would say AND NOTHING ELSE.               
+Output exactly {{num_thoughts}} different possible paragraphs of text that would be a good next line for your to say in line with the goal you set for yourself.              
 Do not narrate any actions you might take, only generate a piece of text.
+Try to make the tone of the text consistent with your personality and communication style.
+Relate what you say to what has been said recently.
 
 ## Constraints
 {constraints}

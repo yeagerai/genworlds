@@ -70,7 +70,7 @@ Example: "Yes, opening the door is valid because I have the key to the door in m
                 "plan",
                 "goals",
                 "memory",
-                "personality_db",
+                # "personality_db",
                 "agent_world_state",
                 "nearby_entities",
                 "inventory",
