@@ -2,46 +2,25 @@
 sidebar_position: 1
 ---
 
-# Tutorial Intro
+# Genworlds
 
-Let's discover **Docusaurus in less than 5 minutes**.
+GenWorlds is an open-source framework for building reliable multi-agent systems. 
 
-## Getting Started
+Drawing inspiration from the seminal research paper ["Generative Agents: Interactive Simulacra of Human Behavior"](https://arxiv.org/abs/2304.03442) by Stanford and Google researchers, GenWorlds provides a platform for creating flexible, scalable, and interactive environments where AI agents can exist, communicate asynchronously, interact with diverse objects, and form new memories.
 
-Get started by **creating a new site**.
+Agents can also be pre-loaded with a series of memories that give them personality and helps them become subject-matter experts. This feature allows for nuanced and sophisticated interactions and behaviors. These agents communicate with the world through a WebSocket server, promoting ease of UI construction and future scalability. 
 
-Or **try Docusaurus immediately** with **[docusaurus.new](https://docusaurus.new)**.
+The current version of GenWorlds is powered by [OpenAI's GPT4](https://openai.com/product/gpt-4), [Langchain](https://python.langchain.com/en/latest/index.html), [Chroma](https://www.trychroma.com/), and was inspired by [AutoGPT](https://github.com/Significant-Gravitas/Auto-GPT).
 
-### What you'll need
+## 🚀 Key Features
 
-- [Node.js](https://nodejs.org/en/download/) version 16.14 or above:
-  - When installing Node.js, you are recommended to check all checkboxes related to dependencies.
+- 🌐 **Customizable Interactive Environments:** Design unique GenWorld environments, tailored to your project's needs, filled with interactive objects and potential actions for your agents.
 
-## Generate a new site
+- 🎯 **Goal-Oriented Generative Autonomous Agents:** Utilize AI agents powered by Langchain that are driven by specific objectives and can be easily extended and programmed to simulate complex behaviors and solve intricate problems.
 
-Generate a new Docusaurus site using the **classic template**.
+- 🧩 **Shared Objects:** Populate your world with shared objects, creating opportunities for your agents to interact with their environment and achieve their goals.
 
-The classic template will automatically be added to your project after you run the command:
+- 💡 **Dynamic Memory Management:** Equip your agents with the ability to store, recall, and learn from past experiences, enhancing their decision-making and interaction capabilities.
 
-```bash
-npm init docusaurus@latest my-website classic
-```
+- ⚡ **Scalability:** Benefit from threading and WebSocket communication for real-time interaction between agents, ensuring the platform can easily scale up as your needs grow.
 
-You can type this command into Command Prompt, Powershell, Terminal, or any other integrated terminal of your code editor.
-
-The command also installs all necessary dependencies you need to run Docusaurus.
-
-## Start your site
-
-Run the development server:
-
-```bash
-cd my-website
-npm run start
-```
-
-The `cd` command changes the directory you're working with. In order to work with your newly created Docusaurus site, you'll need to navigate the terminal there.
-
-The `npm run start` command builds your website locally and serves it through a development server, ready for you to view at http://localhost:3000/.
-
-Open `docs/intro.md` (this page) and edit some lines: the site **reloads automatically** and displays your changes.
