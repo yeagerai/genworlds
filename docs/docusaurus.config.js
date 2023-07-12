@@ -127,7 +127,7 @@ const config = {
             ],
           },
         ],
-        copyright: `Copyright © ${new Date().getFullYear()} YeagerAI LLC. Built with Docusaurus.`,
+        copyright: `Copyright © ${new Date().getFullYear()} YeagerAI LLC.`,
       },
       prism: {
         theme: lightCodeTheme,
