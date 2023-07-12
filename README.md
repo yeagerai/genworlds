@@ -20,7 +20,7 @@ Drawing inspiration from the seminal research paper ["Generative Agents: Interac
 
 Agents can also be pre-loaded with a series of memories that give them personality and helps them become subject-matter experts. This feature allows for nuanced and sophisticated interactions and behaviors. These agents communicate with the world through a WebSocket server, promoting ease of UI construction and future scalability. 
 
-The current version of GenWorlds is powered by [OpenAI's GPT4](https://openai.com/product/gpt-4), [Langchain](https://python.langchain.com/en/latest/index.html), [Chroma](https://www.trychroma.com/), and was inspired by [AutoGPT](https://github.com/Significant-Gravitas/Auto-GPT).
+The current version of GenWorlds is powered by [OpenAI's GPT4](https://openai.com/product/gpt-4), [Langchain](https://python.langchain.com/en/latest/index.html), [qdrant](https://cloud.qdrant.io?ref=yeagerai), and was inspired by [AutoGPT](https://github.com/Significant-Gravitas/Auto-GPT).
 
 ## 🚀 Key Features
 
