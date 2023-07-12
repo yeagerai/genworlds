@@ -1,11 +1,19 @@
 .features {
   display: flex;
   align-items: center;
-  padding: 2rem 0;
+  padding: 4rem 0;
   width: 100%;
 }
 
 .featureSvg {
-  height: 200px;
+  height: 75px;
   width: 200px;
+}
+
+
+.title {
+  text-align: center;
+  font-size: 3rem;
+  font-weight: 600;
+  padding: 2rem;
 }

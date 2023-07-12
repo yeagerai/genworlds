@@ -6,7 +6,7 @@ const darkCodeTheme = require('prism-react-renderer/themes/dracula');
 
 /** @type {import('@docusaurus/types').Config} */
 const config = {
-  title: 'GenWorlds Documentation',
+  title: '🧬🌍GenWorlds',
   tagline: 'GenWorlds is an open-source framework for building reliable multi-agent systems.',
   favicon: 'img/favicon.ico',
 
@@ -49,10 +49,19 @@ const config = {
           // Please change this to your repo.
           // Remove this to remove the "edit this page" links.
           editUrl:
-            'https://github.com/facebook/docusaurus/tree/main/packages/create-docusaurus/templates/shared/',
+            'https://medium.com/yeagerai',
         },
         theme: {
           customCss: require.resolve('./src/css/custom.css'),
+        },
+        googleTagManager: {
+          containerId: 'GTM-M5ZW8WB',
+        },
+        sitemap: {
+          changefreq: 'weekly',
+          priority: 0.5,
+          ignorePatterns: ['/tags/**'],
+          filename: 'sitemap.xml',
         },
       }),
     ],
@@ -62,13 +71,9 @@ const config = {
     /** @type {import('@docusaurus/preset-classic').ThemeConfig} */
     ({
       // Replace with your project's social card
-      image: 'img/docusaurus-social-card.jpg',
+      image: 'img/genworlds-social-card.jpg',
       navbar: {
-        title: 'GenWorlds',
-        logo: {
-          alt: 'GenWorlds Logo',
-          src: 'img/logo.png',
-        },
+        title: '🧬🌍 GenWorlds',
         items: [
           {
             type: 'docSidebar',
@@ -105,7 +110,7 @@ const config = {
               },
               {
                 label: 'Discord',
-                href: 'https://discord.gg/284jUuFBaD',
+                href: 'https://discord.gg/22eCYpb3w2',
               },
               {
                 label: 'Twitter',
@@ -127,7 +132,7 @@ const config = {
             ],
           },
         ],
-        copyright: `Copyright © ${new Date().getFullYear()} YeagerAI LLC.`,
+        copyright: `Copyright ©${new Date().getFullYear()} YeagerAI LLC.`,
       },
       prism: {
         theme: lightCodeTheme,

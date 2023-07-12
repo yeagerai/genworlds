@@ -1,23 +1,138 @@
+/* stylelint-disable docusaurus/copyright-header */
+
 /**
  * CSS files with the .module.css suffix will be treated as CSS modules
  * and scoped locally.
  */
 
-.heroBanner {
+ .heroBanner {
   padding: 4rem 0;
   text-align: center;
   position: relative;
   overflow: hidden;
 }
 
-@media screen and (max-width: 996px) {
-  .heroBanner {
-    padding: 2rem;
-  }
+.heroText{
+  padding: 4rem;
+  margin-top: auto;
+  margin-bottom: auto;
+}
+.heroCard{
+  color: #080808;
+  padding: 1rem;
 }
 
 .buttons {
   display: flex;
   align-items: center;
   justify-content: center;
+}
+
+.content {
+  display: flex;
+  flex-direction: column;
+}
+
+.container .title {
+  font-size: 3rem;
+  font-weight: 600;
+  margin-bottom: 1rem;
+}
+
+.features {
+  display: flex;
+  align-items: center;
+  padding: 2rem 0;
+  width: 100%;
+  max-width: 1280px;
+  align-self: center;
+  text-align: center;
+}
+
+.description {
+  display: flex;
+  align-items: center;
+  padding: 4rem 0 0;
+  width: 100%;
+  max-width: 1280px;
+  align-self: center;
+}
+
+.featureImage {
+  height: 200px;
+  width: 200px;
+}
+
+.demoImg {
+  max-height: 300px;
+}
+
+.descriptionRow {
+  justify-content: center;
+  align-items: center;
+  margin-left: unset !important;
+  margin-right: unset !important;
+}
+
+.imgColumn {
+  display: flex !important;
+  justify-content: center;
+}
+
+.column {
+  flex-direction: column;
+  padding-bottom: 4rem;
+}
+
+.videoContainer {
+  position: relative;
+  width: 50%;
+  min-width: 640px;
+  align-self: center;
+}
+
+.videoContainer::after {
+  padding-top: 53.57%;
+  display: block;
+  content: '';
+}
+
+.videoContainer iframe {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+}
+
+.caption {
+  font-weight: 600;
+  margin-top: 1rem;
+}
+
+.iframe {
+  aspect-ratio: 16 / 9;
+  max-width: 100% !important;
+  width: 100% !important;
+  height: auto !important;
+  padding: 0;
+  margin: 0;
+}
+@media screen and (max-width: 966px) {
+  .heroBanner {
+    padding: 2rem;
+  }
+
+  .description {
+    text-align: center;
+  }
+
+  .videoContainer {
+    min-width: unset;
+    width: calc(100% - 2rem);
+  }
+
+  .caption {
+    margin-top: 0.5rem;
+  }
 }
