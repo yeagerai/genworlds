@@ -14,7 +14,7 @@ const QuoteList = [
     title: 'Founder @ LangChain',
     quote: (
       <>
-Our users so far have mostly been developers, but we're excited for yAgents to bring the LangChain ecosystem to a whole new audience. We are excited for Yeager.ai to be building on our framework and can't wait to see what they release next. This partnership is a perfect example of how collaboration and composability can drive innovation and make cutting-edge technology accessible to a wider audience.</>
+        Our users so far have mostly been developers, but we're excited for yAgents to bring the LangChain ecosystem to a whole new audience. We are excited for Yeager.ai to be building on our framework and can't wait to see what they release next. This partnership is a perfect example of how collaboration and composability can drive innovation and make cutting-edge technology accessible to a wider audience.</>
     ),
   },
   {
@@ -33,7 +33,7 @@ const Quote = ({ avatar, name, title, quote }) => (
   <div className="container">
     <div className="row padding--md ">
       <div className={classnames("avatar", styles.quoteAvatar)}>
-          <img className="avatar__photo avatar__photo--xl" src={avatar} alt={name} />
+        <img className="avatar__photo avatar__photo--xl" src={avatar} alt={name} />
         <div className="avatar__intro">
           <div className="avatar__name">{name}</div>
           <small className="avatar__subtitle">
@@ -57,25 +57,19 @@ export default function HomepageQuotes() {
     slidesToShow: 1,
     slidesToScroll: 1,
     initialSlide: 0,
-    
+
   };
 
   return (
-    <section className={styles.features}>
-      <div className="container">
-        <div className="row">
-          <div className={classnames("col col--10", styles.quotesContainer)}>
-            <div className="card">
-                <Slider {...settings}>
-                  {QuoteList.map((props, idx) => (
-                    <Quote key={idx} {...props} />
-                  ))}
-                </Slider>
-            </div>
-          </div>
-        </div>
-      </div>
 
-    </section>
+    <div className={classnames("col col--12", styles.quotesContainer)}>
+      <div className="card shadow--lw">
+        <Slider {...settings}>
+          {QuoteList.map((props, idx) => (
+            <Quote key={idx} {...props} />
+          ))}
+        </Slider>
+      </div>
+    </div>
   );
 }
