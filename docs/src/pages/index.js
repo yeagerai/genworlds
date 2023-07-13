@@ -25,7 +25,7 @@ function HomepageHeader() {
             <p className="hero__subtitle">{siteConfig.tagline}</p>
             <div className={styles.buttons}>
               <Link
-                className="button button--secondary button--lg"
+                className="button button--primary button--lg"
                 to="/docs/getting-started">
                 Getting Started
               </Link>
@@ -70,7 +70,7 @@ export default function Home() {
               <p>Imagine summoning history’s brightest minds for a group discussion on anything. Ask them for help or bounce ideas off them. RoundTable is not just a Chatgpt wrapper, it's a team of AI agents acting independently with specific personalities, memories and expertise.</p>
               <Link
                 className="button button--primary button--lg"
-                to="https://replit.com/@jmlago/GenworldsBase?v=1">
+                to="https://replit.com/@yeagerai/GenWorlds?v=1">
                 Try now!
               </Link>
             </div>
@@ -84,82 +84,66 @@ export default function Home() {
           </div>
         </section>
         <HomepageFeatures />
-        <section className={styles.features}>
-          <div className="container">
-            <div class="alert alert--warning margin-vert--md" role="alert">
-              🧬🌍 GenWorlds is an early stage product in active development.  If you spot any issues or bugs
-
-
-              <div className={styles.buttons}>
-                <Link
-                  className="button button--primary button--xs margin-top--md"
-                  to="https://github.com/yeagerai/genworlds/issues">
-                  Let us know
-                </Link>
-              </div>
-
-            </div></div>
-
-        </section>
-
 
         <section className={styles.features}>
           <div className="card">
             <div className="card__header">
-              <div class="row">
-                <div class="col col--12">
-                  <h4 class="fs-2x text-gray-800 w-bolder mt-8">Join our Community 🚀</h4>
-                  <div class="my-4">
-
-                    <p class="fw-semibold fs-4 text-gray-600 mb-2">GenWorlds is not just an AI platform;
-                      it's a vibrant community of developers, AI enthusiasts, and innovators who are
-                      shaping the future of AI. We value collaboration, innovation, knowledge sharing, and
-                      mutual growth.
-                    </p>
-                  </div>
+              <div class="row margin-vert--md">
+               <div className={classnames("col col--8", styles.communityHeader)}>
+                  <h2>Join our Community 🚀</h2>
+                  <p>GenWorlds is not just an AI platform;
+                    it's a vibrant community of developers, AI enthusiasts, and innovators who are
+                    shaping the future of AI. We value collaboration, innovation, knowledge sharing, and
+                    mutual growth.
+                  </p>
                 </div>
               </div>
             </div>
             <div className="card__body">
               <div className="row">
-                <div className={classnames("col col--6", styles.quotesContainer)}>
+                <div className={classnames("col col--8", styles.quotesContainer)}>
                   <HomepageQuotes />
                 </div>
-                <div className={classnames("col col--6", styles.quotesContainer)}>
-                  <div className="row">
-
-                    <div className="col col--6 padding-horiz--10 margin-top--10">
-                      <h4>Contribute on GitHub</h4>
-                      <p>Love GenWorlds? Help us make it better! Our GitHub repository is always open for
-                        contributions. You can help us improve GenWorlds, create new GenAI applications,
-                        or
-                        even
-                        develop new features.</p>
-                      <div className={styles.buttons}>
-                        <Link
-                          className="button button--secondary button--lg"
-                          to="/docs/getting-started">
-                          Getting Started
-                        </Link>
-                      </div>
-                    </div>
-
-                    <div className="col col--6 padding-horiz--10  margin-top--10">
-                      <h4>Discord Community</h4>
-                      <p>Join our Discord Community! Engage in stimulating discussions, get updates about
-                        the
-                        latest GenWorlds features, participate in hackathons, and learn from the shared
-                        knowledge of a global community.</p>
-                      <div className={styles.buttons}>
-                        <Link
-                          className="button button--secondary button--lg"
-                          to="/docs/getting-started">
-                          Getting Started
-                        </Link>
-                      </div>
-                    </div>
+                <div className={classnames("col col--4", styles.quotesContainer)}>
+                  <div className={classnames("row", styles.quickLinks)}>
+                    <ul>
+                      <li>
+                        <h4>Useful Links</h4>
+                      </li>
+                      <li>
+                        <a href="https://youtu.be/TaEI-iyp2nE">Quick Tutorial</a>
+                      </li>
+                      <li>
+                        <a href="https://replit.com/@yeagerai/GenWorlds?v=1">Try 🧬🌍GenWorlds now</a>
+                      </li>
+                      <li>
+                        <a href="https://discord.gg/22eCYpb3w2">Join our Discord</a>
+                      </li>
+                      <li>
+                        <a href="https://github.com/yeagerai/genworlds-community/">Explore Tools and Usecases</a>
+                      </li>
+                      <li>
+                        <a href="https://github.com/yeagerai/genworlds">Give us a Star!</a>
+                      </li>
+                      
+                    </ul>
                   </div>
                 </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section className={styles.features}>
+          <div className="container">
+            <div className="alert alert--warning margin-vert--md" role="alert">
+              🧬🌍 GenWorlds is an early stage product in active development.  If you spot any issues or bugs
+              <div className={styles.buttons}>
+                <Link
+                  className="button button--primary button--xs margin-top--md"
+                  to="https://github.com/yeagerai/genworlds/issues">
+                  Please, Let us know
+                </Link>
               </div>
             </div>
           </div>
