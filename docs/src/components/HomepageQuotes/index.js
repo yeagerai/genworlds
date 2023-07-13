@@ -14,7 +14,7 @@ const QuoteList = [
     title: 'Founder @ LangChain',
     quote: (
       <>
-        Our users so far have mostly been developers, but we're excited for yAgents to bring the LangChain ecosystem to a whole new audience. We are excited for Yeager.ai to be building on our framework and can't wait to see what they release next. This partnership is a perfect example of how collaboration and composability can drive innovation and make cutting-edge technology accessible to a wider audience.</>
+        We are excited for Yeager.ai to be building on our framework and can't wait to see what they release next. This partnership is a perfect example of how collaboration and composability can drive innovation and make cutting-edge technology accessible to a wider audience.</>
     ),
   },
   {
@@ -53,11 +53,11 @@ export default function HomepageQuotes() {
   var settings = {
     dots: true,
     infinite: true,
-    speed: 500,
+    speed: 5000,
     slidesToShow: 1,
     slidesToScroll: 1,
-    initialSlide: 0,
-
+    initialSlide: 1,
+    autoplay: true,
   };
 
   return (
