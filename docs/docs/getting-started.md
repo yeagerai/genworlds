@@ -8,7 +8,7 @@ sidebar_position: 2
 
 The easiest way to get started with the Genworlds framework is on Replit.
 
-Simply go to the [Replit Genworlds-Community Fork](https://replit.com/@yeagerai/genworlds-community) and fork it.
+Simply go to the [Replit Genworlds-Community Fork](https://replit.com/@yeagerai/GenWorlds?v=1) and fork it.
 
 After that start playing around with the world setup in the [use_cases/rountable/world-definition.yaml] file to try out your ideas.
 

@@ -45,7 +45,7 @@ The easiest way to start using genworlds is through the  [GenWorlds-Community](h
 
 #### Test it on Replit
 
-If you want to test with different use-cases the fastest way is to use the [Replit Genworlds-Community Fork](https://replit.com/@yeagerai/genworlds-community), fork it and run it. After that, you can start playing around with the world setup in the `use_cases/rountable/world-definition.yaml` file to try out your ideas.
+If you want to test with different use-cases the fastest way is to use the [Replit Genworlds-Community Fork](https://replit.com/@yeagerai/GenWorlds?v=1), fork it and run it. After that, you can start playing around with the world setup in the `use_cases/rountable/world-definition.yaml` file to try out your ideas.
 
 ## Contributing
 
