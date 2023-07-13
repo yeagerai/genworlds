@@ -37,7 +37,7 @@ Detailed information of how to use the framework can be found at [GenWorlds Docs
 
 - ⚡ **Scalability:** Benefit from threading and WebSocket communication for real-time interaction between agents, ensuring the platform can easily scale up as your needs grow.
 
-## 🛠️ How can I use GenWorlds?
+## 🛠️ Getting Started
 
 ### Run it with the Community Tooling
 
