@@ -138,6 +138,24 @@ const config = {
         theme: lightCodeTheme,
         darkTheme: darkCodeTheme,
       },
+      algolia: {
+        // The application ID provided by Algolia
+        appId: 'XZUXW9E7JX',
+  
+        // Public API key: it is safe to commit it
+        apiKey: 'f189788e1581d61e22a23c308b60d569',
+  
+        indexName: 'prod_GenWorlds_Docs',
+  
+        // Optional: see doc section below
+        contextualSearch: true,
+  
+        // Optional: Replace parts of the item URLs from Algolia. Useful when using the same search index for multiple deployments using a different baseUrl. You can use regexp or string in the `from` param. For example: localhost:3000 vs myCompany.com/docs
+        replaceSearchResultPathname: {
+          from: '/docs/', // or as RegExp: /\/docs\//
+          to: '/',
+        },
+      },
     }),
 };
 
