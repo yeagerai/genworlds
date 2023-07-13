@@ -7,15 +7,19 @@ import HubspotForm from 'react-hubspot-form'
 import useDocusaurusContext from '@docusaurus/useDocusaurusContext';
 import Layout from '@theme/Layout';
 import HomepageFeatures from '@site/src/components/HomepageFeatures';
+import HomepageQuotes from '@site/src/components/HomepageQuotes';
 
 import styles from './index.module.css';
+// Import slick-carousel css
+import "slick-carousel/slick/slick.css";
+import "slick-carousel/slick/slick-theme.css";
 
 function HomepageHeader() {
   const {siteConfig} = useDocusaurusContext();
   return (
     <header className={clsx('hero hero--primary', styles.heroBanner)}>
       <div className="container">
-        <div class="row">
+        <div className="row">
           <div className={classnames("col","col--8", styles.heroText)}>
             <h1 className="hero__title">{siteConfig.title}</h1>
             <p className="hero__subtitle">{siteConfig.tagline}</p>
@@ -27,13 +31,13 @@ function HomepageHeader() {
               </Link>
             </div>
           </div>
-          <div class="col col--4">
+          <div className="col col--4">
             <div className={classnames("card", styles.heroCard)}>
               <div className={classnames("card__header", styles.heroCardHeader)}>
                 <h3>Join Now</h3>
                 <p>We are building an ecosystem of Generative AI applications. Join the community to be the first to learn about what others are building.</p>
               </div>
-              <div class="card__body">
+              <div className="card__body">
 
                 <HubspotForm
                   portalId='20388104'
@@ -72,7 +76,7 @@ export default function Home() {
             </div>
             <div className={classnames("col col--6", styles.imgColumn)}>
               <div className={styles.videoContainer}>
-                <iframe src="https://yeager.proj.nakimasolutions.com/?tankId=123" frameborder="0" allowtransparency="true" scrolling="no" data-dashlane-frameid="575"
+                <iframe src="https://yeager.proj.nakimasolutions.com/?tankId=123" allowtransparency="true" scrolling="no" data-dashlane-frameid="575"
                 allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                 allowFullScreen></iframe>
               </div>
@@ -80,6 +84,8 @@ export default function Home() {
           </div>
         </section>
         <HomepageFeatures />
+        <HomepageQuotes />
+        
       </main>
     </Layout>
   );
