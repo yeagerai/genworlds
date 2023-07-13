@@ -7,7 +7,7 @@ const darkCodeTheme = require('prism-react-renderer/themes/dracula');
 /** @type {import('@docusaurus/types').Config} */
 const config = {
   title: '🧬🌍GenWorlds',
-  tagline: 'GenWorlds is an open-source framework for building reliable multi-agent systems.',
+  tagline: '🧬🌍 GenWorlds is an open-source framework for building reliable multi-agent systems.',
   favicon: 'img/favicon.ico',
 
   // Set the production url of your site here

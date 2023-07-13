@@ -34,7 +34,7 @@ function HomepageHeader() {
           <div className="col col--4">
             <div className={classnames("card", styles.heroCard)}>
               <div className={classnames("card__header", styles.heroCardHeader)}>
-                <h3>Join Now</h3>
+                <h3>Hello (Gen)World</h3>
                 <p>We are building an ecosystem of Generative AI applications. Join the community to be the first to learn about what others are building.</p>
               </div>
               <div className="card__body">
@@ -59,8 +59,8 @@ export default function Home() {
   const { siteConfig } = useDocusaurusContext();
   return (
     <Layout
-      title={`Hello from ${siteConfig.title}`}
-      description="{siteConfig.tagline}">
+      title={`Hello (Gen)World`}
+      description="🧬🌍 GenWorlds is an open-source framework for building reliable multi-agent systems.">
       <HomepageHeader />
       <main className={styles.content}>
         <section className={styles.description}>
