@@ -22,6 +22,10 @@
   padding: 1rem;
 }
 
+[data-theme='dark'] .heroCard  {
+  color: white;
+}
+
 .buttons {
   display: flex;
   align-items: center;
@@ -118,6 +122,37 @@
   padding: 0;
   margin: 0;
 }
+
+.communityHeader{
+  padding: 2rem 0 0;
+  width: 100%;
+  max-width: 1280px;
+  align-self: center;
+  text-align: center;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.quotesContainer {
+  margin-left: auto;
+  margin-right: auto;
+  margin-top: auto;
+  margin-bottom: auto;
+}
+
+.quickLinks {
+  align-items: center;
+  width: 100%;
+  align-self: left;
+  text-align: left;
+}
+
+.quickLinks li {
+  list-style-type: none !important;
+  padding: 0.5em;
+  font-weight: 500;
+}
+
 @media screen and (max-width: 966px) {
   .heroBanner {
     padding: 2rem;

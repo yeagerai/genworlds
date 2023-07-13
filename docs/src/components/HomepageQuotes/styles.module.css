@@ -1,0 +1,21 @@
+.quotesContainer {
+    margin-left: auto;
+    margin-right: auto;
+    margin-top: auto;
+    margin-bottom: auto;
+}
+.quoteAvatar{
+    margin-left: auto;
+    margin-right: auto;
+}
+
+.features {
+    display: flex;
+    align-items: center;
+    padding: 2rem 0;
+    width: 100%;
+    max-width: 1280px;
+    align-self: center;
+    text-align: center;
+  }
+  
