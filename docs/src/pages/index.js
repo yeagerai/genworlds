@@ -114,7 +114,7 @@ export default function Home() {
                         <a href="https://youtu.be/TaEI-iyp2nE">Quick Tutorial</a>
                       </li>
                       <li>
-                        <a href="https://replit.com/@yeagerai/GenWorlds?v=1">Try 🧬🌍GenWorlds now</a>
+                        <a href="https://replit.com/@yeagerai/GenWorlds?v=1">Try 🧬🌍 GenWorlds now</a>
                       </li>
                       <li>
                         <a href="https://discord.gg/22eCYpb3w2">Join our Discord</a>
