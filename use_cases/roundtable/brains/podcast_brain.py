@@ -1,5 +1,5 @@
-from genworlds.agents.tree_agent.brains.single_eval_brain import SingleEvalBrain
-from genworlds.agents.tree_agent.prompts.execution_generator_prompt import ExecutionGeneratorPrompt
+from genworlds.agents.base_agent.brains.single_eval_brain import SingleEvalBrain
+from genworlds.agents.base_agent.prompts.execution_generator_prompt import ExecutionGeneratorPrompt
 
 
 class PodcastBrain(SingleEvalBrain):

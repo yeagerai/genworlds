@@ -23,7 +23,7 @@ from langchain.schema import (
     SystemMessage,
 )
 from qdrant_client import QdrantClient
-from genworlds.agents.tree_agent.brains.brain import Brain
+from genworlds.agents.base_agent.brains.brain import Brain
 
 from genworlds.events.basic_events import (
     EntityRequestWorldStateUpdateEvent,
@@ -37,8 +37,10 @@ from genworlds.agents.memory_processors.nmk_world_memory import NMKWorldMemory
 FINISH_NAME = "finish"
 
 
-class TreeAgent:
-    """Agent class for structured tree-of-thought execution."""
+class BaseAgent:
+    """
+    Base GenWorlds Agent class.
+    """
 
     world_spawned_id: str
     personality_db = None

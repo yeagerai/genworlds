@@ -28,9 +28,9 @@ This interactive process fosters the emergence of complex, autonomous behavior, 
 
 While we are currently focused on enhancing each of these steps, we foresee potential developments in the short-medium term. For instance, we're exploring the value and nature of "reflection" as an aspect of an agent's mental model. This would enable the agent to draw new conclusions from a set of recent memories and maintain high-level goals. We're also considering improvements to the communication systems between agents to facilitate more effective collaboration.
 
-## TreeAgent
+## BaseAgent
 
-The TreeAgent implements a version of Tree-of-Thought. It is the most powerful and reliable type of agent available in the Genworlds framework.
+The BaseAgent is the most powerful and reliable type of agent available in the Genworlds framework.
 
 It consists of a branching pipeline of multiple [Brains](./brains.md), that enable breaking down the task into smaller, more specific steps to improve the performance.
 

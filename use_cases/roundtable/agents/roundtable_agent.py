@@ -2,13 +2,13 @@
 
 
 from qdrant_client import QdrantClient
-from genworlds.agents.tree_agent.tree_agent import TreeAgent
+from genworlds.agents.base_agent.base_agent import BaseAgent
 from use_cases.roundtable.brains.event_filler_brain import EventFillerBrain
 from use_cases.roundtable.brains.navigation_brain import NavigationBrain
 from use_cases.roundtable.brains.podcast_brain import PodcastBrain
 
 
-class RoundtableAgent(TreeAgent):
+class RoundtableAgent(BaseAgent):
 
     def __init__(
         self,

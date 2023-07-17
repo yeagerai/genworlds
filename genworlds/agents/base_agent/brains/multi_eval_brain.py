@@ -3,8 +3,8 @@ from textwrap import dedent
 from typing import Callable, Optional, Type, TypedDict
 from langchain import BasePromptTemplate, PromptTemplate, LLMChain
 from langchain.chat_models import ChatOpenAI
-from genworlds.agents.tree_agent.brains.brain import Brain
-from genworlds.agents.tree_agent.prompts.execution_generator_prompt import (
+from genworlds.agents.base_agent.brains.brain import Brain
+from genworlds.agents.base_agent.prompts.execution_generator_prompt import (
     ExecutionGeneratorPrompt,
 )
 

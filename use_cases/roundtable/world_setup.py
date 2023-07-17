@@ -9,12 +9,12 @@ from qdrant_client import QdrantClient
 
 import yaml
 
-from genworlds.agents.tree_agent.brains.single_eval_brain import SingleEvalBrain
-from genworlds.agents.tree_agent.prompts.execution_generator_prompt import ExecutionGeneratorPrompt
-from genworlds.agents.tree_agent.prompts.navigation_generator_prompt import NavigationGeneratorPrompt
+from genworlds.agents.base_agent.brains.single_eval_brain import SingleEvalBrain
+from genworlds.agents.base_agent.prompts.execution_generator_prompt import ExecutionGeneratorPrompt
+from genworlds.agents.base_agent.prompts.navigation_generator_prompt import NavigationGeneratorPrompt
 
 from genworlds.simulation.simulation import Simulation
-from genworlds.agents.tree_agent.tree_agent import TreeAgent
+from genworlds.agents.base_agent.base_agent import BaseAgent
 from genworlds.worlds.world_2d.world_2d import World2D
 from use_cases.roundtable.objects.microphone import Microphone
 
