@@ -129,6 +129,8 @@ class BaseAgent:
         # Get the initial world state
         self.agent_request_world_state_update_action()
 
+        next_actions = []
+
         sleep(5)
 
         while True:
@@ -204,6 +206,15 @@ class BaseAgent:
                         "string_full": f"\"{entity['entity_class']}:{event_type}\" - {description}, args json schema: {json.dumps(args)}",
                     }
                     relevant_commands[selected_command["title"]] = selected_command
+
+            if len(next_actions) > 0:
+                filtered_relevant_commands = {
+                    cmd: info for cmd, info in relevant_commands.items()
+                    if cmd == "Self:wait" or cmd == next_actions[0]
+                }
+
+                relevant_commands = filtered_relevant_commands
+                next_actions = next_actions[1:]
 
             # Add world
             entity_class = "World"
@@ -283,9 +294,13 @@ class BaseAgent:
                 selected_command = relevant_commands[selected_action]
 
                 if selected_action in self.action_brain_map:
-                    action_brains = self.action_brain_map[selected_action]
+                    action_brains = self.action_brain_map[selected_action]["brains"]
+                    if len(next_actions) == 0:
+                        next_actions = self.action_brain_map[selected_action]["next_actions"]
                 else:
-                    action_brains = self.action_brain_map["default"]
+                    action_brains = self.action_brain_map["default"]["brains"]
+                    if len(next_actions) == 0:
+                        next_actions = self.action_brain_map["default"]["next_actions"]
 
                 previous_brain_outputs = [
                     f"Current goal: {action_goal_description}",
@@ -351,6 +366,9 @@ class BaseAgent:
                 self.logger.info(f"Invalid command: {selected_action}")
                 result += f"Error: {selected_action} is not recognized. \n"
                 continue
+
+            if len(next_actions) > 0:
+                self.logger.info(f"Inside a deterministic chain... Changing plan for navigatior brain: (Self:wait, {next_actions[0]})")
 
             ## send result and assistant_reply to the socket
             self.logger.info(result)

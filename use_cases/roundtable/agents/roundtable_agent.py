@@ -83,11 +83,11 @@ class RoundtableAgent(BaseAgent):
                 ),
             },
             action_brain_map={
-                "Microphone:agent_speaks_into_microphone": [
+                "Microphone:agent_speaks_into_microphone": {"brains":[
                     "podcast_brain",
                     "event_filler_brain",
-                ],
-                "World:agent_gives_object_to_agent_event": ["event_filler_brain"],
-                "default": ["event_filler_brain"],
+                ], "next_actions": ["World:agent_gives_object_to_agent_event"]},
+                "World:agent_gives_object_to_agent_event": {"brains":["event_filler_brain"], "next_actions": []},
+                "default": {"brains":["event_filler_brain"], "next_actions": []},
             },
         )
