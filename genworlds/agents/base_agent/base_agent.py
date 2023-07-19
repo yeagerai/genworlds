@@ -180,6 +180,13 @@ class BaseAgent:
                     "string_short": "Self:wait - Wait until the state of the world changes",
                     "string_full": "Self:wait - Wait until the state of the world changes, args json schema: {}",
                 },
+                "Self:agent_speaks_with_user_event": {
+                    "title": "Self:agent_speaks_with_user_event",
+                    "description": "Respond to a question from the user",
+                    "args": {"message":str},# response, target_user
+                    "string_short": "Self:agent_speaks_with_user_event - Respond to a question from the user",
+                    "string_full": "Self:agent_speaks_with_user_event - Respond to a question from the user, args json schema: {'message':str}",# response, target_user
+                },
             }
             for entity in useful_nearby_entities:
                 entity_schemas = self.get_schemas()[entity["entity_class"]]
@@ -210,7 +217,7 @@ class BaseAgent:
             if len(next_actions) > 0:
                 filtered_relevant_commands = {
                     cmd: info for cmd, info in relevant_commands.items()
-                    if cmd == "Self:wait" or cmd == next_actions[0]
+                    if cmd == "Self:wait" or cmd == "Self:agent_speaks_with_user_event" or cmd == next_actions[0]
                 }
 
                 relevant_commands = filtered_relevant_commands
