@@ -6,6 +6,37 @@ sidebar_position: 1
 
 A Simulation is the highest level abstraction in the Genworlds framework. It ties together a [World](/docs/genworlds-framework/world.md), [Agents](/docs/genworlds-framework/agents/agents.md) and [Objects](/docs/genworlds-framework/objects.md), starts and manages their threads.
 
+```mermaid
+graph TD
+    subgraph Simulation
+        W1(Simulation Socket)
+        subgraph World
+            A1(Agent 2)
+            A2(Agent 3)
+            AN(... Agent N)
+            O1(Object 1)
+            O2(Object 2)
+            ON(... Object M)
+        end
+    end
+    I1(Interfaces)
+    I2(APIs)
+    IN(Backends)
+    W1<-->A1
+    W1<-->A2
+    W1<-->AN
+    W1<-->O1
+    W1<-->O2
+    W1<-->ON
+    W1<-->I1
+    W1<-->I2
+    W1<-->IN
+
+    style Simulation stroke:#f66,color:#fff,stroke-dasharray: 5 5,stroke-width:3px
+```
+
+## Creating a Simulation
+
 ```python
 simulation = Simulation(
     name="Example Simulation",

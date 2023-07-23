@@ -40,6 +40,35 @@ Based on the selected action type, a pipeline of brains is chosen. There can be 
 
 The output of each brain is passed to the next one, and the final brain needs to produce a complete set of parameters selected next action.
 
+```mermaid
+graph TD
+    subgraph Simulation
+        W1(Simulation Socket)
+        subgraph World
+          subgraph Agent
+              P1(Listens)
+              P2(Interprets)
+              P3(Thinking Process)
+              P4(Action)
+              P5(Learns)
+              P1-->P2
+              P2-->P3
+              P3-->P4
+              P4-->P5
+          end
+            A1(Other Agents)
+            O1(Other Objects)
+        end
+    end
+  I1(Interfaces / APIs / Backends)
+  W1-->P1
+  P4-->W1
+  W1<-->A1
+  W1<-->O1
+  W1<-->I1
+  style Agent stroke:#f66,color:#fff,stroke-dasharray: 5 5, stroke-width:3px
+```
+
 ### Custom memories
 
 Each agent can be pre-loaded with unique memories, enhancing its unique personality traits and subject matter expertise. These memories are injected on their prompts based on their relevance to the agent's current goals, allowing for more focused and reliable interactions.

@@ -28,6 +28,35 @@ Before you dive into the specifics, it's crucial to understand the primitives th
 
 - [**Agents:**](/docs/genworlds-framework/agents/agents.md) Autonomous entities with distinct attributes, behaviors, and goals. They can perceive their environment, make decisions, and execute actions based on their own internal logic.
 
+Here is a visual overview:
+
+```mermaid
+graph TD
+    subgraph Simulation
+        W1(Simulation Socket)
+        subgraph World
+            A1(Agent 2)
+            A2(Agent 3)
+            AN(... Agent N)
+            O1(Object 1)
+            O2(Object 2)
+            ON(... Object M)
+        end
+    end
+    I1(Interfaces)
+    I2(APIs)
+    IN(Backends)
+    W1<-->A1
+    W1<-->A2
+    W1<-->AN
+    W1<-->O1
+    W1<-->O2
+    W1<-->ON
+    W1<-->I1
+    W1<-->I2
+    W1<-->IN
+```
+
 ## Examples
 
 The best way to understand the GenWorlds framework is to see it in action. The following examples will give you a taste of what you can achieve with GenWorlds.
