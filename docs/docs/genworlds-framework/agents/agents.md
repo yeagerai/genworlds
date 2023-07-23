@@ -32,7 +32,7 @@ While we are currently focused on enhancing each of these steps, we foresee pote
 
 The BaseAgent is the most powerful and reliable type of agent available in the Genworlds framework.
 
-It consists of a branching pipeline of multiple [Brains](/docs/genworlds-framework/agents/brains.md), that enable breaking down the task into smaller, more specific steps to improve the performance.
+It consists of a branching pipeline of multiple [Brains](/docs/genworlds-framework/agents/think.md), that enable breaking down the task into smaller, more specific steps to improve the performance.
 
 The first brain is always a navigation brain - it needs to select the next action for the agent.
 

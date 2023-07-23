@@ -2,7 +2,7 @@
 sidebar_position: 2
 ---
 
-# Brains
+# Thinking Process
 
 Brains are the principal components of the thinking process of the [BaseAgent](/docs/genworlds-framework/agents/agents.md).
 
