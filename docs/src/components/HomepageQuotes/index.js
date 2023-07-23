@@ -9,12 +9,13 @@ import "slick-carousel/slick/slick-theme.css";
 
 const QuoteList = [
   {
-    name: 'Harrisson Chase',
+    name: 'Harrison Chase',
     avatar: "https://avatars.githubusercontent.com/u/11986836?v=4",
     title: 'Founder @ LangChain',
     quote: (
       <>
-        We are excited for Yeager.ai to be building on our framework and can't wait to see what they release next. This partnership is a perfect example of how collaboration and composability can drive innovation and make cutting-edge technology accessible to a wider audience.</>
+        The Yeager.ai team keeps shipping.  Really exciting to see how their GenWorlds framework brings coordinating AI agents to life built on LangChain.  Coordinating Agents are a paradigm shift in GenAI and I'm pleased to see the Yeager team using LangChain to do it
+      </>
     ),
   },
   {
