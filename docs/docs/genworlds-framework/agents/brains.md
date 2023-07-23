@@ -1,5 +1,5 @@
 ---
-sidebar_position: 4
+sidebar_position: 2
 ---
 
 # Brains
@@ -12,7 +12,7 @@ Brains can be as simple or complex as needed, and allow taking advantage of the 
 
 Brains take full advantage of [OpenAI Functions](https://openai.com/blog/function-calling-and-other-api-updates) to allow easy specification of the desired output json format.
 
-## Types of Brains 
+## Types of Brains
 
 ### Zero-Shot brain
 

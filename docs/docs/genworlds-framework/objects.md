@@ -2,7 +2,7 @@
 sidebar_position: 3
 ---
 
-## Objects
+# Objects
 
 Objects are the entities that agents interact with. Each object defines a set of events that the agents can use to interact with them to accomplish their goals.
 

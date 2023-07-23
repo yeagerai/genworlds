@@ -1,6 +1,6 @@
 {
-    "label": "Use Cases",
-    "position": 6,
+    "label": "Platform",
+    "position": 4,
     "link": {
       "type": "generated-index",
       "description": "Some Example Use Cases of the GenWorlds framework you can play with now"

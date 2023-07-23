@@ -4,7 +4,7 @@ sidebar_position: 2
 
 # World
 
-The 'World' in GenWorlds serves as the setting for all the action. It keeps track of all the agents, objects, and world properties such as agent inventories. 
+The 'World' in GenWorlds serves as the setting for all the action. It keeps track of all the agents, objects, and world properties such as agent inventories.
 
 The World ensures every agent is informed about the world state, entities nearby, and the events that are available to them to interact with the world.
 

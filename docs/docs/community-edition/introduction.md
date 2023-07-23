@@ -2,7 +2,7 @@
 sidebar_position: 1
 ---
 
-# Roundtable
+# Introduction
 
 [The Roundtable](https://github.com/yeagerai/genworlds-community/tree/main/use_cases/roundtable) world enable you to create a podcast with anyone, on any topic. The agents can even be pre-loaded with custom memories that have been generated from public content, so that they can remember the past views and actions of the characters they're emulating.
 

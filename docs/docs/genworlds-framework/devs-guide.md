@@ -1,16 +1,8 @@
 ---
-sidebar_position: 2
+sidebar_position: 5
 ---
 
-# Getting Started
-
-## Running on Replit
-
-The easiest way to get started with the Genworlds framework is on Replit.
-
-Simply go to the [Replit Genworlds-Community Fork](https://replit.com/@yeagerai/GenWorlds?v=1) and fork it.
-
-After that start playing around with the world setup in the [use_cases/rountable/world-definition.yaml] file to try out your ideas.
+# Devs Guide
 
 ## Running locally
 
@@ -19,7 +11,9 @@ After that start playing around with the world setup in the [use_cases/rountable
 Currently the framework needs to be run in a [Conda](https://docs.conda.io/en/latest/) environment, because some of the dependencies can only be installed with conda.
 
 ### Installation
+
 #### Conda
+
 Before installing the package with pip, you need to set up your conda environment.
 
 First, set up a new conda environment:
@@ -73,6 +67,7 @@ python use_cases/roundtable/world_setup_tot.py
 See (use_cases/roundtable/world_setup_tot.py) for the code.
 
 ### Usage in your own project
+
 Importing the framework:
 
 ```bash
@@ -93,3 +88,4 @@ You can also set the host with the `--host` argument.
 ```bash
 genworlds-socket-server --port 1234 --host 0.0.0.0
 ```
+
