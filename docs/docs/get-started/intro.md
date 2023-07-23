@@ -20,13 +20,13 @@ In this documentation, we will delve into each of these key components, how they
 
 Before you dive into the specifics, it's crucial to understand the primitives that underpin GenWorlds:
 
-- [**Simulation:**](../genworlds-framework/simulation.md) The environment in which agents and objects exist. The world has its own state, which agents can perceive and influence.
+- [**Simulation:**](/docs/genworlds-framework/simulation.md) The environment in which agents and objects exist. The world has its own state, which agents can perceive and influence.
 
-- [**World:**](../genworlds-framework/world.md) Ensures every agent is informed about the world state, entities nearby, and the events that are available to them to interact with the world.
+- [**World:**](/docs/genworlds-framework/world.md) Ensures every agent is informed about the world state, entities nearby, and the events that are available to them to interact with the world.
 
-- [**Objects:**](../genworlds-framework/objects.md) Items that exist within the world. Agents can interact with objects in various ways, depending on the scenario at hand.
+- [**Objects:**](/docs/genworlds-framework/objects.md) Items that exist within the world. Agents can interact with objects in various ways, depending on the scenario at hand.
 
-- [**Agents:**](../genworlds-framework/agents.md) Autonomous entities with distinct attributes, behaviors, and goals. They can perceive their environment, make decisions, and execute actions based on their own internal logic.
+- [**Agents:**](/docs/genworlds-framework/agents/agents.md) Autonomous entities with distinct attributes, behaviors, and goals. They can perceive their environment, make decisions, and execute actions based on their own internal logic.
 
 ## Examples
 

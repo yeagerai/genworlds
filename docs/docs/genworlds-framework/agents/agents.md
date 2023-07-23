@@ -8,7 +8,7 @@ Agents are the entities that interact with the world. They have a set of goals a
 
 The agents interact with their environment by sending events through a WebSocket server initiated by the world. They dynamically learn about the world and the objects around them, figuring out how to utilize these objects to achieve their goals.
 
-There can be many different types of agents, as long as each one of them understands the event protocol used to communicate with the [World](./world.md)
+There can be many different types of agents, as long as each one of them understands the event protocol used to communicate with the [World](/docs/genworlds-framework/world.md)
 
 ## Agent Mental Model
 
@@ -32,7 +32,7 @@ While we are currently focused on enhancing each of these steps, we foresee pote
 
 The BaseAgent is the most powerful and reliable type of agent available in the Genworlds framework.
 
-It consists of a branching pipeline of multiple [Brains](./brains.md), that enable breaking down the task into smaller, more specific steps to improve the performance.
+It consists of a branching pipeline of multiple [Brains](/docs/genworlds-framework/agents/brains.md), that enable breaking down the task into smaller, more specific steps to improve the performance.
 
 The first brain is always a navigation brain - it needs to select the next action for the agent.
 
