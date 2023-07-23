@@ -88,4 +88,3 @@ You can also set the host with the `--host` argument.
 ```bash
 genworlds-socket-server --port 1234 --host 0.0.0.0
 ```
-

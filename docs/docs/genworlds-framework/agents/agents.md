@@ -66,7 +66,7 @@ graph TD
   W1<-->A1
   W1<-->O1
   W1<-->I1
-  style Agent stroke:#f66,color:#fff,stroke-dasharray: 5 5, stroke-width:3px
+  style Agent stroke:#f66,stroke-dasharray: 5 5, stroke-width:3px
 ```
 
 ### Custom memories

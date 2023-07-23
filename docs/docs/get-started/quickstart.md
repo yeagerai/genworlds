@@ -6,6 +6,37 @@ sidebar_position: 2
 
 ## For Creators: Building Your Own Simulated Worlds
 
+### Running with Replit
+
+The easiest way to start using GenWorlds Community Edition is through Replit. Click [here](https://replit.com/@yeagerai/GenWorlds) to fork it and run it on Replit.
+
+### Running with Docker
+
+To set up and run GenWorlds Community Edition with Docker, use the following commands:
+
+```sh
+git clone git@github.com:yeagerai/genworlds-community.git
+```
+
+Then create a file called `.env` and copy the content of the `.env.example` and replace the corresponding API keys.
+
+After that, to build and run the image:
+
+```sh
+docker build -t genworlds-world-app -f ./deployments/docker/Dockerfile .
+docker run -p 80:80 -p 9000:9000 -d genworlds-world-app
+```
+
+Finally, you can open your browser and go to `http://localhost/`
+
+If you want the app to directly launch a specific use-case, you can add the following variable to the `.env` file:
+
+```bash
+VUE_APP_USE_CASE_ACCESS_POINT=/use_cases/roundtable/presidential_debate.yaml
+```
+
+And you can replace `roundtable` by any folder name in the `use_cases/` folder.
+
 For more information about the community toolkit, check [this](/docs/category/community-toolkit) out.
 
 ## For Developers: Enhancing the Framework and Tools
