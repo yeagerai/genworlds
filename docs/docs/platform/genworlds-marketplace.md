@@ -39,6 +39,6 @@ flowchart TD
     G(GenWorlds GATEWAY)
     W2<-->I1
     G<-->Simulation
-    style W2 stroke:#f66,color:#fff,stroke-dasharray: 5 5,stroke-width:3px
-    style G stroke:#f66,color:#fff,stroke-dasharray: 5 5,stroke-width:3px
+    style W2 stroke:#f66,stroke-dasharray: 5 5,stroke-width:3px
+    style G stroke:#f66,stroke-dasharray: 5 5,stroke-width:3px
 ```
