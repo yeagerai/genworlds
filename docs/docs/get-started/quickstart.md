@@ -27,7 +27,7 @@ docker build -t genworlds-world-app -f ./deployments/docker/Dockerfile .
 docker run -p 80:80 -p 9000:9000 -d genworlds-world-app
 ```
 
-Finally, you can open your browser and go to `http://localhost/`
+Finally, you can open your browser and go to `http://localhost/home`. If you want to go directly to a use-case, you can go to `http://localhost/use-case/roundtable/agents_of_change.yaml`.
 
 If you want the app to directly launch a specific use-case, you can add the following variable to the `.env` file:
 
@@ -35,7 +35,7 @@ If you want the app to directly launch a specific use-case, you can add the foll
 VUE_APP_USE_CASE_ACCESS_POINT=/use_cases/roundtable/presidential_debate.yaml
 ```
 
-And you can replace `roundtable` by any folder name in the `use_cases/` folder.
+After that you can modify the `.yaml` files to start creating new roundtables.
 
 For more information about the community toolkit, check [this](/docs/category/community-toolkit) out.
 
