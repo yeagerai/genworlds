@@ -29,7 +29,7 @@ graph TD
     W1<-->ON
     W1<-->I1
 
-    style I1 stroke:#f66,color:#fff,stroke-dasharray: 5 5,stroke-width:3px
+    style I1 stroke:#f66,stroke-dasharray: 5 5,stroke-width:3px
 ```
 
 ```mermaid
@@ -63,7 +63,7 @@ graph LR
     F <--ws--> H
     D <--ws--> H
     E <--ws--> H
-    style Community-Toolkit stroke:#f66,color:#fff,stroke-dasharray: 5 5,stroke-width:3px
+    style Community-Toolkit stroke:#f66,stroke-dasharray: 5 5,stroke-width:3px
 ```
 
 ## How it's built

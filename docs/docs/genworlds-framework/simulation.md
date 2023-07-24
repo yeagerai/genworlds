@@ -32,7 +32,7 @@ graph TD
     W1<-->I2
     W1<-->IN
 
-    style Simulation stroke:#f66,color:#fff,stroke-dasharray: 5 5,stroke-width:3px
+    style Simulation stroke:#f66,stroke-dasharray: 5 5,stroke-width:3px
 ```
 
 ## Creating a Simulation

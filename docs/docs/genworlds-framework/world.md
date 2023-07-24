@@ -34,7 +34,7 @@ graph TD
     W1<-->I2
     W1<-->IN
 
-    style World stroke:#f66,color:#fff,stroke-dasharray: 5 5,stroke-width:3px
+    style World stroke:#f66,stroke-dasharray: 5 5,stroke-width:3px
 ```
 
 The BaseWorld class has been designed with extensibility in mind, enabling the introduction of new world properties. An example of this is the World2D class in our examples, which introduces a location property, adding a spatial dimension to the world.
