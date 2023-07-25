@@ -14,10 +14,6 @@ GenWorlds utilizes GPT-4, which is currently accessible to those who have made a
 
 ## For Creators: Building Your Own Simulated Worlds
 
-### Running with Replit
-
-The easiest way to start using GenWorlds Community Edition is through Replit. Click [here](https://replit.com/@yeagerai/GenWorlds) to fork it and run it on Replit.
-
 ### Running with Docker
 
 To set up and run GenWorlds Community Edition with Docker, use the following commands:
@@ -48,6 +44,10 @@ If you want to start from the gallery and see all the use-cases, delete the envi
 After that you can modify the `.yaml` files to start creating new roundtables.
 
 For more information about the community toolkit, check [this](/docs/category/community-toolkit) out.
+
+### Running with Replit
+
+Kickstarting your journey with GenWorlds Community Edition is a breeze through Replit, although it's not our primary recommendation due to potential connectivity issues associated with Replit. However, if you wish to proceed with this method, simply click [here](https://replit.com/@yeagerai/GenWorlds) to fork and run GenWorlds on Replit.
 
 ## For Developers: Enhancing the Framework and Tools
 
