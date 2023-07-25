@@ -143,12 +143,12 @@ const config = {
       },
       algolia: {
         // The application ID provided by Algolia
-        appId: 'F0WI68GFOF',
+        appId: 'XZUXW9E7JX',
   
         // Public API key: it is safe to commit it
-        apiKey: 'cb87831697ce19a5953e066ca9dd9d8f',
+        apiKey: 'f189788e1581d61e22a23c308b60d569',
   
-        indexName: 'genworlds',
+        indexName: 'prod_GenWorlds_Docs',
   
         // Optional: see doc section below
         contextualSearch: true,

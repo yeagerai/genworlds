@@ -63,6 +63,12 @@ export default function Home() {
       description="🧬🌍 GenWorlds is an open-source framework for building reliable multi-agent systems.">
       <HomepageHeader />
       <main className={styles.content}>
+      <section className={styles.features}>
+    <div className="container">
+      <a href="https://www.producthunt.com/posts/genworlds?utm_source=badge-featured&utm_medium=badge&utm_souce=badge-genworlds" target="_blank"><img src="https://api.producthunt.com/widgets/embed-image/v1/featured.svg?post_id=406215&theme=light" alt="GenWorlds - Framework&#0032;for&#0032;Coordinating&#0032;AI&#0032;Agents | Product Hunt"/></a>
+    </div>
+  </section>
+
         <section className={styles.description}>
           <div className={classnames("row", styles.descriptionRow)}>
             <div className="col col--6">
