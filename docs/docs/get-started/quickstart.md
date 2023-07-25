@@ -4,6 +4,14 @@ sidebar_position: 2
 
 # Quickstart
 
+Whether you're a creator dreaming up new simulated worlds, or a developer looking to enhance the GenWorlds framework and tools, our quickstart guides have got you covered.
+
+:::tip Info
+
+GenWorlds utilizes GPT-4, which is currently accessible to those who have made at least one successful payment through https://platform.openai.com/.
+
+:::
+
 ## For Creators: Building Your Own Simulated Worlds
 
 ### Running with Replit
