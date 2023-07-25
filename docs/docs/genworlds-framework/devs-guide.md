@@ -44,6 +44,12 @@ Once your development environment is set up, you can begin modifying the Genworl
 
 Typically, development work involves modifying the use-case slightly. You can find the use-cases in the `genworlds-community/use_cases/roundtable/world_definitions` directory. They are defined in the YAML files located in this directory.
 
+:::tip Info
+
+Sometimes the 16bit-back server gets a connection refused error while trying to connect to the socket. If this happens, you can restart the `16bit-back` container to fix the issue.
+
+:::
+
 ## Conclusion
 
 Thank you for choosing to contribute to the Genworlds project! We appreciate your efforts in improving and expanding the functionality of our framework. If you need help or have any questions, please don't hesitate to ask. Happy coding!
