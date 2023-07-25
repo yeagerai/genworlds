@@ -70,5 +70,5 @@ Evaluate the following list of possible parameter sets in terms of their correct
 Return the best parameter set      
 """,
             verbose=True,
-            model_name="gpt-4-0613",
+            model_name="gpt-4",
         )

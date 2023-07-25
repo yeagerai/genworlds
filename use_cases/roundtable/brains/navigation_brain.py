@@ -123,5 +123,5 @@ Return the best plan of the following options:
 {{thought_to_evaluate}}
 """,
             verbose=True,
-            model_name="gpt-4-0613",
+            model_name="gpt-4",
         )

@@ -87,5 +87,5 @@ Evaluate the following paragraphs of text and choose the best one to say next.
 Output the best response.
     """,
             verbose=True,
-            model_name="gpt-4-0613",
+            model_name="gpt-4",
         )
