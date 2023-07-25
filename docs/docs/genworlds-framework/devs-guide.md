@@ -4,87 +4,46 @@ sidebar_position: 5
 
 # Devs Guide
 
-## Running locally
+Welcome to the Genworlds development guide. This document will guide you through setting up your development environment and give you a quick introduction to the best practices for developing the Genworlds framework.
 
-### Requirements
+## Development Setup
 
-Currently the framework needs to be run in a [Conda](https://docs.conda.io/en/latest/) environment, because some of the dependencies can only be installed with conda.
+To get started with Genworlds, follow the steps outlined below:
 
-### Installation
+### Step 1: Cloning the Repositories
 
-#### Conda
-
-Before installing the package with pip, you need to set up your conda environment.
-
-First, set up a new conda environment:
+Clone the `genworlds` and `genworlds-community` repositories. Both repositories need to be cloned into the same parent directory.
 
 ```bash
-conda create -n genworlds python=3.11
-conda activate genworlds
+git clone git@github.com:yeagerai/genworlds.git
+git clone git@github.com:yeagerai/genworlds-community.git
 ```
 
-Then, install the following dependencies:
+### Step 2: Docker Compose
 
-##### On Windows
-
-You also need to install [Faiss](https://github.com/facebookresearch/faiss)
+Navigate to the `genworlds-community` directory and start the Docker Compose:
 
 ```bash
-conda install -c conda-forge faiss-cpu
+cd genworlds-community
+docker-compose up
 ```
 
-##### On Mac OS
+### Step 3: Set API keys
+
+After the Docker containers are up and running, you need to set your `OPENAI_API_KEY` in the `.env` file:
 
 ```bash
-conda install scipy
-conda install scikit-learn
-conda install -c pytorch faiss-cpu
+echo "OPENAI_API_KEY=your-openai-api-key" >> .env
 ```
 
-#### Pip
+Again, ensure that your-openai-api-key is replaced with your actual OpenAI API key.
 
-After that, you can use pip to install the package:
+## Developing Genworlds
 
-```bash
-pip install genworlds
-```
+Once your development environment is set up, you can begin modifying the Genworlds framework. Any changes made to the framework can be seen by restarting the `world-instance` container.
 
-### Run the Rountable example
+Typically, development work involves modifying the use-case slightly. You can find the use-cases in the `genworlds-community/use_cases/roundtable/world_definitions` directory. They are defined in the YAML files located in this directory.
 
-Start the websocket server and the CLI:
+## Conclusion
 
-```bash
-genworlds-socket-server
-genworlds-cli
-```
-
-Then in another terminal run the example:
-
-```bash
-python use_cases/roundtable/world_setup_tot.py
-```
-
-See (use_cases/roundtable/world_setup_tot.py) for the code.
-
-### Usage in your own project
-
-Importing the framework:
-
-```bash
-import genworlds
-```
-
-See examples for more details.
-
-Before running a simulation, you also need to run the websocket server that will be used for communication between the agents and the world. And also the CLI to visualize what the simulated agents are doing.
-
-```bash
-genworlds-socket-server
-```
-
-The default port is 7456, but you can change it with the `--port` argument.
-You can also set the host with the `--host` argument.
-
-```bash
-genworlds-socket-server --port 1234 --host 0.0.0.0
-```
+Thank you for choosing to contribute to the Genworlds project! We appreciate your efforts in improving and expanding the functionality of our framework. If you need help or have any questions, please don't hesitate to ask. Happy coding!
