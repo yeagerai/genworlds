@@ -35,6 +35,8 @@ If you want the app to directly launch a specific use-case, you can add the foll
 VUE_APP_USE_CASE_ACCESS_POINT=/use_cases/roundtable/presidential_debate.yaml
 ```
 
+If you want to start from the gallery and see all the use-cases, delete the environment variable `VUE_APP_USE_CASE_ACCESS_POINT` from `.env`.
+
 After that you can modify the `.yaml` files to start creating new roundtables.
 
 For more information about the community toolkit, check [this](/docs/category/community-toolkit) out.
