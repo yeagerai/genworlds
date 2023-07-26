@@ -54,7 +54,7 @@ world = World2D(
 
 ## World2D
 
-`World2D` extends `BaseWorld` by adding spatial attributes to the world environment. Here, each agent and object possesses a location property selected from a list of pre-specified locations. The `World2D` setup restricts an agent's perceptual field to other agents and objects that share the same location. The get_nearby_entities method handles this by returning a list of entities that are either in the same location or are directly associated with the querying agent (for example, objects held by the agent).
+`World2D` extends `BaseWorld` by adding spatial attributes to the world environment. Here, each agent and object possesses a location property selected from a list of pre-specified locations. The `World2D` setup restricts an agent's perceptual field to other agents and objects that share the same location. The `get_nearby_entities` method handles this by returning a list of entities that are either in the same location or are directly associated with the querying agent (for example, objects held by the agent).
 
 An event listener method, `agent_moves_to_new_location_listener`, is defined to handle the situation where an agent moves to a new location. This method updates the agent's location and then sends an update of the world state to the agent.
 
