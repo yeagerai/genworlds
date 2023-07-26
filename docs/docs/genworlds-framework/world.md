@@ -59,3 +59,15 @@ world = World2D(
 An event listener method, `agent_moves_to_new_location_listener`, is defined to handle the situation where an agent moves to a new location. This method updates the agent's location and then sends an update of the world state to the agent.
 
 In terms of real-world parallels, `World2D` functionality could be likened to a Discord server. Here, an agent acts as a user and can be present in one of the available channels at any given time. The agent is aware only of the activities and users in the same channel, mirroring the agent-object location-based interaction in `World2D`.
+
+The practical value of having a spatial world, such as `World2D`, is to create an organized environment with distinct sections, each designated for specific activities and interactions, similar to an airport or a football field in the physical world.
+
+- Structure and Context: In a spatially organized environment like an airport, different areas are designated for specific purposes, like check-ins, security, boarding, dining, etc. Similarly, World2D creates structured environments where specific interactions can occur, offering context to the interactions between agents and objects.
+
+- Scope Limitation: Just as football players focus on their immediate surroundings and the ball rather than the entire field or stadium, World2D restricts an agent's perceptual field. This allows for more concentrated and relevant interactions between agents and objects in the same location.
+
+- Dynamic Interactions: In spatially organized environments, the transition from one place to another triggers different sets of interactions and events. For example, moving from the boarding gate to the airplane in an airport or a player moving with the ball across the football field. This mirrors the agent_moves_to_new_location_listener function in World2D, which adjusts the agent's surroundings and interactions as they move to a new location.
+
+- Modeling Real-world Scenarios: Spatial worlds allow for the modeling of more realistic and complex scenarios. From simulating a bustling airport terminal to recreating a competitive football match, World2D can encapsulate a diverse range of real-world systems and environments.
+
+In essence, the ability to create spatial worlds in AI, like World2D, can make agent interactions more dynamic, contextual, and reflective of real-world situations.

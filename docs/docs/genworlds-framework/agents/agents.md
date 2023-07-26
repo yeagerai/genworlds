@@ -30,15 +30,13 @@ While we are currently focused on enhancing each of these steps, we foresee pote
 
 ## BaseAgent
 
-The BaseAgent is the most powerful and reliable type of agent available in the Genworlds framework.
+The `BaseAgent` serves as a foundational entity, providing the core functionalities and characteristics that all other specialized agents inherit. It encapsulates key properties such as the agent's identification, name, description, goals, interesting events, and memory capabilities, forming the backbone of every interactive entity within the simulation. The `BaseAgent` is also equipped with a brain — a complex assembly of systems enabling navigation and execution of various tasks — which sets the groundwork for the diverse behaviors exhibited by the agents.
 
-It consists of a branching pipeline of multiple [Brains](/docs/genworlds-framework/agents/think.md), that enable breaking down the task into smaller, more specific steps to improve the performance.
+One of the vital functionalities of the `BaseAgent` is communication. It integrates a `WorldSocketClient`, an interface that connects the agent to the world, allowing it to send messages and interact with the environment. Moreover, it employs a `ListeningAntenna`, keeping the agent informed about the world state, nearby entities, and available events in real-time. This communication infrastructure is pivotal in enabling complex, dynamic, and interactive simulations.
 
-The first brain is always a navigation brain - it needs to select the next action for the agent.
+However, the heart of the `BaseAgent` lies in its ability to 'think,' enabling autonomous interactions within the GenWorlds environment. The 'think' function is where the agent perceives the world, processes the information, devises a plan, and takes actions to achieve its goals. This function, which is typically run on a separate thread, continuously operates throughout the agent's lifecycle, endowing it with the intelligence to navigate the world, respond to events, and adapt its behavior.
 
-Based on the selected action type, a pipeline of brains is chosen. There can be any number of various brains in the pipeline.
-
-The output of each brain is passed to the next one, and the final brain needs to produce a complete set of parameters selected next action.
+In terms of decision-making, the BaseAgent uses various 'Brain' classes such as navigation brain and execution brains to strategize its actions. It's also equipped with a memory system, which maintains a summary of past events and uses it to inform future actions. It's important to note that agents can 'sleep', during which they cease to perceive and act in the world, but they can be awakened by specific events. All these functionalities together give the BaseAgent the ability to perceive, process, plan and perform actions in the simulated world.
 
 ```mermaid
 graph TD

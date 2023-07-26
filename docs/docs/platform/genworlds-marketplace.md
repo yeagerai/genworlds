@@ -24,13 +24,13 @@ The GenWorlds Marketplace is a vibrant hub where developers and users meet to tr
 
 As a developer, the Marketplace allows you to:
 
-- **Monetize your AI skills:** List and sell your AI Agents and Worlds, earning compensation for your AI engineering efforts.
+- **Monetize your AI skills:** List and sell your AI Agents, Objects and Worlds, earning compensation for your AI engineering efforts.
 
 - **Reach a Global Audience:** Your AI creations can serve users worldwide, while the GenWorlds platform takes care of hosting and maintenance.
 
 As a user, the Marketplace offers you:
 
-- **Access to Quality AI:** Rent or buy top-tier AI Agents and ready-to-use Worlds, crafted by developers around the globe.
+- **Access to Quality AI:** top-tier AI Agents, Objects and ready-to-use Worlds, crafted by developers around the globe.
 
 - **Customization Options:** Tailor your AI solutions by creating your own Worlds with GenWorlds Hosted Agents.
 

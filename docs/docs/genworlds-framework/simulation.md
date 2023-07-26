@@ -49,7 +49,7 @@ The Simulation Socket is essentially a websocket server which serves as the comm
 
 In the GenWorlds framework, the distinction between a World and a Simulation is crucial for understanding the system's operation.
 
-A World serves as a template or a blueprint, defining the common properties, rules, and behaviors that its constituent entities—Agents and Objects—would follow. It provides the environment and sets the stage for the interaction of the agents and objects.
+A World serves as a template or a blueprint, defining the common properties, goals, rules, and behaviors that its constituent entities—Agents and Objects—would follow. It provides the environment and sets the stage for the interaction of the agents and objects.
 
 However, a World in itself does not entail any activity or interaction; it merely provides the potential for such interactions to take place. To bring a world to life, to initialize its properties, and to instigate the interaction among its components, we need to instantiate a Simulation.
 
