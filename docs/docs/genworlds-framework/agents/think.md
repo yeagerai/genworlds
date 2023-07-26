@@ -12,7 +12,7 @@ The GenWorlds Framework, with its modular design, supports the development of Br
 
 Brains take full advantage of [OpenAI Functions](https://openai.com/blog/function-calling-and-other-api-updates) to allow easy specification of the desired output json format.
 
-Here is the updated Mermaid graph showing the flow of the think process:
+Following is a flow chart diagram of an agent's thought process:
 
 ```mermaid
 graph TD
