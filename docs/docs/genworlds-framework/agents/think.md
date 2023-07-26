@@ -57,7 +57,7 @@ graph TD
   style Thinking-Process stroke:#f66,stroke-dasharray: 5 5, stroke-width:3px
 ```
 
-## Understanding the "Brain" of the Agent
+## Understanding Brains
 
 The "brain" of the agent is the system that controls this thinking process. It manages the process of thought generation, evaluation, and selection. The brain class defines the functions necessary for these processes and uses the language model to generate and evaluate thoughts.
 
