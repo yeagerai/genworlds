@@ -2,7 +2,7 @@
 sidebar_position: 5
 ---
 
-# Devs Guide
+# Developer Guide
 
 Welcome to the Genworlds development guide. This document will guide you through setting up your development environment and give you a quick introduction to the best practices for developing the Genworlds framework.
 
