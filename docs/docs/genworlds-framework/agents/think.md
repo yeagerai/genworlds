@@ -4,13 +4,15 @@ sidebar_position: 2
 
 # Thinking Process
 
-Brains are the principal components of the thinking process of the [BaseAgent](/docs/genworlds-framework/agents/agents.md).
+Brains are the principal components of the thinking process of the [BaseAgent](/docs/genworlds-framework/agents/agents.md). The `think()` method in the code is the central function where the thinking process is carried out. The function first acquires the initial state of the world and potential actions to be performed. It then enters a loop, where it processes events and evaluates entities in the agent's proximity to inform its decision-making. Depending on the current state and goals of the agent, the `think()` function may choose to wait, respond to user input, or interact with entities. If the agent selects an action, it executes it and updates its memory accordingly. The function continually updates the agent's world state and repeats the process until it decides to exit.
 
 A brain takes as input all the variables of the agent - its name and background, personality, goals, memories and nearby agents and objects - and produces a desired output, through one or more steps.
 
 Brains can be as simple or complex as needed, and allow taking advantage of the latest techniques such as Self-evaluation, Chain-of-Thought, Tree-of-Thought, Committee-of-Experts and any other ones that will be discovered.
 
 Brains take full advantage of [OpenAI Functions](https://openai.com/blog/function-calling-and-other-api-updates) to allow easy specification of the desired output json format.
+
+Here is the updated Mermaid graph showing the flow of the think process:
 
 ```mermaid
 graph TD
@@ -55,17 +57,35 @@ graph TD
   style Thinking-Process stroke:#f66,stroke-dasharray: 5 5, stroke-width:3px
 ```
 
-## Types of Brains
+## Understanding the "Brain" of the Agent
 
-### Zero-Shot brain
+The "brain" of the agent is the system that controls this thinking process. It manages the process of thought generation, evaluation, and selection. The brain class defines the functions necessary for these processes and uses the language model to generate and evaluate thoughts.
+
+Different types of brains can be created to handle different tasks, scenarios, or problems. Each brain type is a subclass of the base `Brain` class and modifies the configuration parameters to suit the specific task.
+
+### Important Brains
+
+#### NavigationBrain
+
+The `NavigationBrain` class is designed for navigation tasks. It generates a plan for the agent's navigation through a simulated world. The inputs to this class include the agent's information (name, role, background, personality), topic of conversation, constraints, evaluation principles, and the number of thoughts to generate.
+
+This brain works by generating a set of possible plans, each consisting of an action to take, whether the action is valid, any violated constraints, and an updated plan. The NavigationBrain then evaluates these plans and selects the one that best meets the evaluation principles and constraints.
+
+#### EventFillerBrain
+
+The `EventFillerBrain` class is used for generating the JSON parameters required for an action the agent is about to execute in a world simulation. The inputs to this class are similar to the NavigationBrain class but also include the command the agent is supposed to execute.
+
+### Brain Types
+
+#### Zero-Shot brain
 
 This is the simplest type of brain - it produces an output in a single LLM call.
 
-### Single-Eval Brain
+#### Single-Eval Brain
 
 This brain uses two LLM calls - the first one to produce multiple possible versions of the desired output, and the second one to pick the best one.
 
-### Multi-Eval Brain
+#### Multi-Eval Brain
 
 Similar to Single-Eval Brains, a Multi-Eval brain produces a number of possible output options, however instead of a single evaluation call to pick the best output, it calls the evaluation LLM once for each output and asks it to rate it from 1 to 10.
 
