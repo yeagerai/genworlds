@@ -67,7 +67,7 @@ Different types of brains can be created to handle different tasks, scenarios, o
 
 #### NavigationBrain
 
-The `NavigationBrain` class is designed for navigation tasks. It generates a plan for the agent's navigation through a simulated world. The inputs to this class include the agent's information (name, role, background, personality), topic of conversation, constraints, evaluation principles, and the number of thoughts to generate.
+The `NavigationBrain` class is designed for navigation tasks. It generates a plan for the agent's navigation through a simulated world. The inputs to this class include the agent's information (name, role, background, personality), goals, constraints, evaluation principles, and the number of thoughts to generate.
 
 This brain works by generating a set of possible plans, each consisting of an action to take, whether the action is valid, any violated constraints, and an updated plan. The NavigationBrain then evaluates these plans and selects the one that best meets the evaluation principles and constraints.
 
