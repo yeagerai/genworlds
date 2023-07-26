@@ -1,8 +1,8 @@
 {
-    "label": "Platform",
+    "label": "The GenWorlds Platform",
     "position": 4,
     "link": {
       "type": "generated-index",
-      "description": "Some Example Use Cases of the GenWorlds framework you can play with now"
+      "description": "An AI platform enabling creation, fine-tuning, hosting, and marketplace trading of unique AI worlds and agents."
     }
   }
