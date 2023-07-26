@@ -79,7 +79,7 @@ The real power of `ExecutionBrain` lies in its customizability. Developers can a
 
 #### EventFillerBrain
 
-The `EventFillerBrain` class is used for generating the JSON parameters required for an action the agent is about to execute in a world simulation. The inputs to this class are similar to the NavigationBrain class but also include the command the agent is supposed to execute.
+The `EventFillerBrain` class is used for generating the JSON parameters required for an action the agent is about to execute in a world simulation. The inputs to this class are similar to the NavigationBrain class but also include the command the agent is has decided to execute.
 
 ### Brain Types
 
