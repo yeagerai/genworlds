@@ -12,7 +12,7 @@ Whether you prefer using Replit or Docker, GenWorlds Community Edition is readil
 
 ### Backend and Frontend Services
 
-Empower your AI world with an array of cutting-edge technologies, including Vue for frontend development, JavaScript for a dynamic user experience, Redis for cache management and data storage, and WebSockets for real-time communication. You can find more about the architecture in this document.
+Empower your AI world with an array of cutting-edge technologies, including Vue for frontend development, Redis for cache management and data storage, and WebSockets for real-time communication. You can find more about the architecture in this document.
 
 ### Run Anywhere
 
