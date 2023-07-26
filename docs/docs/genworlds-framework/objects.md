@@ -33,4 +33,4 @@ microphone = Microphone(
 )
 ```
 
-This way, by defining various objects and mapping them to specific events, you can design rich and complex interactions in the GenWorlds environment. Objects essentially extend the capabilities of agents, making them central to the game's narrative and task accomplishment.
+This way, by defining various objects and mapping them to specific events, you can design rich and complex interactions in the GenWorlds environment. 
