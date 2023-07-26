@@ -68,7 +68,7 @@ graph TD
 
 ### Custom memories
 
-Each agent can be pre-loaded with unique memories, enhancing its unique personality traits and subject matter expertise. These memories are injected on their prompts based on their relevance to the agent's current goals, allowing for more focused and reliable interactions.
+Each agent can be pre-loaded with additional memories, enhancing its unique personality traits and subject matter expertise. These memories are injected on their prompts based on their relevance to the agent's current goals, allowing for more focused and reliable interactions.
 
 Setting up these custom memories is straightforward with the [Qdrant](https://qdrant.tech/) vector database.
 
