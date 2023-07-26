@@ -6,6 +6,12 @@ sidebar_position: 3
 
 Objects in GenWorlds play a crucial role in facilitating interaction between agents. Every object defines a unique set of events, enabling agents to accomplish specific tasks and work together in a dynamic environment. Objects can be in an agent's vicinity or can be part of their inventory, expanding the scope of possible interactions.
 
+:::tip Info
+
+Objects are the main way to give Agents new capabilities and organize them in a structure to achieve a broader goal.
+
+::: 
+
 Agents are designed to adapt dynamically, learning about nearby objects, understanding the event definitions, and determining the best way to interact with them to achieve their goals.
 
 Objects in GenWorlds are versatile and can be subclassed to achieve varying purposes, such as 'token bearers' or 'tools'. For instance, a 'token bearer' like a microphone in a podcast studio, can be passed among agents, fostering a collaborative environment. The agent currently holding the token (or the microphone) gains the ability to perform unique actions, like speaking to the audience. This mechanism introduces the notion of shared resources and cooperative interactions, reinforcing that objects aren't confined to one agent, but can be easily exchanged and used throughout the collective.
