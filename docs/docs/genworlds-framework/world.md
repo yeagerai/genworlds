@@ -8,6 +8,8 @@ The 'World' in GenWorlds serves as the setting for all the action. It keeps trac
 
 The World ensures every agent is informed about the world state, entities nearby, and the events that are available to them to interact with the world.
 
+Here's a graphical representation of how the World interacts with other components in the system:
+
 ```mermaid
 graph TD
     subgraph Simulation
@@ -37,7 +39,9 @@ graph TD
     style World stroke:#f66,stroke-dasharray: 5 5,stroke-width:3px
 ```
 
-The BaseWorld class has been designed with extensibility in mind, enabling the introduction of new world properties. An example of this is the World2D class in our examples, which introduces a location property, adding a spatial dimension to the world.
+The World is designed with flexibility in mind, thanks to the `BaseWorld` class. This enables the easy addition of new world properties. For instance, the `World2D` class, which is an extension of `BaseWorld`, adds a spatial dimension to the world by introducing a `location` property for agents and objects.
+
+Here's an example of how you might instantiate a `World2D` object:
 
 ```python
 world = World2D(
@@ -50,6 +54,8 @@ world = World2D(
 
 ## World2D
 
-World2D is an extension of the BaseWorld, where each agent and object has a location from a list of locations. Agents only see agents and objects in the same location.
+`World2D` extends `BaseWorld` by adding spatial attributes to the world environment. Here, each agent and object possesses a location property selected from a list of pre-specified locations. The `World2D` setup restricts an agent's perceptual field to other agents and objects that share the same location. The get_nearby_entities method handles this by returning a list of entities that are either in the same location or are directly associated with the querying agent (for example, objects held by the agent).
 
-This world also maps to something like a Discord server, where the agent would be in one of many channels at a time.
+An event listener method, `agent_moves_to_new_location_listener`, is defined to handle the situation where an agent moves to a new location. This method updates the agent's location and then sends an update of the world state to the agent.
+
+In terms of real-world parallels, `World2D` functionality could be likened to a Discord server. Here, an agent acts as a user and can be present in one of the available channels at any given time. The agent is aware only of the activities and users in the same channel, mirroring the agent-object location-based interaction in `World2D`.
