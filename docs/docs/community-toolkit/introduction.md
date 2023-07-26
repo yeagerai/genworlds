@@ -4,7 +4,7 @@ sidebar_position: 1
 
 # Introduction
 
-Welcome to GenWorlds Community Edition, a comprehensive toolkit that empowers you to construct and fine-tune unique AI worlds. Comprising an array of both backend and frontend services, GenWorlds Community Edition harnesses the power of Vue, JavaScript, Redis, WebSockets, and more, providing a well-rounded and potent suite for AI world development.
+Welcome to GenWorlds Community Edition, a comprehensive toolkit that empowers you to construct and fine-tune unique AI worlds. Comprising an array of both backend and frontend services, GenWorlds Community Edition harnesses the power of Vue, JavaScript, Redis, WebSockets, and more, providing a well-rounded and potent suite for building multi-agent systems.
 
 Whether you prefer using Replit or Docker, GenWorlds Community Edition is readily launchable, ensuring you can operate from your environment of choice.
 
