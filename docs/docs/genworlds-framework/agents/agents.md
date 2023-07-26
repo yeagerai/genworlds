@@ -72,7 +72,7 @@ Each agent can be pre-loaded with additional memories, enhancing its unique pers
 
 Setting up these custom memories is straightforward with the [Qdrant](https://qdrant.tech/) vector database.
 
-To use the memories, you need to set the following values in the world_definition.yaml file
+To use the memories, you need to set the following values in the `world_definition.yaml` file
 
 ```yaml
 world_definition:
