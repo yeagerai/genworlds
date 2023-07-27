@@ -42,6 +42,16 @@ class AgentSpeaksWithAgentEvent(Event):
     description = "An agent speaks with another agent."
     message: str
 
+class AgentSpeaksWithUserEvent(Event):
+    event_type = "agent_speaks_with_user_event"
+    description = "An agent speaks with the user."
+    message: str
+
+class UserSpeaksWithAgentEvent(Event):
+    event_type = "user_speaks_with_agent_event"
+    description = "The user speaks with an agent."
+    message: str
+
 
 class WorldSendsSchemasEvent(Event):
     event_type = "world_sends_schemas_event"

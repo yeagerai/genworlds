@@ -2,13 +2,13 @@
 
 
 from qdrant_client import QdrantClient
-from genworlds.agents.tree_agent.tree_agent import TreeAgent
+from genworlds.agents.base_agent.base_agent import BaseAgent
 from use_cases.roundtable.brains.event_filler_brain import EventFillerBrain
 from use_cases.roundtable.brains.navigation_brain import NavigationBrain
 from use_cases.roundtable.brains.podcast_brain import PodcastBrain
 
 
-class RoundtableAgent(TreeAgent):
+class RoundtableAgent(BaseAgent):
 
     def __init__(
         self,
@@ -83,11 +83,11 @@ class RoundtableAgent(TreeAgent):
                 ),
             },
             action_brain_map={
-                "Microphone:agent_speaks_into_microphone": [
+                "Microphone:agent_speaks_into_microphone": {"brains":[
                     "podcast_brain",
                     "event_filler_brain",
-                ],
-                "World:agent_gives_object_to_agent_event": ["event_filler_brain"],
-                "default": ["event_filler_brain"],
+                ], "next_actions": ["World:agent_gives_object_to_agent_event"]},
+                "World:agent_gives_object_to_agent_event": {"brains":["event_filler_brain"], "next_actions": []},
+                "default": {"brains":["event_filler_brain"], "next_actions": []},
             },
         )

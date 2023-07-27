@@ -1,5 +1,5 @@
-from genworlds.agents.tree_agent.brains.single_eval_brain import SingleEvalBrain
-from genworlds.agents.tree_agent.prompts.navigation_generator_prompt import NavigationGeneratorPrompt
+from genworlds.agents.base_agent.brains.single_eval_brain import SingleEvalBrain
+from genworlds.agents.base_agent.prompts.navigation_generator_prompt import NavigationGeneratorPrompt
 
 
 class NavigationBrain(SingleEvalBrain):
@@ -123,5 +123,5 @@ Return the best plan of the following options:
 {{thought_to_evaluate}}
 """,
             verbose=True,
-            model_name="gpt-4-0613",
+            model_name="gpt-4",
         )

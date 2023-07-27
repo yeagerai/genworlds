@@ -1,5 +1,5 @@
-from genworlds.agents.tree_agent.brains.single_eval_brain import SingleEvalBrain
-from genworlds.agents.tree_agent.prompts.execution_generator_prompt import ExecutionGeneratorPrompt
+from genworlds.agents.base_agent.brains.single_eval_brain import SingleEvalBrain
+from genworlds.agents.base_agent.prompts.execution_generator_prompt import ExecutionGeneratorPrompt
 
 
 class PodcastBrain(SingleEvalBrain):
@@ -87,5 +87,5 @@ Evaluate the following paragraphs of text and choose the best one to say next.
 Output the best response.
     """,
             verbose=True,
-            model_name="gpt-4-0613",
+            model_name="gpt-4",
         )

@@ -1,5 +1,5 @@
-from genworlds.agents.tree_agent.brains.single_eval_brain import SingleEvalBrain
-from genworlds.agents.tree_agent.prompts.execution_generator_prompt import ExecutionGeneratorPrompt
+from genworlds.agents.base_agent.brains.single_eval_brain import SingleEvalBrain
+from genworlds.agents.base_agent.prompts.execution_generator_prompt import ExecutionGeneratorPrompt
 
 
 class EventFillerBrain(SingleEvalBrain):
@@ -70,5 +70,5 @@ Evaluate the following list of possible parameter sets in terms of their correct
 Return the best parameter set      
 """,
             verbose=True,
-            model_name="gpt-4-0613",
+            model_name="gpt-4",
         )
