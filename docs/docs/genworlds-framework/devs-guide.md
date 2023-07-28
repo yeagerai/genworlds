@@ -19,12 +19,38 @@ git clone git@github.com:yeagerai/genworlds.git
 git clone git@github.com:yeagerai/genworlds-community.git
 ```
 
-### Step 2: Docker Compose
+### Step 2: Install JS Dependencies
+
+Navigate to the `genworlds-community/packages/16bit-back` directory and execute this:
+
+```bash
+nvm use
+npm ci
+```
+
+Navigate to the `genworlds-community/packages/16bit-front` directory and execute this:
+
+```bash
+yarn setup
+```
+
+Navigate to the `genworlds-community/packages/nano-vue` directory and execute this:
+
+```bash
+yarn install
+```
+
+Navigate to the `genworlds-community/packages/gateway` directory and execute this:
+
+```bash
+npm install
+```
+
+### Step 3: Docker Compose
 
 Navigate to the `genworlds-community` directory and start the Docker Compose:
 
 ```bash
-cd genworlds-community
 docker-compose up
 ```
 
