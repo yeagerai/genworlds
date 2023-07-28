@@ -46,14 +46,6 @@ Navigate to the `genworlds-community/packages/gateway` directory and execute thi
 npm install
 ```
 
-### Step 3: Docker Compose
-
-Navigate to the `genworlds-community` directory and start the Docker Compose:
-
-```bash
-docker-compose up
-```
-
 ### Step 3: Set API keys
 
 After the Docker containers are up and running, you need to set your `OPENAI_API_KEY` in the `.env` file:
@@ -63,6 +55,14 @@ echo "OPENAI_API_KEY=your-openai-api-key" >> .env
 ```
 
 Again, ensure that your-openai-api-key is replaced with your actual OpenAI API key.
+
+### Step 4: Docker Compose
+
+Navigate to the `genworlds-community` directory and start the Docker Compose:
+
+```bash
+docker-compose up
+```
 
 ## Developing Genworlds
 
