@@ -23,7 +23,7 @@ The current version of GenWorlds is powered by [OpenAI's GPT4](https://openai.co
 
 ## 📖 The Docs
 
-Detailed information of how to use the framework can be found at [GenWorlds Docs](https://genworlds.com/docs/getting-started).
+Detailed information of how to use the framework can be found at [GenWorlds Docs](https://genworlds.com/docs/get-started/intro).
 
 ## 🚀 Key Features
 
