@@ -130,7 +130,7 @@ const config = {
               // },
               {
                 label: 'GitHub',
-                href: 'https://github.com/yegarai/genworlds',
+                href: 'https://github.com/yeagerai/genworlds',
               },
             ],
           },
