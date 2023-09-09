@@ -1,11 +1,12 @@
 from uuid import uuid4
 from typing import Generic, Type, TypeVar
 
-import uvicorn
 
-from genworlds.agents.yeager_autogpt.agent import YeagerAutoGPT
+
+from genworlds.agents.base_agent.base_agent import BaseAgent
 from genworlds.objects.base_object import BaseObject
 from genworlds.events.simulation_socket_event_handler import SimulationSocketEventHandler
+
 from genworlds.events.basic_events import (
     AgentGetsNearbyEntitiesEvent,
     AgentGivesObjectToAgentEvent,
@@ -166,7 +167,7 @@ class BaseWorld(Generic[WorldEntityType], SimulationSocketEventHandler):
         all_entities = self.entities.copy()
         self.send_event(WorldSendsAllEntitiesEvent, all_entities=[all_entities])
 
-    def register_agent(self, agent: YeagerAutoGPT, **kwargs: WorldEntityType):
+    def register_agent(self, agent: BaseAgent, **kwargs: WorldEntityType):
         class_name = agent.__class__.__name__
 
         if class_name not in self.entity_schemas:

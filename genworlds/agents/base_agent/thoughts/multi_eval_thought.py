@@ -1,17 +1,15 @@
 import json
 from textwrap import dedent
-from typing import Callable, Optional, Type, TypedDict
-from langchain import BasePromptTemplate, PromptTemplate, LLMChain
-from langchain.chat_models import ChatOpenAI
-from genworlds.agents.base_agent.brains.brain import Brain
-from genworlds.agents.base_agent.prompts.execution_generator_prompt import (
-    ExecutionGeneratorPrompt,
-)
+from typing import Callable, Type
 
+from langchain import BasePromptTemplate, LLMChain
+from langchain.chat_models import ChatOpenAI
 from langchain.output_parsers.openai_functions import JsonKeyOutputFunctionsParser, JsonOutputFunctionsParser
 from langchain.chains.openai_functions.utils import get_llm_kwargs
 
-class MultiEvalBrain(Brain):
+from genworlds.agents.base_agent.thoughts.thought import Thought
+
+class MultiEvalThought(Thought):
     """This brain generates a number of thoughts, and passes them to the evaluator one by one to be rated.
     It then selects the highest rated thought and returns it, or None if no thought was rated above the threshold.
     """

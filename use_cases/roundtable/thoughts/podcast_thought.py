@@ -1,8 +1,8 @@
-from genworlds.agents.base_agent.brains.single_eval_brain import SingleEvalBrain
+from genworlds.agents.base_agent.thoughts.single_eval_thought import SingleEvalThought
 from genworlds.agents.base_agent.prompts.execution_generator_prompt import ExecutionGeneratorPrompt
 
 
-class PodcastBrain(SingleEvalBrain):
+class PodcastThought(SingleEvalThought):
 
     def __init__(
         self,

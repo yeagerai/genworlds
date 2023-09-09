@@ -10,7 +10,6 @@ from typing import List, Optional
 from pydantic import ValidationError
 from jsonschema import validate
 
-from langchain.tools import StructuredTool
 from langchain.tools.human.tool import HumanInputRun
 from langchain.vectorstores.base import VectorStoreRetriever
 from langchain.vectorstores import Qdrant
@@ -23,7 +22,7 @@ from langchain.schema import (
     SystemMessage,
 )
 from qdrant_client import QdrantClient
-from genworlds.agents.base_agent.brains.brain import Brain
+from genworlds.agents.base_agent.thoughts.thought import Thought
 
 from genworlds.events.basic_events import (
     EntityRequestWorldStateUpdateEvent,
@@ -51,8 +50,8 @@ class BaseAgent:
         description: str,
         goals: List[str],
         openai_api_key: str,
-        navigation_brain: Brain,
-        execution_brains: dict[str, Brain],
+        navigation_brain: Thought,
+        execution_brains: dict[str, Thought],
         action_brain_map: dict,
         interesting_events: set = {},
         can_sleep: bool = True,

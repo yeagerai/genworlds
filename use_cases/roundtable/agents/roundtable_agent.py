@@ -3,9 +3,9 @@
 
 from qdrant_client import QdrantClient
 from genworlds.agents.base_agent.base_agent import BaseAgent
-from use_cases.roundtable.brains.event_filler_brain import EventFillerBrain
-from use_cases.roundtable.brains.navigation_brain import NavigationBrain
-from use_cases.roundtable.brains.podcast_brain import PodcastBrain
+from use_cases.roundtable.thoughts.event_filler_thought import EventFillerThought
+from use_cases.roundtable.thoughts.navigation_thought import NavigationThought
+from use_cases.roundtable.thoughts.podcast_thought import PodcastThought
 
 
 class RoundtableAgent(BaseAgent):
@@ -47,7 +47,7 @@ class RoundtableAgent(BaseAgent):
                 } 
             },
 
-            navigation_brain = NavigationBrain(
+            navigation_brain = NavigationThought(
                 openai_api_key=openai_api_key,
                 name=name, 
                 role=role,
@@ -59,7 +59,7 @@ class RoundtableAgent(BaseAgent):
                 n_of_thoughts=3,
             ),
             execution_brains={
-                "podcast_brain": PodcastBrain(
+                "podcast_brain": PodcastThought(
                     openai_api_key=openai_api_key,
                     name=name, 
                     role=role,
@@ -71,7 +71,7 @@ class RoundtableAgent(BaseAgent):
                     evaluation_principles=evaluation_principles,
                     n_of_thoughts=1,
                 ),
-                "event_filler_brain": EventFillerBrain(
+                "event_filler_brain": EventFillerThought(
                     openai_api_key=openai_api_key,
                     name=name, 
                     role=role,

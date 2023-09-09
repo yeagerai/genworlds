@@ -1,4 +1,4 @@
-from genworlds.events import BaseEvent
+from genworlds.events.base_event import BaseEvent
 from genworlds.worlds.base_world import BaseWorld
 from genworlds.worlds.base_world_entity import BaseWorldEntity
 

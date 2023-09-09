@@ -1,4 +1,4 @@
-from genworlds.events import BaseEvent
+from genworlds.events.base_event import BaseEvent
 
 
 class AgentGetsNearbyEntitiesEvent(BaseEvent):

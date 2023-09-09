@@ -1,18 +1,15 @@
 import json
 from textwrap import dedent
-from typing import Callable, Optional, Type, TypedDict
-from langchain import BasePromptTemplate, PromptTemplate, LLMChain
-from langchain.chat_models import ChatOpenAI
-from genworlds.agents.base_agent.brains.brain import Brain
-from genworlds.agents.base_agent.prompts.execution_generator_prompt import (
-    ExecutionGeneratorPrompt,
-)
+from typing import Callable, Type
 
+from langchain import BasePromptTemplate, LLMChain
+from langchain.chat_models import ChatOpenAI
 from langchain.output_parsers.openai_functions import JsonKeyOutputFunctionsParser, JsonOutputFunctionsParser
 from langchain.chains.openai_functions.utils import get_llm_kwargs
 
+from genworlds.agents.base_agent.thoughts.thought import Thought
 
-class SingleEvalBrain(Brain):
+class SingleEvalThought(Thought):
     """This brain generates a number of thoughts and passes them all to the evaluator, which selects one of them."""
 
     def __init__(

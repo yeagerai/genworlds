@@ -1,16 +1,13 @@
 from textwrap import dedent
-from typing import Callable, Optional, Type, TypedDict
-from langchain import BasePromptTemplate, PromptTemplate, LLMChain
+from typing import Callable, Type
+from langchain import BasePromptTemplate, LLMChain
 from langchain.chat_models import ChatOpenAI
-from genworlds.agents.base_agent.brains.brain import Brain
-from genworlds.agents.base_agent.prompts.execution_generator_prompt import (
-    ExecutionGeneratorPrompt,
-)
-
-from langchain.output_parsers.openai_functions import JsonKeyOutputFunctionsParser, JsonOutputFunctionsParser
+from langchain.output_parsers.openai_functions import JsonKeyOutputFunctionsParser
 from langchain.chains.openai_functions.utils import get_llm_kwargs
 
-class ZeroShotBrain(Brain):
+from genworlds.agents.base_agent.thoughts.thought import Thought
+
+class ZeroShotThought(Thought):
     """This brain generates one output and returns it."""
 
     def __init__(

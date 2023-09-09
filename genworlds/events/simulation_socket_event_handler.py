@@ -3,7 +3,7 @@ from typing import Callable, List
 from datetime import datetime
 
 from genworlds.simulation.sockets.simulation_socket_client import SimulationSocketClient
-from genworlds.events import BaseEvent
+from genworlds.events.base_event import BaseEvent
 
 
 class SimulationSocketEventHandler:

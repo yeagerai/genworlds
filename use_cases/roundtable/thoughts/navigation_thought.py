@@ -1,8 +1,8 @@
-from genworlds.agents.base_agent.brains.single_eval_brain import SingleEvalBrain
+from genworlds.agents.base_agent.thoughts.single_eval_thought import SingleEvalThought
 from genworlds.agents.base_agent.prompts.navigation_generator_prompt import NavigationGeneratorPrompt
 
 
-class NavigationBrain(SingleEvalBrain):
+class NavigationThought(SingleEvalThought):
 
     def __init__(
         self,
