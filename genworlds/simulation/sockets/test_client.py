@@ -5,7 +5,7 @@ import websocket
 from colorama import Fore
 
 
-class WorldSocketClient:
+class SimulationSocketClient:
     def __init__(self) -> None:
         self.uri = "ws://127.0.0.1:7456/ws"
         self.websocket = websocket.WebSocketApp(
@@ -40,9 +40,9 @@ class WorldSocketClient:
 
 
 def main():
-    world_socket_client = WorldSocketClient()
-    world_socket_client_2 = WorldSocketClient()
-    world_socket_client_3 = WorldSocketClient()
+    world_socket_client = SimulationSocketClient()
+    world_socket_client_2 = SimulationSocketClient()
+    world_socket_client_3 = SimulationSocketClient()
 
     threading.Thread(
         target=world_socket_client.websocket.run_forever, name="Listener Test Thread"

@@ -1,4 +1,4 @@
-from genworlds.events.websocket_event_handler import Event
+from genworlds.events import BaseEvent
 from genworlds.worlds.base_world import BaseWorld
 from genworlds.worlds.base_world_entity import BaseWorldEntity
 
@@ -7,7 +7,7 @@ class WorldEntity2D(BaseWorldEntity):
     location: str = None
 
 
-class AgentMovesToNewLocation(Event):
+class AgentMovesToNewLocation(BaseEvent):
     event_type = "agent_moves_to_new_location"
     description = "Agent moves to a new location in the world."
     destination_location: str
@@ -82,3 +82,9 @@ class World2D(BaseWorld[WorldEntity2D]):
 
         agent_entity.location = event.destination_location
         self.emit_agent_world_state(agent_entity.id)
+
+    def add_location(self, location: str):
+        self.locations.append(location)
+
+    def remove_location(self, location: str):
+        self.locations.remove(location)

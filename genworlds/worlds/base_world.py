@@ -5,7 +5,7 @@ import uvicorn
 
 from genworlds.agents.yeager_autogpt.agent import YeagerAutoGPT
 from genworlds.objects.base_object import BaseObject
-from genworlds.events.websocket_event_handler import WebsocketEventHandler
+from genworlds.events.simulation_socket_event_handler import SimulationSocketEventHandler
 from genworlds.events.basic_events import (
     AgentGetsNearbyEntitiesEvent,
     AgentGivesObjectToAgentEvent,
@@ -21,7 +21,7 @@ from genworlds.worlds.base_world_entity import EntityTypeEnum, BaseWorldEntity
 WorldEntityType = TypeVar("WorldEntityType", bound=BaseWorldEntity)
 
 
-class BaseWorld(Generic[WorldEntityType], WebsocketEventHandler):
+class BaseWorld(Generic[WorldEntityType], SimulationSocketEventHandler):
     subconscious_event_classes: set[str]
     entities: dict[str, WorldEntityType]
     entity_schemas: dict[str, dict]

@@ -1,12 +1,12 @@
 from uuid import uuid4
-from genworlds.events.websocket_event_handler import WebsocketEventHandler
+from genworlds.events.simulation_socket_event_handler import SimulationSocketEventHandler
 from genworlds.events.basic_events import (
     AgentGetsObjectInfoEvent,
     ObjectSendsInfoToAgentEvent,
 )
 
 
-class BaseObject(WebsocketEventHandler):
+class BaseObject(SimulationSocketEventHandler):
     def __init__(
         self,
         name: str,

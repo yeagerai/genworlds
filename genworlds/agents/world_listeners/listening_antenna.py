@@ -1,4 +1,4 @@
-from genworlds.sockets.world_socket_client import WorldSocketClient
+from genworlds.simulation.sockets.simulation_socket_client import SimulationSocketClient
 from langchain.schema import Document
 
 
@@ -22,7 +22,7 @@ class ListeningAntenna:
         agent_id,
         websocket_url: str = "ws://127.0.0.1:7456/ws",
     ):
-        self.world_socket_client = WorldSocketClient(
+        self.world_socket_client = SimulationSocketClient(
             process_event=self.process_event, url=websocket_url
         )
 

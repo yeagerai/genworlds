@@ -8,7 +8,7 @@ from colorama import Fore
 from genworlds.utils.logging_factory import LoggingFactory
 
 
-class WorldSocketClient:
+class SimulationSocketClient:
     def __init__(
         self,
         process_event,

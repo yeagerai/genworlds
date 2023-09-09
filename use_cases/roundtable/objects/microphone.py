@@ -1,11 +1,11 @@
 from typing import List
-from genworlds.events.websocket_event_handler import Event
+from genworlds.events import BaseEvent
 
 from genworlds.worlds.base_world import BaseObject
 from genworlds.objects.base_object import BaseObject
 
 
-class AgentSpeaksIntoMicrophone(Event):
+class AgentSpeaksIntoMicrophone(BaseEvent):
     event_type = "agent_speaks_into_microphone"
     description = "The holder of the microphone speaks into the microphone"
     message: str

@@ -25,6 +25,18 @@ class Simulation:
         self.agents = agents
         self.stop_event = stop_event
 
+    def register_agent(self, agent: BaseObject, **world_properties):
+        self.agents.append([agent, world_properties])
+        self.agents[-1][0].world_spawned_id = self.world.id
+        self.world.register_agent(self.agents[-1][0], **self.agents[-1][1])
+        self.agents[-1][0].launch_threads()
+
+    def register_object(self, obj: BaseObject, **world_properties):
+        self.objects.append([obj, world_properties])
+        self.agents[-1][0].world_spawned_id = self.world.id
+        self.world.register_agent(self.objects[-1][0], **self.objects[-1][1])
+        self.objects[-1][0].launch_websocket_thread()
+
     def launch(self):
         # Register agents and objects with the world
         for agent, world_properties in self.agents:

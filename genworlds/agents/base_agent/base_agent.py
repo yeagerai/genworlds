@@ -30,7 +30,7 @@ from genworlds.events.basic_events import (
 )
 from genworlds.utils.logging_factory import LoggingFactory
 
-from genworlds.sockets.world_socket_client import WorldSocketClient
+from genworlds.simulation.sockets.simulation_socket_client import SimulationSocketClient
 from genworlds.agents.world_listeners.listening_antenna import ListeningAntenna
 from genworlds.agents.memory_processors.nmk_world_memory import NMKWorldMemory
 
@@ -79,7 +79,7 @@ class BaseAgent:
 
         self.logger = LoggingFactory.get_logger(self.name)
 
-        self.world_socket_client = WorldSocketClient(
+        self.world_socket_client = SimulationSocketClient(
             process_event=None, url=websocket_url
         )
 

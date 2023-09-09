@@ -6,8 +6,8 @@ from multiprocessing import Process
 import os
 import threading
 import time
-from genworlds.sockets.world_socket_client import WorldSocketClient
-from genworlds.sockets.world_socket_server import start_thread
+from genworlds.simulation.sockets.simulation_socket_client import SimulationSocketClient
+from genworlds.simulation.sockets.simulation_socket_server import start_thread
 
 from world_setup import launch_use_case  # Assuming that launch_use_case is defined in 'another_module.py'
 
@@ -60,7 +60,7 @@ def start_server_and_simulation(use_case, world_definition, port):
         write_dict_to_file({"events": events}, file_path)
 
     websocket_url = f"ws://127.0.0.1:{port}/ws"
-    socket_recorder = WorldSocketClient(
+    socket_recorder = SimulationSocketClient(
         process_event=process_event,
         url=websocket_url,
         log_level="ERROR",

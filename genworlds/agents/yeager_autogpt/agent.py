@@ -37,7 +37,7 @@ from genworlds.agents.yeager_autogpt.output_parser import (
 )
 from genworlds.agents.yeager_autogpt.prompt import AutoGPTPrompt
 from genworlds.agents.yeager_autogpt.prompt_generator import FINISH_NAME
-from genworlds.sockets.world_socket_client import WorldSocketClient
+from genworlds.simulation.sockets.simulation_socket_client import SimulationSocketClient
 from genworlds.agents.yeager_autogpt.memory_summarizers import MemorySummarizer
 from genworlds.events.basic_events import (
     AgentGetsNearbyEntitiesEvent,
@@ -79,7 +79,7 @@ class YeagerAutoGPT:
 
         self.logger = LoggingFactory.get_logger(self.ai_name)
 
-        self.world_socket_client = WorldSocketClient(
+        self.world_socket_client = SimulationSocketClient(
             process_event=None, url=websocket_url
         )
 

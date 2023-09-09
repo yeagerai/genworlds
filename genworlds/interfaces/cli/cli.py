@@ -9,7 +9,7 @@ from prompt_toolkit.layout.layout import Layout
 from prompt_toolkit.key_binding import KeyBindings
 from prompt_toolkit.styles import Style
 
-from genworlds.sockets.world_socket_client import WorldSocketClient
+from genworlds.simulation.sockets.simulation_socket_client import SimulationSocketClient
 from genworlds.interfaces.cli.event_processors import process_event_router
 from genworlds.interfaces.cli.initial_setup_layout_screen import (
     initial_setup_layout_screen,
@@ -24,7 +24,7 @@ else:
 
 class CLI:
     def __init__(self):
-        self.ws_client = WorldSocketClient(self.process_event, log_level="ERROR")
+        self.ws_client = SimulationSocketClient(self.process_event, log_level="ERROR")
         self.kb = KeyBindings()
         self.configuration = None
         self.server_url = None
