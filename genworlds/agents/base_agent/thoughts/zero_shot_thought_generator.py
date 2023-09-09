@@ -7,7 +7,7 @@ from langchain.chains.openai_functions.utils import get_llm_kwargs
 
 from genworlds.agents.base_agent.thoughts.thought import Thought
 
-class ZeroShotThought(Thought):
+class ZeroShotThoughtGenerator(Thought):
     """This brain generates one output and returns it."""
 
     def __init__(

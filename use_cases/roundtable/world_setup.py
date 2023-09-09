@@ -9,7 +9,7 @@ from qdrant_client import QdrantClient
 
 import yaml
 
-from genworlds.agents.base_agent.thoughts.single_eval_thought import SingleEvalThought
+from genworlds.agents.base_agent.thoughts.single_eval_thought_generator import SingleEvalThoughtGenerator
 from genworlds.agents.base_agent.prompts.execution_generator_prompt import ExecutionGeneratorPrompt
 from genworlds.agents.base_agent.prompts.navigation_generator_prompt import NavigationGeneratorPrompt
 

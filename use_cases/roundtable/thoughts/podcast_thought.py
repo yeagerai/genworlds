@@ -1,8 +1,8 @@
-from genworlds.agents.base_agent.thoughts.single_eval_thought import SingleEvalThought
+from genworlds.agents.base_agent.thoughts.single_eval_thought_generator import SingleEvalThoughtGenerator
 from genworlds.agents.base_agent.prompts.execution_generator_prompt import ExecutionGeneratorPrompt
 
 
-class PodcastThought(SingleEvalThought):
+class PodcastThought(SingleEvalThoughtGenerator):
 
     def __init__(
         self,

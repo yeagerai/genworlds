@@ -9,7 +9,7 @@ from langchain.chains.openai_functions.utils import get_llm_kwargs
 
 from genworlds.agents.base_agent.thoughts.thought import Thought
 
-class MultiEvalThought(Thought):
+class MultiEvalThoughtGenerator(Thought):
     """This brain generates a number of thoughts, and passes them to the evaluator one by one to be rated.
     It then selects the highest rated thought and returns it, or None if no thought was rated above the threshold.
     """
