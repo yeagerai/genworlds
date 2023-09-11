@@ -32,6 +32,7 @@ from genworlds.utils.logging_factory import LoggingFactory
 from genworlds.simulation.sockets.simulation_socket_client import SimulationSocketClient
 from genworlds.agents.world_listeners.listening_antenna import ListeningAntenna
 from genworlds.agents.memory_processors.nmk_world_memory import NMKWorldMemory
+from genworlds.events.basic_events import AgentSpeaksWithUserEvent
 
 FINISH_NAME = "finish"
 
@@ -182,9 +183,9 @@ class BaseAgent:
                 "Self:agent_speaks_with_user_event": {
                     "title": "Self:agent_speaks_with_user_event",
                     "description": "Respond to a question from the user",
-                    "args": {"message":str},# response, target_user
+                    "args": {"message":{"title":"message", "description":"The message sent by the agent to the user","type":"string"}, "target_id": {"title": "Target Id", "description": "ID of the entity that handles the event", "type": "string"}},# response, target_user
                     "string_short": "Self:agent_speaks_with_user_event - Respond to a question from the user",
-                    "string_full": "Self:agent_speaks_with_user_event - Respond to a question from the user, args json schema: {'message':str}",# response, target_user
+                    "string_full": 'Self:agent_speaks_with_user_event - Respond to a question from the user, args json schema: {"message":{"title":"message", "description":"The message sent by the agent to the user","type":"string"}, "target_id": {"title": "Target Id", "description": "ID of the entity that handles the event", "type": "string"}}',# response, target_user
                 },
             }
             for entity in useful_nearby_entities:
@@ -391,6 +392,9 @@ class BaseAgent:
         return self.listening_antenna.get_nearby_entities()
 
     def get_schemas(self):
+        events = {}
+        events["agent_speaks_with_user_event"] = AgentSpeaksWithUserEvent.schema()
+        self.listening_antenna.schemas["Self"] = events
         return self.listening_antenna.get_schemas()
 
     def execute_event_with_args(self, name: str, args: dict):
