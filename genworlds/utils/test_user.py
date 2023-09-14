@@ -1,6 +1,6 @@
 from uuid import uuid4
 import threading
-from genworlds.simulation.sockets.simulation_socket_client import SimulationSocketClient
+from genworlds.simulation.sockets.client import SimulationSocketClient
 
 
 class TestUser:

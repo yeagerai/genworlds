@@ -1,1 +1,1 @@
-from genworlds.objects.base_object import BaseObject
+from genworlds.objects.base_object.base_object import BaseObject

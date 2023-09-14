@@ -5,8 +5,9 @@ from uuid import uuid4
 from typing import List
 import time
 
-from genworlds.objects.base_object import BaseObject
-from genworlds.worlds.base_world import BaseWorld
+from genworlds.objects.base_object.base_object import BaseObject
+from genworlds.agents.base_agent.base_agent import BaseAgent
+from genworlds.worlds.base_world.base_world import BaseWorld
 
 
 class Simulation:
@@ -27,16 +28,16 @@ class Simulation:
         self.agents = agents
         self.stop_event = stop_event
 
-    def register_agent(self, agent: BaseObject, **world_properties):
+    def add_agent(self, agent: BaseAgent, **world_properties):
         self.agents.append([agent, world_properties])
         self.agents[-1][0].world_spawned_id = self.world.id
-        self.world.register_agent(self.agents[-1][0], **self.agents[-1][1])
+        self.world.add_agent(self.agents[-1][0], **self.agents[-1][1])
         self.agents[-1][0].launch_threads()
 
-    def register_object(self, obj: BaseObject, **world_properties):
+    def add_object(self, obj: BaseObject, **world_properties):
         self.objects.append([obj, world_properties])
         self.objects[-1][0].world_spawned_id = self.world.id
-        self.world.register_object(self.objects[-1][0], **self.objects[-1][1])
+        self.world.add_object(self.objects[-1][0], **self.objects[-1][1])
         self.objects[-1][0].launch_websocket_thread()
 
     # TODO: delete objects and agents

@@ -56,6 +56,7 @@ async def websocket_endpoint(websocket: WebSocket):
         while True:
             data = await websocket.receive_text()
             logger.debug(f"Received data: {data}")
+            print(data)
             await websocket_manager.send_update(data)
     except WebSocketDisconnect as e:
         logger.warning(f"WebSocketDisconnect: {e.code}")

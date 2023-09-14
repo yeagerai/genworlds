@@ -13,7 +13,7 @@ from genworlds.worlds.base_world.events import (
     EntityWorldStateUpdateEvent,
     WorldSendsSchemasEvent,
 )
-from genworlds.worlds.base_world_entity import EntityTypeEnum, BaseWorldEntity
+from genworlds.worlds.base_world.base_world_entity import EntityTypeEnum, BaseWorldEntity
 
 WorldEntityType = TypeVar("WorldEntityType", bound=BaseWorldEntity)
 

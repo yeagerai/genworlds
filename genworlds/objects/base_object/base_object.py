@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from uuid import uuid4
 from genworlds.simulation.sockets.handlers.event_handler import (
     SimulationSocketEventHandler,

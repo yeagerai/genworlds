@@ -1,6 +1,6 @@
 import threading
 from time import sleep
-from genworlds.simulation import Simulation
+from genworlds.simulation.simulation import Simulation
 from genworlds.simulation.sockets.server import start
 
 
