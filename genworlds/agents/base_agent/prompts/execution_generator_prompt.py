@@ -116,17 +116,26 @@ class ExecutionGeneratorPrompt(BaseChatPromptTemplate, BaseModel):
             used_tokens += len(command_to_execute_message.content)
 
         if "plan" in kwargs:
-            plan = "\n".join([f"{i+1}. {goal}" for i, goal in enumerate(kwargs["plan"])]) 
+            plan = "\n".join(
+                [f"{i+1}. {goal}" for i, goal in enumerate(kwargs["plan"])]
+            )
             plan_message = SystemMessage(content=f"## Your Plan:\n{plan}")
             messages.append(plan_message)
-            used_tokens += len(plan_message.content)   
+            used_tokens += len(plan_message.content)
 
         if "personality_db" in kwargs and kwargs["personality_db"] is not None:
             personality_db: VectorStore = kwargs["personality_db"]
-            past_statements = [document.page_content for document in personality_db.similarity_search(str(kwargs["previous_brain_outputs"][-1]))]
-            
+            past_statements = [
+                document.page_content
+                for document in personality_db.similarity_search(
+                    str(kwargs["previous_brain_outputs"][-1])
+                )
+            ]
+
             if len(past_statements) > 0:
-                past_statements_bullet_list = "\n".join(map(lambda s: f'- {s}', past_statements))
+                past_statements_bullet_list = "\n".join(
+                    map(lambda s: f"- {s}", past_statements)
+                )
                 past_statements_format = f"You have said the following things on this topic in the past:\n{past_statements_bullet_list}\n\n"
                 personality_message = SystemMessage(content=past_statements_format)
                 messages.append(personality_message)

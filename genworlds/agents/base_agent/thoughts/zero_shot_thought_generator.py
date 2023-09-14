@@ -7,6 +7,7 @@ from langchain.chains.openai_functions.utils import get_llm_kwargs
 
 from genworlds.agents.base_agent.thoughts.thought import Thought
 
+
 class ZeroShotThoughtGenerator(Thought):
     """This brain generates one output and returns it."""
 
@@ -59,7 +60,6 @@ class ZeroShotThoughtGenerator(Thought):
                 "required": list(output_parameters.keys()),
             },
         }
-
 
         llm_kwargs = get_llm_kwargs(generator_function)
         output_parser = JsonKeyOutputFunctionsParser(key_name="options")

@@ -1,5 +1,7 @@
 from uuid import uuid4
-from genworlds.events.simulation_socket_event_handler import SimulationSocketEventHandler
+from genworlds.events.simulation_socket_event_handler import (
+    SimulationSocketEventHandler,
+)
 from genworlds.events.basic_events import (
     AgentGetsObjectInfoEvent,
     ObjectSendsInfoToAgentEvent,

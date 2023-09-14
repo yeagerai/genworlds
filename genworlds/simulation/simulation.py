@@ -6,9 +6,7 @@ from typing import List
 import time
 
 from genworlds.objects.base_object import BaseObject
-from typing import TYPE_CHECKING
-if TYPE_CHECKING:
-    from genworlds.worlds.base_world import BaseWorld
+from genworlds.worlds.base_world import BaseWorld
 
 
 class Simulation:

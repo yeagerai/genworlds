@@ -1,1 +1,2 @@
-from genworlds.worlds.world_2d.world_2d import World2D
+from genworlds.worlds.location_world.location_world import LocationWorld
+from genworlds.worlds.chat_interface_world.chat_interface_world import ChatInterfaceWorld

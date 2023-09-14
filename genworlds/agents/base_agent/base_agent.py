@@ -119,7 +119,7 @@ class BaseAgent:
                 embeddings=self.embeddings_model,
                 client=self.personality_db_qdrant_client,
             )
-            
+
     def think(self):
         self.logger.info(f" The agent {self.name} is thinking...")
         user_input = (
@@ -183,9 +183,20 @@ class BaseAgent:
                 "Self:agent_speaks_with_user_event": {
                     "title": "Self:agent_speaks_with_user_event",
                     "description": "Respond to a question from the user",
-                    "args": {"message":{"title":"message", "description":"The message sent by the agent to the user","type":"string"}, "target_id": {"title": "Target Id", "description": "ID of the entity that handles the event", "type": "string"}},# response, target_user
+                    "args": {
+                        "message": {
+                            "title": "message",
+                            "description": "The message sent by the agent to the user",
+                            "type": "string",
+                        },
+                        "target_id": {
+                            "title": "Target Id",
+                            "description": "ID of the entity that handles the event",
+                            "type": "string",
+                        },
+                    },  # response, target_user
                     "string_short": "Self:agent_speaks_with_user_event - Respond to a question from the user",
-                    "string_full": 'Self:agent_speaks_with_user_event - Respond to a question from the user, args json schema: {"message":{"title":"message", "description":"The message sent by the agent to the user","type":"string"}, "target_id": {"title": "Target Id", "description": "ID of the entity that handles the event", "type": "string"}}',# response, target_user
+                    "string_full": 'Self:agent_speaks_with_user_event - Respond to a question from the user, args json schema: {"message":{"title":"message", "description":"The message sent by the agent to the user","type":"string"}, "target_id": {"title": "Target Id", "description": "ID of the entity that handles the event", "type": "string"}}',  # response, target_user
                 },
             }
             for entity in useful_nearby_entities:
@@ -216,8 +227,11 @@ class BaseAgent:
 
             if len(next_actions) > 0:
                 filtered_relevant_commands = {
-                    cmd: info for cmd, info in relevant_commands.items()
-                    if cmd == "Self:wait" or cmd == "Self:agent_speaks_with_user_event" or cmd == next_actions[0]
+                    cmd: info
+                    for cmd, info in relevant_commands.items()
+                    if cmd == "Self:wait"
+                    or cmd == "Self:agent_speaks_with_user_event"
+                    or cmd == next_actions[0]
                 }
 
                 relevant_commands = filtered_relevant_commands
@@ -303,7 +317,9 @@ class BaseAgent:
                 if selected_action in self.action_brain_map:
                     action_brains = self.action_brain_map[selected_action]["brains"]
                     if len(next_actions) == 0:
-                        next_actions = self.action_brain_map[selected_action]["next_actions"]
+                        next_actions = self.action_brain_map[selected_action][
+                            "next_actions"
+                        ]
                 else:
                     action_brains = self.action_brain_map["default"]["brains"]
                     if len(next_actions) == 0:
@@ -375,7 +391,9 @@ class BaseAgent:
                 continue
 
             if len(next_actions) > 0:
-                self.logger.info(f"Inside a deterministic chain... Changing plan for navigatior brain: (Self:wait, {next_actions[0]})")
+                self.logger.info(
+                    f"Inside a deterministic chain... Changing plan for navigatior brain: (Self:wait, {next_actions[0]})"
+                )
 
             ## send result and assistant_reply to the socket
             self.logger.info(result)

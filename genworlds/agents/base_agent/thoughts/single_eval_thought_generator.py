@@ -4,10 +4,14 @@ from typing import Callable, Type
 
 from langchain import BasePromptTemplate, LLMChain
 from langchain.chat_models import ChatOpenAI
-from langchain.output_parsers.openai_functions import JsonKeyOutputFunctionsParser, JsonOutputFunctionsParser
+from langchain.output_parsers.openai_functions import (
+    JsonKeyOutputFunctionsParser,
+    JsonOutputFunctionsParser,
+)
 from langchain.chains.openai_functions.utils import get_llm_kwargs
 
 from genworlds.agents.base_agent.thoughts.thought import Thought
+
 
 class SingleEvalThoughtGenerator(Thought):
     """This brain generates a number of thoughts and passes them all to the evaluator, which selects one of them."""
@@ -32,7 +36,7 @@ class SingleEvalThoughtGenerator(Thought):
         self.verbose = verbose
 
         self.prompt_template_class = prompt_template_class
-        
+
         self.output_parameter_generator = output_parameter_generator
 
         self.llm = ChatOpenAI(
@@ -52,7 +56,7 @@ class SingleEvalThoughtGenerator(Thought):
             ai_role=dedent(generator_role_prompt),
             response_instruction=dedent(generator_results_prompt),
         )
-        
+
         self.eval_prompt = prompt_template_class(
             token_counter=self.llm.get_num_tokens,
             input_variables=[
@@ -62,7 +66,6 @@ class SingleEvalThoughtGenerator(Thought):
             ai_role=dedent(evaluator_role_prompt),
             response_instruction=dedent(evaluator_results_prompt),
         )
-        
 
     def gen_thoughts(
         self,
@@ -83,13 +86,12 @@ class SingleEvalThoughtGenerator(Thought):
                         "items": {
                             "type": "object",
                             "properties": self.output_parameter_generator(llm_params),
-                        }
+                        },
                     },
                 },
                 "required": ["options"],
             },
         }
-
 
         llm_kwargs = get_llm_kwargs(generator_function)
         output_parser = JsonKeyOutputFunctionsParser(key_name="options")
@@ -129,7 +131,7 @@ class SingleEvalThoughtGenerator(Thought):
             "description": "Generate the final output of the agent.",
             "parameters": {
                 "type": "object",
-                "properties": output_parameters,                        
+                "properties": output_parameters,
                 "required": list(output_parameters.keys()),
             },
         }
@@ -154,7 +156,6 @@ class SingleEvalThoughtGenerator(Thought):
             print("Evaluated: " + str(response))
 
         return response
-
 
     def run(self, llm_params: dict):
         thoughts = self.gen_thoughts("", self.n_of_thoughts, llm_params)

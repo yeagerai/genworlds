@@ -93,7 +93,9 @@ class NavigationGeneratorPrompt(BaseChatPromptTemplate, BaseModel):
         used_tokens += self.token_counter(nearby_entities_message.content)
 
         if "relevant_commands" in kwargs and len(kwargs["relevant_commands"]) > 0:
-            relevant_commands =  map(lambda c: c["string_short"], kwargs["relevant_commands"].values())
+            relevant_commands = map(
+                lambda c: c["string_short"], kwargs["relevant_commands"].values()
+            )
             relevant_commands_prompt = (
                 f"You can perform the following actions with the entities nearby:\n"
             )
@@ -104,7 +106,9 @@ class NavigationGeneratorPrompt(BaseChatPromptTemplate, BaseModel):
             used_tokens += self.token_counter(relevant_commands_message.content)
 
         if "plan" in kwargs and kwargs["plan"] is not None:
-            plan = "\n".join([f"{i+1}. {goal}" for i, goal in enumerate(kwargs["plan"])]) 
+            plan = "\n".join(
+                [f"{i+1}. {goal}" for i, goal in enumerate(kwargs["plan"])]
+            )
             plan_message = SystemMessage(content=f"## Your Previous Plan:\n{plan}")
             messages.append(plan_message)
             used_tokens += len(plan_message.content)
@@ -113,7 +117,6 @@ class NavigationGeneratorPrompt(BaseChatPromptTemplate, BaseModel):
         else:
             similarity_query_key = kwargs["goals"]
 
-        
         if "personality_db" in kwargs and kwargs["personality_db"] is not None:
             personality_db: VectorStore = kwargs["personality_db"]
             past_statements = list(
@@ -123,7 +126,9 @@ class NavigationGeneratorPrompt(BaseChatPromptTemplate, BaseModel):
                 )
             )
             if len(past_statements) > 0:
-                past_statements_bullet_list = "\n".join(map(lambda s: f'- {s}', past_statements))
+                past_statements_bullet_list = "\n".join(
+                    map(lambda s: f"- {s}", past_statements)
+                )
                 past_statements_format = f"You have said the following things on this topic in the past:\n{past_statements_bullet_list}\n\n"
                 personality_message = SystemMessage(content=past_statements_format)
                 messages.append(personality_message)

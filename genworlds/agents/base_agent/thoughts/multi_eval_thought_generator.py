@@ -4,10 +4,14 @@ from typing import Callable, Type
 
 from langchain import BasePromptTemplate, LLMChain
 from langchain.chat_models import ChatOpenAI
-from langchain.output_parsers.openai_functions import JsonKeyOutputFunctionsParser, JsonOutputFunctionsParser
+from langchain.output_parsers.openai_functions import (
+    JsonKeyOutputFunctionsParser,
+    JsonOutputFunctionsParser,
+)
 from langchain.chains.openai_functions.utils import get_llm_kwargs
 
 from genworlds.agents.base_agent.thoughts.thought import Thought
+
 
 class MultiEvalThoughtGenerator(Thought):
     """This brain generates a number of thoughts, and passes them to the evaluator one by one to be rated.
@@ -87,13 +91,12 @@ class MultiEvalThoughtGenerator(Thought):
                         "items": {
                             "type": "object",
                             "properties": self.output_parameter_generator(llm_params),
-                        }
+                        },
                     },
                 },
                 "required": ["options"],
             },
         }
-
 
         llm_kwargs = get_llm_kwargs(generator_function)
         output_parser = JsonKeyOutputFunctionsParser(key_name="options")
@@ -120,7 +123,7 @@ class MultiEvalThoughtGenerator(Thought):
             print("Generated: " + str(response))
 
         return response
-    
+
     def eval_thoughts(
         self,
         thoughts_to_evaluate: list,
@@ -138,7 +141,7 @@ class MultiEvalThoughtGenerator(Thought):
                         "value": {
                             "type": "number",
                         },
-                    },                        
+                    },
                     "required": ["value"],
                 },
             }
@@ -162,7 +165,7 @@ class MultiEvalThoughtGenerator(Thought):
             thought_values[thought] = response["value"]
 
         if self.verbose:
-                print("Evaluated: " + str(thought_values))
+            print("Evaluated: " + str(thought_values))
 
         return thought_values
 

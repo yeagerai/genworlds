@@ -1,5 +1,6 @@
 from abc import ABC, abstractmethod
 
+
 class Thought(ABC):
     @abstractmethod
     def run(self, llm_params: dict) -> str:

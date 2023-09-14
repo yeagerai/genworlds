@@ -176,7 +176,10 @@ class NMKWorldMemory:
     def get_event_stream_memories(self, query: str, summarized: bool = False):
         if len(self.world_events) <= self.n_of_last_events:
             last_events = self._get_n_last_events(summarized=summarized)
-            nmk = "\n\n# Your Memories\n\n" "## Last events from oldest to most recent\n\n" + "\n".join(last_events)
+            nmk = (
+                "\n\n# Your Memories\n\n"
+                "## Last events from oldest to most recent\n\n" + "\n".join(last_events)
+            )
             return nmk
         last_events = self._get_n_last_events(summarized=summarized)
         similar_events = self._get_m_similar_events(query=query, summarized=summarized)

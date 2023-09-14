@@ -49,19 +49,23 @@ class ListeningAntenna:
         match event:
             case {"event_type": "world_sends_schemas_event"}:
                 self.schemas = event["schemas"]
-            case {"event_type": "entity_world_state_update_event", "target_id": self.agent_id}:
+            case {
+                "event_type": "entity_world_state_update_event",
+                "target_id": self.agent_id,
+            }:
                 self.agent_world_state = event["entity_world_state"]
-            case {"event_type": "world_sends_nearby_entities_event", "target_id": self.agent_id}:
+            case {
+                "event_type": "world_sends_nearby_entities_event",
+                "target_id": self.agent_id,
+            }:
                 self.nearby_entities = event["nearby_entities"]
             case {"event_type": event_type} if event_type in self.special_events:
                 pass
             case event:
-                if (
-                    event["sender_id"] != self.agent_id 
-                    and
-                    (event["target_id"] == self.agent_id or 
-                    event["target_id"] == None or
-                    event["event_type"] in self.important_event_types)
+                if event["sender_id"] != self.agent_id and (
+                    event["target_id"] == self.agent_id
+                    or event["target_id"] == None
+                    or event["event_type"] in self.important_event_types
                 ):
                     self.last_events.append(event)
                     self.all_events.append(event)
