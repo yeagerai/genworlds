@@ -1,8 +1,8 @@
+from genworlds.objects.base_object.base_object import BaseObject
 from genworlds.simulation.sockets.simulation_socket_client import SimulationSocketClient
-from langchain.schema import Document
 
 
-class ListeningAntenna:
+class BaseAgentAntenna(BaseObject):
     special_events: set[str]
     agent_world_state = "You have not yet learned about the world state."
     schemas: dict

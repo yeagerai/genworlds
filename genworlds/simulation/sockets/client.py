@@ -9,6 +9,10 @@ from genworlds.utils.logging_factory import LoggingFactory
 
 
 class SimulationSocketClient:
+    """
+    A client for managing connections to a simulation socket server.
+    """
+
     def __init__(
         self,
         process_event,
@@ -25,6 +29,7 @@ class SimulationSocketClient:
             on_error=self.on_error,
             on_close=self.on_close,
         )
+        # Callback function to process events
         self.process_event = process_event
         self.send_initial_event = send_initial_event
         self.reconnect_interval = reconnect_interval

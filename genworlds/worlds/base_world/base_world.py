@@ -3,19 +3,14 @@ from typing import Generic, Type, TypeVar
 
 
 from genworlds.agents.base_agent.base_agent import BaseAgent
-from genworlds.objects.base_object import BaseObject
-from genworlds.events.simulation_socket_event_handler import (
-    SimulationSocketEventHandler,
-)
+from genworlds.objects.base_object.base_object import BaseObject
 
 from genworlds.worlds.base_world.events import (
-    AgentGetsNearbyEntitiesEvent,
     AgentGivesObjectToAgentEvent,
-    AgentSpeaksWithAgentEvent,
+    AgentGetsAllEntitiesEvent,
+    WorldSendsAllEntitiesEvent,
     EntityRequestWorldStateUpdateEvent,
     EntityWorldStateUpdateEvent,
-    WorldSendsNearbyEntitiesEvent,
-    WorldSendsAllEntitiesEvent,
     WorldSendsSchemasEvent,
 )
 from genworlds.worlds.base_world_entity import EntityTypeEnum, BaseWorldEntity
@@ -23,7 +18,32 @@ from genworlds.worlds.base_world_entity import EntityTypeEnum, BaseWorldEntity
 WorldEntityType = TypeVar("WorldEntityType", bound=BaseWorldEntity)
 
 
-class BaseWorld(Generic[WorldEntityType], SimulationSocketEventHandler):
+class BaseWorld(Generic[WorldEntityType], BaseObject):
+    """
+    Represents a basic simulated world environment.
+
+    This class manages entities (agents and objects) within the simulated world, 
+    keeps track of their states, and handles various world events. 
+    The world communicates with entities using websockets and has capabilities 
+    to register (add) agents and objects, emit world states to agents, and listen 
+    to events from entities.
+
+    Attributes:
+        subconscious_event_classes (set[str]): Events that are processed without explicit triggering.
+        entities (dict[str, WorldEntityType]): Dictionary of entities (agents/objects) managed by the world.
+        entity_schemas (dict[str, dict]): Schema definitions for entities for serialization and validation.
+        world_entity_constructor (Type[WorldEntityType]): Constructor to instantiate new world entity objects.
+
+    Args:
+        world_entity_constructor (Type[WorldEntityType]): Constructor to instantiate new world entity objects.
+        name (str): Name of the world.
+        description (str): Description or details about the world.
+        id (str, optional): Unique identifier for the world. Defaults to a new UUID if not provided.
+        websocket_url (str, optional): URL for the websocket communication. Defaults to "ws://127.0.0.1:7456/ws".
+
+    Example:
+        world = BaseWorld(MyEntityConstructor, "MyWorld", "A simple simulated world")
+    """
     subconscious_event_classes: set[str]
     entities: dict[str, WorldEntityType]
     entity_schemas: dict[str, dict]
@@ -42,11 +62,16 @@ class BaseWorld(Generic[WorldEntityType], SimulationSocketEventHandler):
         self.description = description
         self.world_entity_constructor = world_entity_constructor
         self.subconscious_event_classes = {
-            AgentGetsNearbyEntitiesEvent,
+            AgentGetsAllEntitiesEvent,
             EntityRequestWorldStateUpdateEvent,
         }
 
-        super().__init__(self.id, websocket_url=websocket_url)
+        super().__init__(
+            id=self.id,
+            name=self.name,
+            description=self.description,
+            websocket_url=websocket_url,
+        )
 
         self.entities = {}
         self.entity_schemas = {}
@@ -54,8 +79,8 @@ class BaseWorld(Generic[WorldEntityType], SimulationSocketEventHandler):
         self.register_event_listeners(
             [
                 (
-                    AgentGetsNearbyEntitiesEvent,
-                    self.agent_gets_nearby_entities_listener,
+                    AgentGetsAllEntitiesEvent,
+                    self.agent_gets_all_entities_listener,
                 ),
                 (
                     EntityRequestWorldStateUpdateEvent,
@@ -86,23 +111,23 @@ class BaseWorld(Generic[WorldEntityType], SimulationSocketEventHandler):
 
     ## Event Handlers
 
-    def get_nearby_entities(self, entity_id: str) -> WorldEntityType:
+    def get_all_entities(self, entity_id: str) -> WorldEntityType:
         # Check if reference entity exists
         self.entities.get(entity_id)
 
         # All entities
         return self.entities
 
-    def agent_gets_nearby_entities_listener(self, event: AgentGetsNearbyEntitiesEvent):
-        self.emit_world_sends_nearby_entities(agent_id=event.agent_id)
+    def agent_gets_all_entities_listener(self, event: AgentGetsAllEntitiesEvent):
+        self.emit_world_sends_all_entities(agent_id=event.sender_id)
 
-    def emit_world_sends_nearby_entities(self, agent_id: str):
-        nearby_entities = self.get_nearby_entities(agent_id)
+    def emit_world_sends_all_entities(self, agent_id: str):
+        all_entities = self.get_all_entities(agent_id)
 
         self.send_event(
-            WorldSendsNearbyEntitiesEvent,
+            WorldSendsAllEntitiesEvent,
             target_id=agent_id,
-            nearby_entities=nearby_entities,
+            all_entities=all_entities,
         )
 
     def get_agent_world_state_prompt(self, agent_id: str) -> str:
@@ -129,7 +154,7 @@ class BaseWorld(Generic[WorldEntityType], SimulationSocketEventHandler):
         self.world_sends_schemas()
         self.world_sends_all_entities()
         self.emit_agent_world_state(agent_id=event.sender_id)
-        self.emit_world_sends_nearby_entities(agent_id=event.sender_id)
+        self.emit_world_sends_all_entities(agent_id=event.sender_id)
 
     def agent_gives_object_to_agent_listener(self, event: AgentGivesObjectToAgentEvent):
         if event.object_id not in self.entities:
@@ -145,8 +170,8 @@ class BaseWorld(Generic[WorldEntityType], SimulationSocketEventHandler):
 
         self.entities[event.object_id].held_by = event.recipient_agent_id
 
-        self.emit_world_sends_nearby_entities(agent_id=event.sender_id)
-        self.emit_world_sends_nearby_entities(agent_id=event.recipient_agent_id)
+        self.emit_world_sends_all_entities(agent_id=event.sender_id)
+        self.emit_world_sends_all_entities(agent_id=event.recipient_agent_id)
 
     def world_sends_schemas(self):
         schemas = self.entity_schemas.copy()
@@ -168,50 +193,30 @@ class BaseWorld(Generic[WorldEntityType], SimulationSocketEventHandler):
         all_entities = self.entities.copy()
         self.send_event(WorldSendsAllEntitiesEvent, all_entities=[all_entities])
 
-    def register_agent(self, agent: BaseAgent, **kwargs: WorldEntityType):
-        class_name = agent.__class__.__name__
+    def add_entity(self, entity, entity_type, **kwargs):
+        class_name = entity.__class__.__name__
 
         if class_name not in self.entity_schemas:
             events = {}
-
-            # for event_class in agent.interesting_events:
-            #     events[event_class.__fields__['event_type'].default] = event_class.schema()
-
-            self.entity_schemas[class_name] = events
-
-        entity: WorldEntityType = self.world_entity_constructor(
-            id=agent.id,
-            entity_type=EntityTypeEnum.AGENT,
-            entity_class=class_name,
-            name=agent.name,
-            description=agent.description,
-            events=self.entity_schemas[class_name],
-            **kwargs,
-        )
-
-        print("Registered agent", entity)
-
-        self.entities[entity.id] = entity
-
-    def register_object(self, obj: BaseObject, **kwargs: WorldEntityType):
-        class_name = obj.__class__.__name__
-
-        if class_name not in self.entity_schemas:
-            events = {}
-            for event_type, event in obj.event_classes.items():
+            for event_type, event in entity.event_classes.items():
                 events[event_type] = event.schema()
-
             self.entity_schemas[class_name] = events
 
-        entity: WorldEntityType = self.world_entity_constructor(
-            id=obj.id,
-            entity_type=EntityTypeEnum.OBJECT,
+        world_entity = self.world_entity_constructor(
+            id=entity.id,
+            entity_type=entity_type,
             entity_class=class_name,
-            name=obj.name,
-            description=obj.description,
+            name=entity.name,
+            description=entity.description,
             **kwargs,
         )
+        self.entities[world_entity.id] = world_entity
+        return world_entity
 
-        print("Registered object", entity)
-
-        self.entities[entity.id] = entity
+    def add_agent(self, agent: BaseAgent, **kwargs: WorldEntityType):
+        entity = self.add_entity(agent, EntityTypeEnum.AGENT, **kwargs)
+        print(f"Agent {entity} added to world.")
+    
+    def add_object(self, obj: BaseObject, **kwargs: WorldEntityType):
+        entity = self.add_entity(obj, EntityTypeEnum.OBJECT, **kwargs)
+        print(f"Object {entity} added to world.")

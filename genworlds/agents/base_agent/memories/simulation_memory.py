@@ -79,7 +79,11 @@ class FullEventStreamSummarizer:
             return ""
 
 
-class NMKWorldMemory:
+class SimulationMemory:
+    """
+    Uses NMK Approach to summarize the event stream.
+    """
+
     def __init__(
         self,
         openai_api_key: str,

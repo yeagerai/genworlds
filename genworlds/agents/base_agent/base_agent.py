@@ -6,7 +6,6 @@ from uuid import uuid4
 from time import sleep
 import json
 from typing import List, Optional
-
 from pydantic import ValidationError
 from jsonschema import validate
 
@@ -17,27 +16,23 @@ from langchain.embeddings import OpenAIEmbeddings
 from langchain.schema import (
     AIMessage,
     BaseMessage,
-    Document,
-    HumanMessage,
     SystemMessage,
 )
 from qdrant_client import QdrantClient
-from genworlds.agents.base_agent.thoughts.thought import Thought
 
-from genworlds.events.basic_events import (
+from genworlds.agents.base_agent.thoughts.thought import Thought
+from genworlds.worlds.base_world.events import (
     EntityRequestWorldStateUpdateEvent,
+    AgentSpeaksWithUserEvent,
 )
 from genworlds.utils.logging_factory import LoggingFactory
-
-from genworlds.simulation.sockets.simulation_socket_client import SimulationSocketClient
-from genworlds.agents.world_listeners.listening_antenna import ListeningAntenna
-from genworlds.agents.memory_processors.nmk_world_memory import NMKWorldMemory
-from genworlds.events.basic_events import AgentSpeaksWithUserEvent
+from genworlds.objects.base_object.base_object import BaseObject
+from genworlds.agents.base_agent.memories.simulation_memory import SimulationMemory
 
 FINISH_NAME = "finish"
 
 
-class BaseAgent:
+class BaseAgent(BaseObject):
     """
     Base GenWorlds Agent class.
     """
@@ -51,9 +46,9 @@ class BaseAgent:
         description: str,
         goals: List[str],
         openai_api_key: str,
-        navigation_brain: Thought,
-        execution_brains: dict[str, Thought],
-        action_brain_map: dict,
+        navigation_thought: Thought,
+        execution_thoughts: dict[str, Thought],
+        action_thought_map: dict,
         interesting_events: set = {},
         can_sleep: bool = True,
         wakeup_events: dict = {},
@@ -69,41 +64,33 @@ class BaseAgent:
         self.name = name
         self.description = description
         self.goals = goals
-        self.interesting_events = interesting_events
-        self.can_sleep = can_sleep
-        self.wakeup_events = wakeup_events
         self.feedback_tool = feedback_tool
-        self.additional_memories = additional_memories
 
+        # Start/Stop properties
+        self.interesting_events = interesting_events
+        self.wakeup_events = wakeup_events
+        self.can_sleep = can_sleep
         self.is_asleep = False
 
+        # Logger
         self.logger = LoggingFactory.get_logger(self.name)
-
-        self.world_socket_client = SimulationSocketClient(
-            process_event=None, url=websocket_url
-        )
-
-        self.listening_antenna = ListeningAntenna(
-            self.interesting_events,
-            agent_name=self.name,
-            agent_id=self.id,
-            websocket_url=websocket_url,
-        )
 
         # Agent actions
         self.actions = []
 
-        # Brain properties
-        self.nmk_world_memory = NMKWorldMemory(
+        # Memories
+        self.additional_memories = additional_memories
+        self.simulation_memory = SimulationMemory(
             openai_api_key=openai_api_key,
             n_of_last_events=10,
             n_of_similar_events=0,
             n_of_paragraphs_in_summary=3,
         )
 
-        self.navigation_brain = navigation_brain
-        self.execution_brains = execution_brains
-        self.action_brain_map = action_brain_map
+        # Thought properties
+        self.navigation_thought = navigation_thought
+        self.execution_thoughts = execution_thoughts
+        self.action_thought_map = action_thought_map
 
         self.full_message_history: List[BaseMessage] = []
         self.next_action_count = 0
@@ -119,6 +106,13 @@ class BaseAgent:
                 embeddings=self.embeddings_model,
                 client=self.personality_db_qdrant_client,
             )
+
+        super().__init__(
+            id=self.id,
+            name=self.name,
+            description=self.description,
+            websocket_url=websocket_url,
+        )
 
     def think(self):
         self.logger.info(f" The agent {self.name} is thinking...")

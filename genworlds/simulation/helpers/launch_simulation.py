@@ -1,7 +1,7 @@
 import threading
 from time import sleep
 from genworlds.simulation import Simulation
-from genworlds.simulation.sockets.simulation_socket_server import start
+from genworlds.simulation.sockets.server import start
 
 
 def launch_simulation(simulation: Simulation):

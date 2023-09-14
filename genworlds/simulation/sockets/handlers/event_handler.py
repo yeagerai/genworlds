@@ -2,7 +2,7 @@ import threading
 from typing import Callable, List
 from datetime import datetime
 
-from genworlds.simulation.sockets.simulation_socket_client import SimulationSocketClient
+from genworlds.simulation.sockets.client import SimulationSocketClient
 from genworlds.events.base_event import BaseEvent
 
 
@@ -24,7 +24,7 @@ class SimulationSocketEventHandler:
 
         self.id = id
         self.register_event_listeners(event_class_listener_pairs)
-        self.world_socket_client = SimulationSocketClient(
+        self.simulation_socket_client = SimulationSocketClient(
             process_event=self.process_event, url=websocket_url
         )
 
@@ -66,11 +66,11 @@ class SimulationSocketEventHandler:
     def send_event(self, event_class: type[BaseEvent], **kwargs):
         event = event_class(sender_id=self.id, created_at=datetime.now(), **kwargs)
 
-        self.world_socket_client.send_message(event.json())
+        self.simulation_socket_client.send_message(event.json())
 
     def launch_websocket_thread(self):
         threading.Thread(
-            target=self.world_socket_client.websocket.run_forever,
+            target=self.simulation_socket_client.websocket.run_forever,
             name=f"{self.id} Thread",
             daemon=True,
         ).start()

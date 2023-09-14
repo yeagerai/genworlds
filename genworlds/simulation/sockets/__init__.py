@@ -1,1 +1,1 @@
-from genworlds.simulation.sockets.simulation_socket_server import start
+from genworlds.simulation.sockets.server import start

@@ -7,7 +7,7 @@ import os
 import threading
 import time
 from genworlds.simulation.sockets.simulation_socket_client import SimulationSocketClient
-from genworlds.simulation.sockets.simulation_socket_server import start_thread
+from genworlds.simulation.sockets.server import start_thread
 
 from world_setup import (
     launch_use_case,

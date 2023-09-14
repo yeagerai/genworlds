@@ -3,34 +3,13 @@ import sys
 import argparse
 import threading
 from typing import List
+import logging
 
 from fastapi import FastAPI, WebSocket, WebSocketDisconnect
 import uvicorn
 
-
-GENWORLDS_CONFIG_PATH = os.path.join(os.path.expanduser("~"), ".genworlds")
-if not os.path.exists(GENWORLDS_CONFIG_PATH):
-    os.mkdir(GENWORLDS_CONFIG_PATH)
-
-
-def write_socket_server_to_file(url: str):
-    with open(
-        os.path.join(GENWORLDS_CONFIG_PATH, "active_socket_servers_list.txt"), "a"
-    ) as f:
-        f.write(f"{url}\n")
-
-
-def remove_socket_server_from_file(url: str):
-    with open(
-        os.path.join(GENWORLDS_CONFIG_PATH, "active_socket_servers_list.txt"), "r"
-    ) as f:
-        lines = f.readlines()
-    with open(
-        os.path.join(GENWORLDS_CONFIG_PATH, "active_socket_servers_list.txt"), "w"
-    ) as f:
-        for line in lines:
-            if f"{url}" not in line:
-                f.write(line)
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 
 
 class WebSocketManager:
@@ -66,8 +45,7 @@ socket_server_url = None
 
 @app.on_event("shutdown")
 async def shutdown_event():
-    print("SIGTERM received, stopping server...")
-    remove_socket_server_from_file(socket_server_url)
+    logger.info("SIGTERM received, stopping server...")
     sys.exit(0)
 
 
@@ -77,15 +55,12 @@ async def websocket_endpoint(websocket: WebSocket):
     try:
         while True:
             data = await websocket.receive_text()
-            print(data)
+            logger.debug(f"Received data: {data}")
             await websocket_manager.send_update(data)
     except WebSocketDisconnect as e:
-        print(f"WebSocketDisconnect: {e.code}")
+        logger.warning(f"WebSocketDisconnect: {e.code}")
     except Exception as e:
-        print(f"Exception: {type(e).__name__}, {e}")
-        import traceback
-
-        traceback.print_exc()
+        logger.error(f"Exception: {type(e).__name__}, {e}", exc_info=True)
     finally:
         await websocket_manager.disconnect(websocket)
 
@@ -115,7 +90,7 @@ def start_thread(host: str = "127.0.0.1", port: int = 7456, silent: bool = False
     ).start()
 
 
-def start_from_command_line():
+def parse_args():
     parser = argparse.ArgumentParser(description="Start the world socket server.")
     parser.add_argument(
         "--port",
@@ -132,19 +107,15 @@ def start_from_command_line():
         nargs="?",
     )
 
-    args = parser.parse_args()
+    return parser.parse_args()
 
-    port = args.port
-    host = args.host
-    global socket_server_url
-    socket_server_url = f"http://{host}:{port}"
 
-    write_socket_server_to_file(socket_server_url)
+def start_from_command_line():
+    args = parse_args()
     try:
-        start(host=host, port=port)
+        start(host=args.host, port=args.port)
     except BaseException as e:
-        print(f"{e}")
-        remove_socket_server_from_file(socket_server_url)
+        logger.error(e)
         sys.exit(0)
 
 
