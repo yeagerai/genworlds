@@ -95,17 +95,17 @@ class ExecutionGeneratorPrompt(BaseChatPromptTemplate, BaseModel):
             messages.append(inventory_message)
             used_tokens += self.token_counter(inventory_message.content)
 
-        if "nearby_entities" in kwargs:
-            nearby_entities = kwargs["nearby_entities"]
-            nearby_entities_prompt = f"## Nearby entities: \n"
-            if len(nearby_entities) > 0:
-                for entity in nearby_entities:
-                    nearby_entities_prompt += f"{json.dumps(entity)}\n"
+        if "all_entities" in kwargs:
+            all_entities = kwargs["all_entities"]
+            all_entities_prompt = f"## All entities: \n"
+            if len(all_entities) > 0:
+                for entity in all_entities:
+                    all_entities_prompt += f"{json.dumps(entity)}\n"
             else:
-                nearby_entities_prompt += f"There are no entities near you.\n"
-            nearby_entities_message = SystemMessage(content=nearby_entities_prompt)
-            messages.append(nearby_entities_message)
-            used_tokens += self.token_counter(nearby_entities_message.content)
+                all_entities_prompt += f"There are no entities.\n"
+            all_entities_message = SystemMessage(content=all_entities_prompt)
+            messages.append(all_entities_message)
+            used_tokens += self.token_counter(all_entities_message.content)
 
         if "command_to_execute" in kwargs:
             command_to_execute = kwargs["command_to_execute"]["string_full"]

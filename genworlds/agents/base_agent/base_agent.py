@@ -20,10 +20,14 @@ from langchain.schema import (
 )
 from qdrant_client import QdrantClient
 
+from genworlds.events.base_event import BaseEvent
 from genworlds.agents.base_agent.thoughts.thought import Thought
 from genworlds.worlds.base_world.events import (
     EntityRequestWorldStateUpdateEvent,
     AgentSpeaksWithUserEvent,
+    WorldSendsSchemasEvent,
+    EntityWorldStateUpdateEvent,
+    WorldSendsAllEntitiesEvent,
 )
 from genworlds.utils.logging_factory import LoggingFactory
 from genworlds.objects.base_object.base_object import BaseObject
@@ -49,6 +53,7 @@ class BaseAgent(BaseObject):
         navigation_thought: Thought,
         execution_thoughts: dict[str, Thought],
         action_thought_map: dict,
+        important_event_types: set[str],
         interesting_events: set = {},
         can_sleep: bool = True,
         wakeup_events: dict = {},
@@ -72,20 +77,31 @@ class BaseAgent(BaseObject):
         self.can_sleep = can_sleep
         self.is_asleep = False
 
+        # Listener properties
+        self.special_events = {
+            "world_sends_schemas_event",
+            "entity_world_state_update_event",
+            "world_sends_all_entities_event",
+        }
+        self.schemas = {}
+        self.all_entities = []
+        self.all_events = []
+        self.last_events = []
+
+        self.important_event_types = self.special_events.copy()
+        self.important_event_types.update(important_event_types)
+        self.register_event_listeners(
+            [WorldSendsSchemasEvent, self.update_schemas],
+            [EntityWorldStateUpdateEvent, self.update_world_state],
+            [WorldSendsAllEntitiesEvent, self.update_all_entities],
+            [BaseEvent, self.listen_for_events],
+        )
+
         # Logger
         self.logger = LoggingFactory.get_logger(self.name)
 
         # Agent actions
         self.actions = []
-
-        # Memories
-        self.additional_memories = additional_memories
-        self.simulation_memory = SimulationMemory(
-            openai_api_key=openai_api_key,
-            n_of_last_events=10,
-            n_of_similar_events=0,
-            n_of_paragraphs_in_summary=3,
-        )
 
         # Thought properties
         self.navigation_thought = navigation_thought
@@ -95,9 +111,17 @@ class BaseAgent(BaseObject):
         self.full_message_history: List[BaseMessage] = []
         self.next_action_count = 0
         self.feedback_tool = None  # HumanInputRun() if human_in_the_loop else None
-        self.schemas_memory: Qdrant
         self.plan: Optional[str] = None
 
+        # Memories
+        self.additional_memories = additional_memories
+        self.simulation_memory = SimulationMemory(
+            openai_api_key=openai_api_key,
+            n_of_last_events=10,
+            n_of_similar_events=0,
+            n_of_paragraphs_in_summary=3,
+        )
+        self.schemas_memory: Qdrant
         self.embeddings_model = OpenAIEmbeddings(openai_api_key=openai_api_key)
         self.personality_db_qdrant_client = personality_db_qdrant_client
         if self.personality_db_qdrant_client:
@@ -129,10 +153,10 @@ class BaseAgent(BaseObject):
 
         while True:
             # If there are any relevant events in the world for this agent, add them to memory
-            last_events = self.listening_antenna.get_last_events()
+            last_events = self.get_last_events()
             self.logger.debug(f"Last events: {last_events}")
             for event in last_events:
-                self.nmk_world_memory.add_event(json.dumps(event), summarize=True)
+                self.simulation_memory.add_event(json.dumps(event), summarize=True)
                 self.handle_wakeup(event)
 
             if self.is_asleep:
@@ -140,30 +164,30 @@ class BaseAgent(BaseObject):
                 sleep(5)
                 continue
 
-            agent_world_state = self.listening_antenna.get_agent_world_state()
-            nearby_entities = self.listening_antenna.get_nearby_entities()
+            agent_world_state = self.get_agent_world_state()
+            all_entities = self.get_all_entities()
 
-            if len(nearby_entities) > 0:
-                nearby_entities_store = Qdrant.from_texts(
-                    list(map(json.dumps, nearby_entities)),
+            if len(all_entities) > 0:
+                all_entities_store = Qdrant.from_texts(
+                    list(map(json.dumps, all_entities)),
                     self.embeddings_model,
                     location=":memory:",
                 )
 
                 if self.plan:
-                    useful_nearby_entities = nearby_entities_store.similarity_search(
+                    useful_all_entities = all_entities_store.similarity_search(
                         str(self.plan)
                     )
                 else:
-                    useful_nearby_entities = nearby_entities_store.similarity_search(
+                    useful_all_entities = all_entities_store.similarity_search(
                         json.dumps(self.goals)
                     )
 
-                useful_nearby_entities = list(
-                    map(lambda d: json.loads(d.page_content), useful_nearby_entities)
+                useful_all_entities = list(
+                    map(lambda d: json.loads(d.page_content), useful_all_entities)
                 )
             else:
-                useful_nearby_entities = []
+                useful_all_entities = []
 
             relevant_commands = {
                 # Default commands
@@ -193,7 +217,7 @@ class BaseAgent(BaseObject):
                     "string_full": 'Self:agent_speaks_with_user_event - Respond to a question from the user, args json schema: {"message":{"title":"message", "description":"The message sent by the agent to the user","type":"string"}, "target_id": {"title": "Target Id", "description": "ID of the entity that handles the event", "type": "string"}}',  # response, target_user
                 },
             }
-            for entity in useful_nearby_entities:
+            for entity in useful_all_entities:
                 entity_schemas = self.get_schemas()[entity["entity_class"]]
 
                 for event_type, schema in entity_schemas.items():
@@ -236,7 +260,7 @@ class BaseAgent(BaseObject):
             entity_schemas = self.get_schemas()[entity_class]
 
             for event_type, schema in entity_schemas.items():
-                if event_type in self.listening_antenna.special_events:
+                if event_type in self.special_events:
                     continue
 
                 description = schema["properties"]["description"]["default"]
@@ -262,17 +286,17 @@ class BaseAgent(BaseObject):
                 relevant_commands[selected_command["title"]] = selected_command
 
             # Send message to AI, get response
-            navigation_plan_parsed = self.navigation_brain.run(
+            navigation_plan_parsed = self.navigation_thought.run(
                 {
                     "goals": self.goals,
                     "messages": self.full_message_history,
-                    "memory": self.nmk_world_memory,
+                    "memory": self.simulation_memory,
                     "personality_db": self.personality_db,
-                    "nearby_entities": list(
-                        filter(lambda e: (e["held_by"] != self.id), nearby_entities)
+                    "all_entities": list(
+                        filter(lambda e: (e["held_by"] != self.id), all_entities)
                     ),
                     "inventory": list(
-                        filter(lambda e: (e["held_by"] == self.id), nearby_entities)
+                        filter(lambda e: (e["held_by"] == self.id), all_entities)
                     ),
                     "plan": self.plan,
                     "user_input": user_input,
@@ -308,40 +332,40 @@ class BaseAgent(BaseObject):
             elif selected_action in relevant_commands:
                 selected_command = relevant_commands[selected_action]
 
-                if selected_action in self.action_brain_map:
-                    action_brains = self.action_brain_map[selected_action]["brains"]
+                if selected_action in self.action_thought_map:
+                    action_brains = self.action_thought_map[selected_action]["brains"]
                     if len(next_actions) == 0:
-                        next_actions = self.action_brain_map[selected_action][
+                        next_actions = self.action_thought_map[selected_action][
                             "next_actions"
                         ]
                 else:
-                    action_brains = self.action_brain_map["default"]["brains"]
+                    action_brains = self.action_thought_map["default"]["brains"]
                     if len(next_actions) == 0:
-                        next_actions = self.action_brain_map["default"]["next_actions"]
+                        next_actions = self.action_thought_map["default"]["next_actions"]
 
                 previous_brain_outputs = [
                     f"Current goal: {action_goal_description}",
                 ]
                 for action_brain_name in action_brains:
-                    action_brain = self.execution_brains[action_brain_name]
+                    action_brain = self.execution_thoughts[action_brain_name]
 
                     previous_brain_outputs.append(
                         action_brain.run(
                             {
                                 "goals": self.goals,
                                 "messages": self.full_message_history,
-                                "memory": self.nmk_world_memory,
+                                "memory": self.simulation_memory,
                                 "personality_db": self.personality_db,
-                                "nearby_entities": list(
+                                "all_entities": list(
                                     filter(
                                         lambda e: (e["held_by"] != self.id),
-                                        nearby_entities,
+                                        all_entities,
                                     )
                                 ),
                                 "inventory": list(
                                     filter(
                                         lambda e: (e["held_by"] == self.id),
-                                        nearby_entities,
+                                        all_entities,
                                     )
                                 ),
                                 "plan": self.plan,
@@ -360,7 +384,7 @@ class BaseAgent(BaseObject):
                         event_sent = self.execute_event_with_args(
                             selected_command["title"], args
                         )
-                        self.nmk_world_memory.add_event(
+                        self.simulation_memory.add_event(
                             json.dumps(event_sent), summarize=True
                         )
                         event_sent_summary += (
@@ -397,17 +421,11 @@ class BaseAgent(BaseObject):
             # Allow events to be processed
             sleep(3)
 
-    def get_agent_world_state(self):
-        return self.listening_antenna.get_agent_world_state()
-
-    def get_nearby_entities(self):
-        return self.listening_antenna.get_nearby_entities()
-
     def get_schemas(self):
         events = {}
         events["agent_speaks_with_user_event"] = AgentSpeaksWithUserEvent.schema()
-        self.listening_antenna.schemas["Self"] = events
-        return self.listening_antenna.get_schemas()
+        self.schemas["Self"] = events
+        return self.schemas
 
     def execute_event_with_args(self, name: str, args: dict):
         try:
@@ -420,7 +438,7 @@ class BaseAgent(BaseObject):
                 "created_at": datetime.now().isoformat(),
             }
             event.update(args)
-            summary = self.nmk_world_memory.one_line_summarizer.summarize(
+            summary = self.simulation_memory.one_line_summarizer.summarize(
                 json.dumps(event)
             )
             event["summary"] = summary
@@ -429,7 +447,7 @@ class BaseAgent(BaseObject):
             event_schema = self.get_schemas()[class_name][event_type]
             validate(event, event_schema)
 
-            self.world_socket_client.send_message(json.dumps(event))
+            self.send_message(json.dumps(event))
             return event
         except IndexError as e:
             return (
@@ -448,7 +466,7 @@ class BaseAgent(BaseObject):
             sender_id=self.id,
             target_id=self.world_spawned_id,
         )
-        self.world_socket_client.send_message(agent_request_world_state_update.json())
+        self.send_message(agent_request_world_state_update.json())
 
     def handle_wakeup(self, event):
         event_type = event["event_type"]
@@ -470,17 +488,7 @@ class BaseAgent(BaseObject):
             self.is_asleep = False
 
     def launch_threads(self):
-        threading.Thread(
-            target=self.listening_antenna.world_socket_client.websocket.run_forever,
-            name=f"Agent {self.name} Listening Thread",
-            daemon=True,
-        ).start()
-        sleep(0.1)
-        threading.Thread(
-            target=self.world_socket_client.websocket.run_forever,
-            name=f"Agent {self.name} Speaking Thread",
-            daemon=True,
-        ).start()
+        self.launch_websocket_thread()
         sleep(0.1)
         threading.Thread(
             target=self.think,
@@ -488,3 +496,36 @@ class BaseAgent(BaseObject):
             daemon=True,
         ).start()
         self.logger.info("Threads launched")
+
+    def update_schemas(self, event:WorldSendsSchemasEvent):
+        self.schemas = event["schemas"]
+
+    def update_world_state(self, event:EntityWorldStateUpdateEvent):
+        if event["target_id"] == self.id:
+            self.agent_world_state = event["entity_world_state"]
+
+    def update_all_entities(self, event:WorldSendsAllEntitiesEvent):
+        self.all_entities = event["all_entities"]
+
+    def listen_for_events(self, event: BaseEvent):
+        if event["sender_id"] != self.id and (
+            event["target_id"] == self.id
+            or event["target_id"] == None
+            or event["event_type"] in self.important_event_types
+        ):
+            self.last_events.append(event)
+            self.all_events.append(event)
+
+    def get_last_events(self):
+        events_to_return = self.last_events.copy()
+        self.last_events = []
+        return events_to_return
+
+    def get_all_events(self):
+        return self.all_events
+
+    def get_agent_world_state(self):
+        return self.agent_world_state
+
+    def get_all_entities(self):
+        return self.all_entities

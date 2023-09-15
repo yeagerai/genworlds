@@ -4,7 +4,6 @@ from typing import Any, Callable, List, Optional
 
 from pydantic import BaseModel
 
-from genworlds.agents.yeager_autogpt.prompt_generator import get_prompt
 from langchain.prompts.chat import (
     BaseChatPromptTemplate,
 )
@@ -81,23 +80,23 @@ class NavigationGeneratorPrompt(BaseChatPromptTemplate, BaseModel):
         messages.append(inventory_message)
         used_tokens += self.token_counter(inventory_message.content)
 
-        nearby_entities = kwargs["nearby_entities"]
-        nearby_entities_prompt = f"## Nearby entities: \n"
-        if len(nearby_entities) > 0:
-            for entity in nearby_entities:
-                nearby_entities_prompt += f"{json.dumps(entity)}\n"
+        all_entities = kwargs["all_entities"]
+        all_entities_prompt = f"## All entities: \n"
+        if len(all_entities) > 0:
+            for entity in all_entities:
+                all_entities_prompt += f"{json.dumps(entity)}\n"
         else:
-            nearby_entities_prompt += f"There are no entities near you.\n"
-        nearby_entities_message = SystemMessage(content=nearby_entities_prompt)
-        messages.append(nearby_entities_message)
-        used_tokens += self.token_counter(nearby_entities_message.content)
+            all_entities_prompt += f"There are no entities near you.\n"
+        all_entities_message = SystemMessage(content=all_entities_prompt)
+        messages.append(all_entities_message)
+        used_tokens += self.token_counter(all_entities_message.content)
 
         if "relevant_commands" in kwargs and len(kwargs["relevant_commands"]) > 0:
             relevant_commands = map(
                 lambda c: c["string_short"], kwargs["relevant_commands"].values()
             )
             relevant_commands_prompt = (
-                f"You can perform the following actions with the entities nearby:\n"
+                f"You can perform the following actions with the entities:\n"
             )
             for command in relevant_commands:
                 relevant_commands_prompt += f"{command}\n"

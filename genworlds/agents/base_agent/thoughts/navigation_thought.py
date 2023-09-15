@@ -74,7 +74,7 @@ Example: "Yes, opening the door is valid because I have the key to the door in m
                 "memory",
                 # "personality_db",
                 "agent_world_state",
-                "nearby_entities",
+                "all_entities",
                 "inventory",
                 "relevant_commands",
                 "messages",

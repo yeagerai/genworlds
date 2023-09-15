@@ -31,7 +31,7 @@ class EventFillerThought(SingleEvalThoughtGenerator):
                 "memory",
                 "personality_db",
                 "agent_world_state",
-                "nearby_entities",
+                "all_entities",
                 "inventory",
                 "command_to_execute",
                 "previous_brain_outputs",
