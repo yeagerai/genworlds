@@ -20,7 +20,7 @@ class WorldSendsNearbyEntitiesEvent(BaseEvent):
 class WorldSendsAllEntitiesEvent(BaseEvent):
     event_type = "world_sends_all_entities_event"
     description = "Send all entities."
-    all_entities: list
+    all_entities: dict
 
 
 class AgentGetsObjectInfoEvent(BaseEvent):

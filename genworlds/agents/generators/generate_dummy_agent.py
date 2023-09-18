@@ -32,7 +32,8 @@ def generate_dummy_agent(role: str, agent_name: str, openai_api_key: str):
             "agent_speaks_with_agent_event": {"target_id": name},
             "user_speaks_with_agent_event": {"target_id": name},
         },
-        navigation_brain=NavigationThought(
+        important_event_types=(),
+        navigation_thought=NavigationThought(
             openai_api_key=openai_api_key,
             name=name,
             role=role,
@@ -43,8 +44,8 @@ def generate_dummy_agent(role: str, agent_name: str, openai_api_key: str):
             evaluation_principles=evaluation_principles,
             n_of_thoughts=3,
         ),
-        execution_brains={
-            "event_filler_brain": EventFillerThought(
+        execution_thoughts={
+            "event_filler_thought": EventFillerThought(
                 openai_api_key=openai_api_key,
                 name=name,
                 role=role,
@@ -55,7 +56,7 @@ def generate_dummy_agent(role: str, agent_name: str, openai_api_key: str):
                 n_of_thoughts=1,
             ),
         },
-        action_brain_map={
+        action_thought_map={
             "default": {"brains": ["event_filler_brain"], "next_actions": []},
         },
     )

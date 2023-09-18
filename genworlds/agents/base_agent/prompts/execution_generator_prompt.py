@@ -12,7 +12,7 @@ from langchain.prompts.chat import (
     BaseChatPromptTemplate,
 )
 
-from genworlds.agents.memory_processors.nmk_world_memory import NMKWorldMemory
+from genworlds.agents.base_agent.memories.simulation_memory import SimulationMemory
 
 
 class ExecutionGeneratorPrompt(BaseChatPromptTemplate, BaseModel):
@@ -142,7 +142,7 @@ class ExecutionGeneratorPrompt(BaseChatPromptTemplate, BaseModel):
                 used_tokens += len(personality_message.content)
 
         if "memory" in kwargs and kwargs["memory"] is not None:
-            memory: NMKWorldMemory = kwargs["memory"]
+            memory: SimulationMemory = kwargs["memory"]
             if len(memory.world_events) > 0:
                 if len(memory.world_events) % 5 == 0:
                     memory.create_full_summary()

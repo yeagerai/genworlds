@@ -12,7 +12,7 @@ from langchain.tools.base import BaseTool
 from langchain.vectorstores.base import VectorStoreRetriever
 from langchain.vectorstores import VectorStore
 
-from genworlds.agents.memory_processors.nmk_world_memory import NMKWorldMemory
+from genworlds.agents.base_agent.memories.simulation_memory import SimulationMemory
 
 
 class NavigationGeneratorPrompt(BaseChatPromptTemplate, BaseModel):
@@ -134,7 +134,7 @@ class NavigationGeneratorPrompt(BaseChatPromptTemplate, BaseModel):
                 used_tokens += len(personality_message.content)
 
         if "memory" in kwargs and kwargs["memory"] is not None:
-            memory: NMKWorldMemory = kwargs["memory"]
+            memory: SimulationMemory = kwargs["memory"]
             if len(memory.world_events) > 0:
                 if len(memory.world_events) % 5 == 0:
                     memory.create_full_summary()

@@ -1,5 +1,5 @@
 from uuid import uuid4
-from typing import Generic, Type, TypeVar
+from typing import Generic, Type, TypeVar, List
 
 
 from genworlds.agents.base_agent.base_agent import BaseAgent
@@ -111,19 +111,14 @@ class BaseWorld(Generic[WorldEntityType], BaseObject):
 
     ## Event Handlers
 
-    def get_all_entities(self, entity_id: str) -> WorldEntityType:
-        # Check if reference entity exists
-        self.entities.get(entity_id)
-
-        # All entities
+    def get_all_entities(self) -> dict:
         return self.entities
 
     def agent_gets_all_entities_listener(self, event: AgentGetsAllEntitiesEvent):
         self.emit_world_sends_all_entities(agent_id=event.sender_id)
 
     def emit_world_sends_all_entities(self, agent_id: str):
-        all_entities = self.get_all_entities(agent_id)
-
+        all_entities = self.get_all_entities()
         self.send_event(
             WorldSendsAllEntitiesEvent,
             target_id=agent_id,
@@ -132,7 +127,6 @@ class BaseWorld(Generic[WorldEntityType], BaseObject):
 
     def get_agent_world_state_prompt(self, agent_id: str) -> str:
         agent_entity = self.get_agent_by_id(agent_id)
-
         world_state_prompt = (
             f"You are an agent in the world.\n" f"Your id is {agent_entity.id}.\n"
         )
@@ -152,7 +146,7 @@ class BaseWorld(Generic[WorldEntityType], BaseObject):
         self, event: EntityRequestWorldStateUpdateEvent
     ):
         self.world_sends_schemas()
-        self.world_sends_all_entities()
+        # self.world_sends_all_entities()
         self.emit_agent_world_state(agent_id=event.sender_id)
         self.emit_world_sends_all_entities(agent_id=event.sender_id)
 

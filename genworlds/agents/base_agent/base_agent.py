@@ -43,7 +43,8 @@ class BaseAgent(BaseObject):
 
     world_spawned_id: str
     personality_db = None
-
+    agent_world_state = "You have not yet learned about the world state."
+    
     def __init__(
         self,
         name: str,
@@ -90,12 +91,6 @@ class BaseAgent(BaseObject):
 
         self.important_event_types = self.special_events.copy()
         self.important_event_types.update(important_event_types)
-        self.register_event_listeners(
-            [WorldSendsSchemasEvent, self.update_schemas],
-            [EntityWorldStateUpdateEvent, self.update_world_state],
-            [WorldSendsAllEntitiesEvent, self.update_all_entities],
-            [BaseEvent, self.listen_for_events],
-        )
 
         # Logger
         self.logger = LoggingFactory.get_logger(self.name)
@@ -137,6 +132,12 @@ class BaseAgent(BaseObject):
             description=self.description,
             websocket_url=websocket_url,
         )
+        self.register_event_listeners(
+            [[WorldSendsSchemasEvent, self.update_schemas],
+            [EntityWorldStateUpdateEvent, self.update_world_state],
+            [WorldSendsAllEntitiesEvent, self.update_all_entities],
+            [BaseEvent, self.listen_for_events],]
+        )
 
     def think(self):
         self.logger.info(f" The agent {self.name} is thinking...")
@@ -169,7 +170,7 @@ class BaseAgent(BaseObject):
 
             if len(all_entities) > 0:
                 all_entities_store = Qdrant.from_texts(
-                    list(map(json.dumps, all_entities)),
+                    list(map(json.dumps, all_entities.values())),
                     self.embeddings_model,
                     location=":memory:",
                 )
@@ -219,9 +220,11 @@ class BaseAgent(BaseObject):
             }
             for entity in useful_all_entities:
                 entity_schemas = self.get_schemas()[entity["entity_class"]]
-
+                print("########")
+                print(entity_schemas)
+                print("########")
                 for event_type, schema in entity_schemas.items():
-                    description = schema["properties"]["description"]["default"]
+                    description = schema["properties"]["description"]
 
                     args = {}
                     for property_name, property_details in schema["properties"].items():
@@ -263,7 +266,7 @@ class BaseAgent(BaseObject):
                 if event_type in self.special_events:
                     continue
 
-                description = schema["properties"]["description"]["default"]
+                description = schema["properties"]["description"]
 
                 args = {}
                 for property_name, property_details in schema["properties"].items():
@@ -293,10 +296,10 @@ class BaseAgent(BaseObject):
                     "memory": self.simulation_memory,
                     "personality_db": self.personality_db,
                     "all_entities": list(
-                        filter(lambda e: (e["held_by"] != self.id), all_entities)
+                        filter(lambda e: (e["held_by"] != self.id), self.all_entities.values())
                     ),
                     "inventory": list(
-                        filter(lambda e: (e["held_by"] == self.id), all_entities)
+                        filter(lambda e: (e["held_by"] == self.id), self.all_entities.values())
                     ),
                     "plan": self.plan,
                     "user_input": user_input,
@@ -447,7 +450,7 @@ class BaseAgent(BaseObject):
             event_schema = self.get_schemas()[class_name][event_type]
             validate(event, event_schema)
 
-            self.send_message(json.dumps(event))
+            self.send_event(json.dumps(event))
             return event
         except IndexError as e:
             return (
@@ -461,15 +464,12 @@ class BaseAgent(BaseObject):
             return f"Error: {str(e)}, {type(e).__name__}, args: {args}"
 
     def agent_request_world_state_update_action(self):
-        agent_request_world_state_update = EntityRequestWorldStateUpdateEvent(
-            created_at=datetime.now(),
-            sender_id=self.id,
+        self.send_event(EntityRequestWorldStateUpdateEvent,
             target_id=self.world_spawned_id,
         )
-        self.send_message(agent_request_world_state_update.json())
 
     def handle_wakeup(self, event):
-        event_type = event["event_type"]
+        event_type = event.event_type
         if event_type not in self.wakeup_events:
             return
 
@@ -477,9 +477,10 @@ class BaseAgent(BaseObject):
 
         # Check if the event matches the filters
         is_match = True
-        for wakeup_event_property in wakeup_event_property_filters.keys():
-            expected_value = wakeup_event_property_filters[wakeup_event_property]
-            if event[wakeup_event_property] != expected_value:
+        for wakeup_event_property, expected_value in wakeup_event_property_filters.items():
+            # Use getattr to dynamically access event attributes using their string names
+            actual_value = getattr(event, wakeup_event_property, None)
+            if actual_value != expected_value:
                 is_match = False
                 break
 
@@ -498,20 +499,20 @@ class BaseAgent(BaseObject):
         self.logger.info("Threads launched")
 
     def update_schemas(self, event:WorldSendsSchemasEvent):
-        self.schemas = event["schemas"]
+        self.schemas = event.schemas
 
     def update_world_state(self, event:EntityWorldStateUpdateEvent):
-        if event["target_id"] == self.id:
-            self.agent_world_state = event["entity_world_state"]
+        if event.target_id == self.id:
+            self.agent_world_state = event.entity_world_state
 
     def update_all_entities(self, event:WorldSendsAllEntitiesEvent):
-        self.all_entities = event["all_entities"]
+        self.all_entities = event.all_entities
 
     def listen_for_events(self, event: BaseEvent):
-        if event["sender_id"] != self.id and (
-            event["target_id"] == self.id
-            or event["target_id"] == None
-            or event["event_type"] in self.important_event_types
+        if event.sender_id != self.id and (
+            event.target_id == self.id
+            or event.target_id == None
+            or event.event_type in self.important_event_types
         ):
             self.last_events.append(event)
             self.all_events.append(event)
