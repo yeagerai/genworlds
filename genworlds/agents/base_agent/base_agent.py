@@ -6,7 +6,7 @@ from uuid import uuid4
 from time import sleep
 import json
 from typing import List, Optional
-from pydantic import ValidationError
+from pydantic import ValidationError, create_model
 from jsonschema import validate
 
 from langchain.tools.human.tool import HumanInputRun
@@ -84,6 +84,11 @@ class BaseAgent(BaseObject):
             "entity_world_state_update_event",
             "world_sends_all_entities_event",
         }
+        self.non_memory_important_event_types = {
+            "world_sends_schemas_event",
+            "entity_world_state_update_event",
+            "world_sends_all_entities_event",
+        }
         self.schemas = {}
         self.all_entities = []
         self.all_events = []
@@ -138,6 +143,7 @@ class BaseAgent(BaseObject):
             [WorldSendsAllEntitiesEvent, self.update_all_entities],
             [BaseEvent, self.listen_for_events],]
         )
+        self.register_event_classes([EntityRequestWorldStateUpdateEvent, AgentSpeaksWithUserEvent])
 
     def think(self):
         self.logger.info(f" The agent {self.name} is thinking...")
@@ -157,7 +163,7 @@ class BaseAgent(BaseObject):
             last_events = self.get_last_events()
             self.logger.debug(f"Last events: {last_events}")
             for event in last_events:
-                self.simulation_memory.add_event(json.dumps(event), summarize=True)
+                self.simulation_memory.add_event(event.json(), summarize=True)
                 self.handle_wakeup(event)
 
             if self.is_asleep:
@@ -220,9 +226,6 @@ class BaseAgent(BaseObject):
             }
             for entity in useful_all_entities:
                 entity_schemas = self.get_schemas()[entity["entity_class"]]
-                print("########")
-                print(entity_schemas)
-                print("########")
                 for event_type, schema in entity_schemas.items():
                     description = schema["properties"]["description"]
 
@@ -468,6 +471,10 @@ class BaseAgent(BaseObject):
             target_id=self.world_spawned_id,
         )
 
+    def add_wakeup_event(self, event_class: BaseEvent, params: dict):
+        self.wakeup_events[event_class.__fields__["event_type"].default] = params
+        self.register_event_listener(event_class, self.handle_wakeup)
+        
     def handle_wakeup(self, event):
         event_type = event.event_type
         if event_type not in self.wakeup_events:
@@ -485,7 +492,7 @@ class BaseAgent(BaseObject):
                 break
 
         if is_match:
-            self.logger.info("Waking up", event)
+            self.logger.info("Waking up ...")
             self.is_asleep = False
 
     def launch_threads(self):
@@ -500,6 +507,20 @@ class BaseAgent(BaseObject):
 
     def update_schemas(self, event:WorldSendsSchemasEvent):
         self.schemas = event.schemas
+        self.update_event_classes_from_new_schemas(event.schemas)
+
+    def json_schema_to_pydantic_model(self, schema: Dict[str, Any]) -> Any:
+        name = schema.get('title', 'DynamicModel')
+        fields = {k: (v.get('type'), v.get('default')) for k, v in schema['properties'].items()}
+        return create_model(name, **fields)
+
+    def update_event_classes_from_new_schemas(self, schemas):
+        for entity in schemas:
+            for event in schemas[entity]:
+                Model = self.json_schema_to_pydantic_model(schemas[entity][event])
+                event_type = Model.__fields__["event_type"].default
+                if event_type not in self.event_classes:
+                    self.event_classes[event_type] = Model
 
     def update_world_state(self, event:EntityWorldStateUpdateEvent):
         if event.target_id == self.id:
@@ -511,9 +532,8 @@ class BaseAgent(BaseObject):
     def listen_for_events(self, event: BaseEvent):
         if event.sender_id != self.id and (
             event.target_id == self.id
-            or event.target_id == None
             or event.event_type in self.important_event_types
-        ):
+        ) and event.event_type not in self.non_memory_important_event_types:
             self.last_events.append(event)
             self.all_events.append(event)
 

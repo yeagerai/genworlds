@@ -139,7 +139,7 @@ class BaseWorld(Generic[WorldEntityType], BaseObject):
         self.send_event(
             EntityWorldStateUpdateEvent,
             target_id=agent_id,
-            entity_world_state=world_state_prompt,
+            entity_world_state=str(world_state_prompt),
         )
 
     def entity_request_world_state_update_event_listener(

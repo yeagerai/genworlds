@@ -148,7 +148,8 @@ class SimulationMemory:
 
     def _add_summarized_event(self, event):
         sum_event = self.one_line_summarizer.summarize(event)
-        self.summarized_events.append(json.loads(event)["created_at"] + " " + sum_event)
+        event_as_dict = json.loads(event)
+        self.summarized_events.append(event_as_dict["created_at"] + " " + sum_event)
         self.summarized_events_db.add_documents([Document(page_content=sum_event)])
 
     def create_full_summary(self):

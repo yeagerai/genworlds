@@ -34,10 +34,18 @@ class SimulationSocketEventHandler:
         for event_class, event_listener in event_class_listener_pairs:
             self.register_event_listener(event_class, event_listener)
 
+    def register_event_classes(self, event_classes: List[type[BaseEvent]]):
+        for event_class in event_classes:
+            event_type = event_class.__fields__["event_type"].default
+            self.event_classes[event_type] = event_class
+
     def register_event_listener(
         self, event_class: type[BaseEvent], event_listener: Callable
     ):
-        event_type = event_class.__fields__["event_type"].default
+        if event_class == BaseEvent:
+            event_type = "*"
+        else:
+            event_type = event_class.__fields__["event_type"].default
         self.event_classes[event_type] = event_class
 
         if event_type not in self.listeners:
@@ -61,6 +69,11 @@ class SimulationSocketEventHandler:
             parsed_event = self.event_classes[event["event_type"]].parse_obj(event)
 
             for listener in self.listeners[event["event_type"]]:
+                listener(parsed_event)
+    
+        if "*" in self.listeners:
+            parsed_event = self.event_classes[event["event_type"]].parse_obj(event)
+            for listener in self.listeners["*"]:
                 listener(parsed_event)
 
     def send_event(self, event_class: type[BaseEvent], **kwargs):
