@@ -10,9 +10,9 @@ class BaseObject(SimulationSocketEventHandler):
     """
     Represents a foundational object in the simulation.
 
-    BaseObject serves as the parent class for various entities in the simulation, 
-    providing essential attributes like a unique identifier, name, and description. 
-    It also inherits from SimulationSocketEventHandler, enabling it to communicate 
+    BaseObject serves as the parent class for various entities in the simulation,
+    providing essential attributes like a unique identifier, name, and description.
+    It also inherits from SimulationSocketEventHandler, enabling it to communicate
     via websockets.
 
     Attributes:
@@ -28,7 +28,8 @@ class BaseObject(SimulationSocketEventHandler):
 
     Example:
         my_object = BaseObject("ObjectName", "A simple object description")
-    """    
+    """
+
     def __init__(
         self,
         name: str,

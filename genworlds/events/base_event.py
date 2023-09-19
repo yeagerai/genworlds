@@ -7,8 +7,8 @@ class BaseEvent(BaseModel):
     """
     Represents a foundational event in the simulation.
 
-    BaseEvent serves as the parent class for various events that can occur in the 
-    simulation. It defines core attributes that are intrinsic to all events, 
+    BaseEvent serves as the parent class for various events that can occur in the
+    simulation. It defines core attributes that are intrinsic to all events,
     including their type, description, creation timestamp, sender, and an optional target.
 
     Attributes:
@@ -29,12 +29,13 @@ class BaseEvent(BaseModel):
 
     Example:
         my_event = BaseEvent(
-            event_type="SampleEventType", 
+            event_type="SampleEventType",
             description="This event signifies ...",
             created_at=datetime.datetime.now(),
             sender_id="12345"
         )
     """
+
     event_type: str
     description: str
     summary: Optional[str]

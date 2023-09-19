@@ -13,7 +13,10 @@ from genworlds.worlds.base_world.events import (
     EntityWorldStateUpdateEvent,
     WorldSendsSchemasEvent,
 )
-from genworlds.worlds.base_world.base_world_entity import EntityTypeEnum, BaseWorldEntity
+from genworlds.worlds.base_world.base_world_entity import (
+    EntityTypeEnum,
+    BaseWorldEntity,
+)
 
 WorldEntityType = TypeVar("WorldEntityType", bound=BaseWorldEntity)
 
@@ -22,10 +25,10 @@ class BaseWorld(Generic[WorldEntityType], BaseObject):
     """
     Represents a basic simulated world environment.
 
-    This class manages entities (agents and objects) within the simulated world, 
-    keeps track of their states, and handles various world events. 
-    The world communicates with entities using websockets and has capabilities 
-    to register (add) agents and objects, emit world states to agents, and listen 
+    This class manages entities (agents and objects) within the simulated world,
+    keeps track of their states, and handles various world events.
+    The world communicates with entities using websockets and has capabilities
+    to register (add) agents and objects, emit world states to agents, and listen
     to events from entities.
 
     Attributes:
@@ -44,6 +47,7 @@ class BaseWorld(Generic[WorldEntityType], BaseObject):
     Example:
         world = BaseWorld(MyEntityConstructor, "MyWorld", "A simple simulated world")
     """
+
     subconscious_event_classes: set[str]
     entities: dict[str, WorldEntityType]
     entity_schemas: dict[str, dict]
@@ -210,7 +214,7 @@ class BaseWorld(Generic[WorldEntityType], BaseObject):
     def add_agent(self, agent: BaseAgent, **kwargs: WorldEntityType):
         entity = self.add_entity(agent, EntityTypeEnum.AGENT, **kwargs)
         print(f"Agent {entity} added to world.")
-    
+
     def add_object(self, obj: BaseObject, **kwargs: WorldEntityType):
         entity = self.add_entity(obj, EntityTypeEnum.OBJECT, **kwargs)
         print(f"Object {entity} added to world.")
