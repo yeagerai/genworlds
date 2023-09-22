@@ -3,7 +3,7 @@ from genworlds.agents.base_agent.thoughts.navigation_thought import NavigationTh
 from genworlds.agents.base_agent.thoughts.event_filler_thought import EventFillerThought
 
 
-def generate_dummy_agent(role: str, agent_name: str, openai_api_key: str):
+def generate_base_agent(role: str, agent_name: str, openai_api_key: str):
     """
     Method for generating super simple dummy agents.
     """
@@ -57,6 +57,6 @@ def generate_dummy_agent(role: str, agent_name: str, openai_api_key: str):
             ),
         },
         action_thought_map={
-            "default": {"brains": ["event_filler_brain"], "next_actions": []},
+            "default": {"thought_chain": ["event_filler_thought"], "next_actions": []},
         },
     )

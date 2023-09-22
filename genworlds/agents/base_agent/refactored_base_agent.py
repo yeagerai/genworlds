@@ -1,28 +1,24 @@
 from __future__ import annotations
 
-from datetime import datetime
+from abc import ABC, abstractmethod
 import threading
 from uuid import uuid4
 from time import sleep
 import json
-from typing import List, Optional, Dict, Any
-from pydantic import ValidationError, create_model
-from jsonschema import validate
+from typing import List, Optional
 
-from langchain.tools.human.tool import HumanInputRun
-from langchain.vectorstores.base import VectorStoreRetriever
 from langchain.vectorstores import Qdrant
-from langchain.embeddings import OpenAIEmbeddings
 from langchain.schema import (
     AIMessage,
     BaseMessage,
     SystemMessage,
 )
-from qdrant_client import QdrantClient
+from genworlds.agents.base_agent.action_planner import ActionPlanner, AbstractActionPlanner
+from genworlds.agents.base_agent.action_validator import ActionValidator, AbstractActionValidator
+from genworlds.agents.base_agent.state_manager import StateManager, AbstractStateManager
+from genworlds.simulation.sockets.handlers.event_handler import SimulationSocketEventHandler
 
-from genworlds.utils.schema_to_model import json_schema_to_pydantic_model
 from genworlds.events.base_event import BaseEvent
-from genworlds.agents.base_agent.thoughts.thought import Thought
 from genworlds.worlds.base_world.events import (
     EntityRequestWorldStateUpdateEvent,
     AgentSpeaksWithUserEvent,
@@ -31,10 +27,8 @@ from genworlds.worlds.base_world.events import (
     WorldSendsAllEntitiesEvent,
 )
 from genworlds.utils.logging_factory import LoggingFactory
-from genworlds.objects.base_object.base_object import BaseObject
-from genworlds.agents.base_agent.memories.simulation_memory import SimulationMemory
 
-FINISH_NAME = "finish"
+
 
 
 class BaseAgent(SimulationSocketEventHandler):
@@ -44,59 +38,36 @@ class BaseAgent(SimulationSocketEventHandler):
 
     world_spawned_id: str
     personality_db = None
-    agent_world_state = "You have not yet learned about the world state."
 
     def __init__(
         self,
         name: str,
         description: str,
         goals: List[str],
-        openai_api_key: str,
-        navigation_thought: Thought,
-        execution_thoughts: dict[str, Thought],
+        state_manager: StateManager,
+        action_planner: ActionPlanner,
+        action_validator: ActionValidator,
         action_thought_map: dict,
-        important_event_types: set[str],
-        interesting_events: set = {},
-        can_sleep: bool = True,
-        wakeup_events: dict = {},
-        feedback_tool: Optional[HumanInputRun] = None,
-        additional_memories: Optional[List[VectorStoreRetriever]] = None,
         id: str = None,
-        personality_db_qdrant_client: QdrantClient = None,
-        personality_db_collection_name: str = None,
         websocket_url: str = "ws://127.0.0.1:7456/ws",
     ):
-        # Its own properties
         self.id = id if id else str(uuid4())
+        super().__init__(
+            id=self.id,
+            websocket_url=websocket_url,
+        )
+
+        # Its own properties
         self.name = name
         self.description = description
         self.goals = goals
-        self.feedback_tool = feedback_tool
+        self.state = state_manager
+        self.state["id"] = self.id # update id 
 
-        # Start/Stop properties
-        self.interesting_events = interesting_events
-        self.wakeup_events = wakeup_events
-        self.can_sleep = can_sleep
-        self.is_asleep = False
-
-        # Listener properties
-        self.special_events = {
-            "world_sends_schemas_event",
-            "entity_world_state_update_event",
-            "world_sends_all_entities_event",
-        }
-        self.non_memory_important_event_types = {
-            "world_sends_schemas_event",
-            "entity_world_state_update_event",
-            "world_sends_all_entities_event",
-        }
-        self.schemas = {}
-        self.all_entities = []
-        self.all_events = []
-        self.last_events = []
-
-        self.important_event_types = self.special_events.copy()
-        self.important_event_types.update(important_event_types)
+        # Helpers
+        self.state_manager = state_manager
+        self.action_planner = action_planner
+        self.action_validator = action_validator
 
         # Logger
         self.logger = LoggingFactory.get_logger(self.name)
@@ -105,44 +76,21 @@ class BaseAgent(SimulationSocketEventHandler):
         self.actions = []
 
         # Thought properties
-        self.navigation_thought = navigation_thought
-        self.execution_thoughts = execution_thoughts
         self.action_thought_map = action_thought_map
 
         self.full_message_history: List[BaseMessage] = []
         self.next_action_count = 0
-        self.feedback_tool = None  # HumanInputRun() if human_in_the_loop else None
         self.plan: Optional[str] = None
 
-        # Memories
-        self.additional_memories = additional_memories
-        self.simulation_memory = SimulationMemory(
-            openai_api_key=openai_api_key,
-            n_of_last_events=10,
-            n_of_similar_events=0,
-            n_of_paragraphs_in_summary=3,
-        )
-        self.schemas_memory: Qdrant
-        self.embeddings_model = OpenAIEmbeddings(openai_api_key=openai_api_key)
-        self.personality_db_qdrant_client = personality_db_qdrant_client
-        if self.personality_db_qdrant_client:
-            self.personality_db = Qdrant(
-                collection_name=personality_db_collection_name,
-                embeddings=self.embeddings_model,
-                client=self.personality_db_qdrant_client,
-            )
 
-        super().__init__(
-            id=self.id,
-            websocket_url=websocket_url,
-        )
+
         
         self.register_event_listeners(
             [
-                [WorldSendsSchemasEvent, self.update_schemas],
-                [EntityWorldStateUpdateEvent, self.update_world_state],
-                [WorldSendsAllEntitiesEvent, self.update_all_entities],
-                [BaseEvent, self.listen_for_events],
+                [WorldSendsSchemasEvent, self.state_manager.update_schemas],
+                [EntityWorldStateUpdateEvent, self.state_manager.update_world_state],
+                [WorldSendsAllEntitiesEvent, self.state_manager.update_all_entities],
+                [BaseEvent, self.state_manager.listen_for_events],
             ]
         )
         self.register_event_classes(
@@ -156,7 +104,7 @@ class BaseAgent(SimulationSocketEventHandler):
             "and respond using the format specified above:"
         )
         # Get the initial world state
-        self.agent_request_world_state_update_action()
+        updated_state = self.state_manager.get_updated_state()
 
         next_actions = []
 
@@ -296,28 +244,29 @@ class BaseAgent(SimulationSocketEventHandler):
                 relevant_commands[selected_command["title"]] = selected_command
 
             # Send message to AI, get response
+            self.action_planner.plan_next_action() # estas variables
             navigation_plan_parsed = self.navigation_thought.run(
                 {
                     "goals": self.goals,
-                    "messages": self.full_message_history,
-                    "memory": self.simulation_memory,
+                    "messages": self.full_message_history, # esta
+                    "memory": self.simulation_memory, # esta
                     "personality_db": self.personality_db,
                     "all_entities": list(
                         filter(
                             lambda e: (e["held_by"] != self.id),
-                            self.all_entities.values(),
+                            self.all_entities.values(), # esta
                         )
                     ),
                     "inventory": list(
                         filter(
                             lambda e: (e["held_by"] == self.id),
-                            self.all_entities.values(),
+                            self.all_entities.values(), # esta
                         )
                     ),
                     "plan": self.plan,
                     "user_input": user_input,
-                    "agent_world_state": agent_world_state,
-                    "relevant_commands": relevant_commands,
+                    "agent_world_state": agent_world_state, # esta
+                    "relevant_commands": relevant_commands, # esta
                 }
             )
 
@@ -443,82 +392,6 @@ class BaseAgent(SimulationSocketEventHandler):
             # Allow events to be processed
             sleep(3)
 
-    def get_schemas(self): # cap a object
-        events = {}
-        events["agent_speaks_with_user_event"] = AgentSpeaksWithUserEvent.schema()
-        self.schemas["Self"] = events
-        return self.schemas
-
-    def execute_event_with_args(self, name: str, args: dict): # cap a object
-
-        try:
-            class_name = name.split(":")[0]
-            event_type = name.split(":")[1]
-            event = {}
-            event2 = {
-                "event_type": event_type,
-                "sender_id": self.id,
-                "created_at": datetime.now().isoformat(),
-            }
-            event.update(args)
-            summary = self.simulation_memory.one_line_summarizer.summarize(
-                json.dumps(event)
-            )
-            event["summary"] = summary
-            self.logger.debug(event)
-            event_schema = self.get_schemas()[class_name][event_type]
-            # validate(event2.update(event), event_schema)
-            event_class = self.event_classes[event_type]
-            print(event_class.__fields__)
-            self.send_event(event_class, **event)
-            event.update(event2)
-            print("ep10")
-            return event
-        except IndexError as e:
-            return (
-                f"Unknown command '{name}'. "
-                f"Please refer to the 'COMMANDS' list for available "
-                f"commands and only respond in the specified JSON format."
-            )
-        except ValidationError as e:
-            return f"Validation Error in args: {str(e)}, args: {args}"
-        except Exception as e:
-            traceback.print_exc()
-            return f"Error: {str(e)}, {type(e).__name__}, args: {args}"
-
-    def agent_request_world_state_update_action(self): # cap a object
-        self.send_event(
-            EntityRequestWorldStateUpdateEvent,
-            target_id=self.world_spawned_id,
-        )
-
-    def add_wakeup_event(self, event_class: BaseEvent, params: dict):
-        self.wakeup_events[event_class.__fields__["event_type"].default] = params
-        self.register_event_listener(event_class, self.handle_wakeup)
-
-    def handle_wakeup(self, event):
-        event_type = event.event_type
-        if event_type not in self.wakeup_events:
-            return
-
-        wakeup_event_property_filters = self.wakeup_events[event_type]
-
-        # Check if the event matches the filters
-        is_match = True
-        for (
-            wakeup_event_property,
-            expected_value,
-        ) in wakeup_event_property_filters.items():
-            # Use getattr to dynamically access event attributes using their string names
-            actual_value = getattr(event, wakeup_event_property, None)
-            if actual_value != expected_value:
-                is_match = False
-                break
-
-        if is_match:
-            self.logger.info("Waking up ...")
-            self.is_asleep = False
-
     def launch(self):
         self.launch_websocket_thread()
         sleep(0.1)
@@ -528,48 +401,3 @@ class BaseAgent(SimulationSocketEventHandler):
             daemon=True,
         ).start()
         self.logger.info("Threads launched")
-
-    def update_schemas(self, event: WorldSendsSchemasEvent): # cap a object
-        self.schemas = event.schemas
-        self.update_event_classes_from_new_schemas(event.schemas)
-
-    def update_event_classes_from_new_schemas(self, schemas): # cap a object
-        for entity in schemas:
-            for event in schemas[entity]:
-                Model = json_schema_to_pydantic_model(schemas[entity][event])
-                event_type = Model.__fields__["event_type"].default
-                if event_type not in self.event_classes:
-                    self.event_classes[event_type] = Model
-
-    def update_world_state(self, event: EntityWorldStateUpdateEvent): # cap a object
-        if event.target_id == self.id:
-            self.agent_world_state = event.entity_world_state
-
-    def update_all_entities(self, event: WorldSendsAllEntitiesEvent): # cap a object
-        self.all_entities = event.all_entities
-
-    def listen_for_events(self, event: BaseEvent):
-        if (
-            event.sender_id != self.id
-            and (
-                event.target_id == self.id
-                or event.event_type in self.important_event_types
-            )
-            and event.event_type not in self.non_memory_important_event_types
-        ):
-            self.last_events.append(event)
-            self.all_events.append(event)
-
-    def get_last_events(self):
-        events_to_return = self.last_events.copy()
-        self.last_events = []
-        return events_to_return
-
-    def get_all_events(self):
-        return self.all_events
-
-    def get_agent_world_state(self):
-        return self.agent_world_state
-
-    def get_all_entities(self):
-        return self.all_entities

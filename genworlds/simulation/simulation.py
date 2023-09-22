@@ -5,9 +5,9 @@ from uuid import uuid4
 from typing import List
 import time
 
-from genworlds.objects.base_object.base_object import BaseObject
-from genworlds.agents.base_agent.base_agent import BaseAgent
-from genworlds.worlds.base_world.base_world import BaseWorld
+from genworlds.objects.abstracts.object import AbstractObject
+from genworlds.agents.abstracts.agent import AbstractAgent
+from genworlds.worlds.abstracts.world import AbstractWorld
 
 
 class Simulation:
@@ -15,9 +15,9 @@ class Simulation:
         self,
         name: str,
         description: str,
-        world: BaseWorld,
-        objects: List[tuple[BaseObject, dict]],
-        agents: List[tuple[BaseObject, dict]],
+        world: AbstractWorld,
+        objects: List[tuple[AbstractObject, dict]],
+        agents: List[tuple[AbstractAgent, dict]],
         stop_event: threading.Event = None,
     ):
         self.id = str(uuid4())
@@ -28,13 +28,13 @@ class Simulation:
         self.agents = agents
         self.stop_event = stop_event
 
-    def add_agent(self, agent: BaseAgent, **world_properties):
+    def add_agent(self, agent: AbstractAgent, **world_properties):
         self.agents.append([agent, world_properties])
         self.agents[-1][0].world_spawned_id = self.world.id
         self.world.add_agent(self.agents[-1][0], **self.agents[-1][1])
-        self.agents[-1][0].launch_threads()
+        self.agents[-1][0].launch()
 
-    def add_object(self, obj: BaseObject, **world_properties):
+    def add_object(self, obj: AbstractObject, **world_properties):
         self.objects.append([obj, world_properties])
         self.objects[-1][0].world_spawned_id = self.world.id
         self.world.add_object(self.objects[-1][0], **self.objects[-1][1])
@@ -61,7 +61,7 @@ class Simulation:
         for agent, world_properties in self.agents:
             time.sleep(0.1)
             # start the agent's threads
-            agent.launch_threads()
+            agent.launch()
 
         for obj, world_properties in self.objects:
             time.sleep(0.1)

@@ -8,12 +8,12 @@ from genworlds.events.base_event import BaseEvent
 
 class SimulationSocketEventHandler:
     listeners: dict[str, set]
-    event_classes: dict[str, type[BaseEvent]]
 
     def __init__(
         self,
         id,
         event_class_listener_pairs: List[tuple[type[BaseEvent], Callable]] = None,
+        event_classes: dict[str, type[BaseEvent]] = {},
         websocket_url: str = "ws://127.0.0.1:7456/ws",
     ):
         if event_class_listener_pairs is None:

@@ -9,7 +9,7 @@ class EntityTypeEnum(str, Enum):
     WORLD = "WORLD"
 
 
-class BaseWorldEntity(BaseModel):
+class WorldEntity(BaseModel):
     id: str
     entity_type: EntityTypeEnum
     entity_class: str

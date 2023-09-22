@@ -1,7 +1,7 @@
 import json
 
 from genworlds.worlds.base_world.base_world import BaseWorld
-from genworlds.worlds.base_world.base_world_entity import BaseWorldEntity
+from genworlds.worlds.abstracts.base_world_entity import BaseWorldEntity
 from genworlds.worlds.chat_interface_world.events import (
     UserRequestsScreensToWorld,
     WorldSendsScreensToUser,
