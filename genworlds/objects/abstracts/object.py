@@ -1,8 +1,8 @@
 from __future__ import annotations
 from typing import List, Type
 from abc import ABC, abstractmethod
-from genworlds.events.abstracts.action import AbstractAction
 from genworlds.simulation.sockets.handlers.event_handler import SimulationSocketEventHandler
+from genworlds.events.abstracts.action import AbstractAction
 
 
 class AbstractObject(ABC, SimulationSocketEventHandler):
@@ -36,22 +36,6 @@ class AbstractObject(ABC, SimulationSocketEventHandler):
 
     @property
     @abstractmethod
-    def websocket_url(self) -> str:
-        """
-        Returns the websocket URL.
-        The default is ws://127.0.0.1:7456/ws
-        """
-        pass
-
-    @property
-    @abstractmethod
     def actions(self) -> List[Type[AbstractAction]]:
         """Returns the list of actions associated with the object."""
         pass
-
-    def register_actions(self):
-        """
-        Registers the actions associated with the object.
-        """
-        for action in self.actions:
-            self.register_event_listener(event_class=action.trigger_event_class, event_listener=action)

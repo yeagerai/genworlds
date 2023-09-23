@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from typing import Generic, TypeVar, List
 from abc import abstractmethod
 from time import sleep
@@ -6,6 +8,7 @@ from genworlds.worlds.abstracts.world_entity import AbstractWorldEntity
 
 from genworlds.agents.abstracts.agent import AbstractAgent
 from genworlds.events.abstracts.action import AbstractAction
+from genworlds.simulation.sockets.server import start_thread as socket_server_start
 
 WorldEntityType = TypeVar("WorldEntityType", bound=AbstractWorldEntity)
 
@@ -75,22 +78,14 @@ class AbstractWorld(Generic[WorldEntityType], AbstractObject):
     # TODO: update and restart objects and agents close threads and launch new ones
 
     def launch(self):
-        # Register agents and objects with the world
-        for agent in self.agents:
-            agent.host_world_id = self.id
-
-        for obj in self.objects:
-            obj.host_world_id = self.id
-
-        # Launch the world
-        self.launch_websocket_thread()
-
+        socket_server_start()
         sleep(1)
-
+        self.launch_websocket_thread()
+        sleep(1)
         for agent in self.agents:
             sleep(0.1)
-            agent.launch()
+            self.add_agent(agent)
 
         for obj in self.objects:
             sleep(0.1)
-            obj.launch_websocket_thread()
+            self.add_object(obj)

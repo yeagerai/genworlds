@@ -2,7 +2,6 @@ from abc import ABC, abstractmethod
 from typing import Type, Any, Dict
 from enum import Enum
 from genworlds.agents.abstracts.agent import AbstractAgent
-from genworlds.worlds.abstracts.world import AbstractWorld
 from genworlds.objects.abstracts.object import AbstractObject
 from pydantic import BaseModel
 
@@ -12,6 +11,7 @@ class EntityTypeEnum(str, Enum):
     WORLD = "WORLD"
 
 def get_entity_type(cls):
+    from genworlds.worlds.abstracts.world import AbstractWorld
     if issubclass(cls, AbstractAgent):
         return EntityTypeEnum.AGENT
     elif issubclass(cls, AbstractWorld):

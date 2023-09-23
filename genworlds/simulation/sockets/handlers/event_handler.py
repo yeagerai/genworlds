@@ -1,83 +1,64 @@
+from __future__ import annotations
 import threading
-from typing import Callable, List
-from datetime import datetime
-
+from typing import List
+from genworlds.events.abstracts.action import AbstractAction
 from genworlds.simulation.sockets.client import SimulationSocketClient
-from genworlds.events.base_event import BaseEvent
-
+from genworlds.events.abstracts.event import AbstractEvent
 
 class SimulationSocketEventHandler:
-    listeners: dict[str, set]
-
+    event_actions_dict: dict[str, AbstractAction] = {}
+    
     def __init__(
         self,
         id,
-        event_class_listener_pairs: List[tuple[type[BaseEvent], Callable]] = None,
-        event_classes: dict[str, type[BaseEvent]] = {},
+        actions: List[AbstractAction] = [],
+        external_event_classes: dict[str, AbstractEvent] = {},
         websocket_url: str = "ws://127.0.0.1:7456/ws",
     ):
-        if event_class_listener_pairs is None:
-            event_class_listener_pairs = []
 
-        self.listeners = {}
-        self.event_classes = {}
+        self._id = id
+        self._actions = actions
+        for action in self._actions:
+            self.register_action(action)
 
-        self.id = id
-        self.register_event_listeners(event_class_listener_pairs)
         self.simulation_socket_client = SimulationSocketClient(
             process_event=self.process_event, url=websocket_url
         )
 
-    def register_event_listeners(
-        self, event_class_listener_pairs: List[tuple[type[BaseEvent], Callable]]
-    ):
-        for event_class, event_listener in event_class_listener_pairs:
-            self.register_event_listener(event_class, event_listener)
+    @property
+    def id(self) -> str:
+        return self._id  
+    
+    @property
+    def actions(self) -> str:
+        return self._actions
 
-    def register_event_classes(self, event_classes: List[type[BaseEvent]]):
-        for event_class in event_classes:
-            event_type = event_class.__fields__["event_type"].default
-            self.event_classes[event_type] = event_class
-
-    def register_event_listener(
-        self, event_class: type[BaseEvent], event_listener: Callable
+    def register_action(
+        self, action: AbstractAction
     ):
-        if event_class == BaseEvent:
-            event_type = "*"
+        event_type = action.trigger_event_class.__fields__["event_type"].default
+        if event_type not in self.event_actions_dict:
+            self.event_actions_dict[event_type] = []
+            self.event_actions_dict[event_type].append(action)
         else:
-            event_type = event_class.__fields__["event_type"].default
-        self.event_classes[event_type] = event_class
-
-        if event_type not in self.listeners:
-            self.listeners[event_type] = set()
-
-        self.listeners[event_type].add(event_listener)
-
-    def unregister_event_listener(
-        self, event_class: type[BaseEvent], event_listener: Callable
-    ):
-        if event_class.event_type in self.listeners:
-            self.listeners[event_class.event_type].remove(event_listener)
-
-            if len(self.listeners[event_class.event_type]) == 0:
-                del self.listeners[event_class.event_type]
+            self.event_actions_dict[event_type].append(action)
 
     def process_event(self, event):
-        if event["event_type"] in self.listeners and (
+        if event["event_type"] in self.event_actions_dict and (
             event["target_id"] == None or event["target_id"] == self.id
         ):
-            parsed_event = self.event_classes[event["event_type"]].parse_obj(event)
+            parsed_event = self.event_actions_dict[event["event_type"]].trigger_event_class.parse_obj(event)
 
-            for listener in self.listeners[event["event_type"]]:
+            for listener in self.event_actions_dict[event["event_type"]]:
                 listener(parsed_event)
 
-        if "*" in self.listeners:
-            parsed_event = self.event_classes[event["event_type"]].parse_obj(event)
-            for listener in self.listeners["*"]:
+        if "*" in self.event_actions_dict:
+            parsed_event = self.event_actions_dict[event["event_type"]].trigger_event_class.parse_obj(event)
+            for listener in self.event_actions_dict["*"]:
                 listener(parsed_event)
 
-    def send_event(self, event_class: type[BaseEvent], **kwargs):
-        event = event_class(sender_id=self.id, created_at=datetime.now(), **kwargs)
+    def send_event(self, event_class: type[AbstractEvent], **kwargs):
+        event = event_class(sender_id=self.id, **kwargs)
 
         self.simulation_socket_client.send_message(event.json())
 
