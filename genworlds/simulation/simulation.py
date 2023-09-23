@@ -60,12 +60,10 @@ class Simulation:
 
         for agent, world_properties in self.agents:
             time.sleep(0.1)
-            # start the agent's threads
             agent.launch()
 
         for obj, world_properties in self.objects:
             time.sleep(0.1)
-            # start the object's threads
             obj.launch_websocket_thread()
 
         # Make the application terminate gracefully

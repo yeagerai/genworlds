@@ -30,6 +30,12 @@ class AbstractObject(ABC, SimulationSocketEventHandler):
 
     @property
     @abstractmethod
+    def host_world_id(self) -> str:
+        """Returns the id of the world hosting the object."""
+        pass
+
+    @property
+    @abstractmethod
     def websocket_url(self) -> str:
         """
         Returns the websocket URL.
