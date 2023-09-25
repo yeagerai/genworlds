@@ -1,4 +1,5 @@
 from __future__ import annotations
+from uuid import uuid4
 import threading
 from typing import List
 from genworlds.events.abstracts.action import AbstractAction
@@ -10,28 +11,20 @@ class SimulationSocketEventHandler:
     
     def __init__(
         self,
-        id,
+        id: str,
         actions: List[AbstractAction] = [],
         external_event_classes: dict[str, AbstractEvent] = {},
         websocket_url: str = "ws://127.0.0.1:7456/ws",
     ):
 
-        self._id = id
-        self._actions = actions
-        for action in self._actions:
+        self.id =  id if id else str(uuid4())
+        self.actions = actions
+        for action in self.actions:
             self.register_action(action)
 
         self.simulation_socket_client = SimulationSocketClient(
             process_event=self.process_event, url=websocket_url
         )
-
-    @property
-    def id(self) -> str:
-        return self._id  
-    
-    @property
-    def actions(self) -> str:
-        return self._actions
 
     def register_action(
         self, action: AbstractAction
@@ -47,7 +40,8 @@ class SimulationSocketEventHandler:
         if event["event_type"] in self.event_actions_dict and (
             event["target_id"] == None or event["target_id"] == self.id
         ):
-            parsed_event = self.event_actions_dict[event["event_type"]].trigger_event_class.parse_obj(event)
+            # 0 bc the trigger_event_class is the same for all actions with the same event_type
+            parsed_event = self.event_actions_dict[event["event_type"]][0].trigger_event_class.parse_obj(event)
 
             for listener in self.event_actions_dict[event["event_type"]]:
                 listener(parsed_event)
@@ -57,9 +51,7 @@ class SimulationSocketEventHandler:
             for listener in self.event_actions_dict["*"]:
                 listener(parsed_event)
 
-    def send_event(self, event_class: type[AbstractEvent], **kwargs):
-        event = event_class(sender_id=self.id, **kwargs)
-
+    def send_event(self, event: AbstractEvent):
         self.simulation_socket_client.send_message(event.json())
 
     def launch_websocket_thread(self):

@@ -1,5 +1,5 @@
 from uuid import uuid4
-from typing import List
+from typing import List, Type
 from genworlds.events.abstracts.action import AbstractAction
 
 from genworlds.worlds.abstracts.world import AbstractWorld
@@ -8,15 +8,11 @@ from genworlds.agents.abstracts.agent import AbstractAgent
 from genworlds.objects.abstracts.object import AbstractObject
 
 from genworlds.worlds.concrete.base.actions import (
-    WorldSendsAllEntities,
-    WorldSendsActionSchemas,
+    WorldSendsAvailableEntities,
+    WorldSendsAvailableActionSchemas,
 )
 
 class BaseWorld(AbstractWorld):
-
-    subconscious_event_classes: set[str]
-    entities: dict[str, AbstractWorldEntity]
-    action_schemas: dict[str, dict]
 
     def __init__(
         self,
@@ -24,89 +20,25 @@ class BaseWorld(AbstractWorld):
         description: str,
         agents: List[AbstractAgent] = [],
         objects: List[AbstractObject] = [],
+        actions: List[Type[AbstractAction]] = [],
         id: str = None,
     ):
-        self._id = id if id else str(uuid4())
-        self._host_world_id = self.id
-        self._name = name
-        self._description = description
-        self._agents = agents
-        self._objects = objects
-        self._get_available_entities = WorldSendsAllEntities(host_object=self)
-        self._get_available_action_schemas = WorldSendsActionSchemas(host_object=self)
-        self._actions = [
-            self.get_available_entities,
-        ]
+        # availability = all entities
+        get_available_entities = WorldSendsAvailableEntities(host_object=self)
+        get_available_action_schemas = WorldSendsAvailableActionSchemas(host_object=self)
+        actions.append(get_available_entities)
+        actions.append(get_available_action_schemas)
 
         super().__init__(
-            id=self._id,
-            actions=self._actions,
+            id=id,
+            name=name,
+            description=description,
+            agents=agents,
+            objects=objects,
+            actions=actions,
+            get_available_entities=get_available_entities,
+            get_available_action_schemas=get_available_action_schemas,
         )
-
-        self.update_entities()
-        self.update_action_schemas()
-
-    def update_entities(self):
-        self.entities = {}
-        self.entities[self.id] = self.get_entity_from_obj(self)
-        for agent in self.agents:
-            self.entities[agent.id] = self.get_entity_from_obj(agent)
-
-        for obj in self.objects:
-            self.entities[obj.id] = self.get_entity_from_obj(obj)
-
-    def update_action_schemas(self):
-        self.action_schemas = {}
-        for action in self.actions:
-            event_type = action.trigger_event_class.__fields__["event_type"].default
-            self.action_schemas[type(self).__name__ + event_type] = action.trigger_event_class.schema()
-        for obj in self.objects:
-            for action in obj.actions:
-                event_type = action.trigger_event_class.__fields__["event_type"].default
-                self.action_schemas[type(obj).__name__ + event_type] = action.trigger_event_class.schema()
-        for agent in self.agents:
-            for action in agent.actions:
-                event_type = action.trigger_event_class.__fields__["event_type"].default
-                self.action_schemas[type(agent).__name__ + event_type] = action.trigger_event_class.schema()
-
-    @property
-    def id(self) -> str:
-        return self._id
-    
-    @property
-    def host_world_id(self) -> str:
-        return self._host_world_id
-    
-    @property
-    def name(self) -> str:
-        return self._name
-    
-    @property
-    def description(self) -> str:
-        return self._description
-    
-    @property
-    def agents(self) -> List[AbstractAgent]:
-        return self._agents
-    
-    @property
-    def objects(self) -> List[AbstractObject]:
-        return self._objects
-    
-    @property
-    def get_available_entities(self):
-        # all entities (simple availability concept, everything is available)
-        return self._get_available_entities
-
-    @property
-    def get_available_action_schemas(self):
-        # all entities (simple availability concept, everything is available)
-        return self._get_available_action_schemas
-
-    @property
-    def actions(self) -> List[AbstractAction]:
-        return self._actions
-
 
     # def get_agent_world_state_prompt(self, agent_id: str) -> str:
     #     agent_entity = self.get_agent_by_id(agent_id)

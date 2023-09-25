@@ -7,26 +7,16 @@ from genworlds.events.abstracts.event import AbstractEvent
 
 T = TypeVar("T", bound=AbstractEvent)
 class AbstractAction(ABC, Generic[T]):
+    trigger_event_class: Type[T]
 
-    @property
-    @classmethod
-    @abstractmethod
-    def trigger_event_class(cls) -> Type[T]:
-        """Returns the trigger event class"""
-        pass
-
-    @property
-    @classmethod
-    @abstractmethod
-    def host_object(self) -> "AbstractObject":
-        """Returns the class of the object that hosts the action"""
-        pass
-
+    def __init__(self, host_object: "AbstractObject"):
+        self.host_object = host_object
+        
     @property
     @classmethod
     def action_schema(self) -> str:
         """Returns the action schema as a string"""
-        return f"{type(self.host_object).__name__}:{self.trigger_event_class.event_type}:{self.trigger_event_class.schema()}"
+        return f"{self.host_object.id}:{type(self.host_object).__name__}:{self.trigger_event_class.event_type}:{self.trigger_event_class.schema()}"
     
     @abstractmethod
     def __call__(self, event: T, *args: Any, **kwargs: Any) -> Any:

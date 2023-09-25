@@ -17,11 +17,7 @@ class WorldSendsScreensToUser(AbstractAction):
     trigger_event_class = UserRequestsScreensToWorldEvent
 
     def __init__(self, host_object: AbstractObject):
-        self._host_object = host_object
-
-    @property
-    def host_object(self):
-        return self._host_object
+        super().__init__(host_object=host_object)
 
     def __call__(self, event: UserRequestsScreensToWorldEvent):
         with open(self.host_object.screens_config_path) as f:

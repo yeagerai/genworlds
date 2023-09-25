@@ -2,58 +2,52 @@ from genworlds.objects.abstracts.object import AbstractObject
 from genworlds.events.abstracts.event import AbstractEvent
 from genworlds.events.abstracts.action import AbstractAction
 
-class AgentGetsAllEntitiesEvent(AbstractEvent):
-    event_type = "agent_gets_nearby_entities_event"
-    description = "Get all entities near an agent."
+class AgentGetsAvailableEntitiesEvent(AbstractEvent):
+    event_type = "agent_gets_available_entities_event"
+    description = "Get all available entities."
 
-class WorldSendsAllEntitiesEvent(AbstractEvent):
-    event_type = "world_sends_all_entities_event"
-    description = "Send all entities."
-    all_entities: dict
+class WorldSendsAvailableEntitiesEvent(AbstractEvent):
+    event_type = "world_sends_available_entities_event"
+    description = "Send available entities."
+    available_entities: dict
 
-class WorldSendsAllEntities(AbstractAction):
-    trigger_event_class = AgentGetsAllEntitiesEvent
+class WorldSendsAvailableEntities(AbstractAction):
+    trigger_event_class = AgentGetsAvailableEntitiesEvent
 
     def __init__(self, host_object: AbstractObject):
-        self._host_object = host_object
+        super().__init__(host_object=host_object)
 
-    @property
-    def host_object(self):
-        return self._host_object
-
-    def __call__(self, event: AgentGetsAllEntitiesEvent):
+    def __call__(self, event: AgentGetsAvailableEntitiesEvent):
         self.host_object.update_entities()
-        event = WorldSendsAllEntitiesEvent(
+        all_entities = self.host_object.entities
+        event = WorldSendsAvailableEntitiesEvent(
             sender_id=self.host_object.id,
-            all_entities=self.host_object.entities,
+            available_entities=all_entities,
             target_id=event.sender_id
         )
         self.host_object.send_event(event)
 
-class WorldSendsActionSchemasEvent(AbstractEvent):
-    event_type = "world_sends_action_schemas_event"
+class WorldSendsAvailableActionSchemasEvent(AbstractEvent):
+    event_type = "world_sends_available_action_schemas_event"
     description = "The world sends the possible action schemas to all the agents."
     world_name: str
     world_description: str
-    action_schemas: dict[str, dict]
+    available_action_schemas: dict[str, dict]
 
-class WorldSendsActionSchemas(AbstractAction):
-    trigger_event_class = AgentGetsAllEntitiesEvent
+class WorldSendsAvailableActionSchemas(AbstractAction):
+    trigger_event_class = AgentGetsAvailableEntitiesEvent ## change that!!
 
     def __init__(self, host_object: AbstractObject):
-        self._host_object = host_object
+        super().__init__(host_object=host_object)
 
-    @property
-    def host_object(self):
-        return self._host_object
-
-    def __call__(self, event: AgentGetsAllEntitiesEvent):
+    def __call__(self, event: AgentGetsAvailableEntitiesEvent):
         self.host_object.update_action_schemas()
-        event = WorldSendsActionSchemasEvent(
+        all_action_schemas = self.host_object.action_schemas
+        event = WorldSendsAvailableActionSchemasEvent(
             sender_id=self.host_object.id,
             world_name=self.host_object.name,
             world_description=self.host_object.description,
-            action_schemas=self.host_object.action_schemas,
+            available_action_schemas=all_action_schemas,
         )
         self.host_object.send_event(event)
 
