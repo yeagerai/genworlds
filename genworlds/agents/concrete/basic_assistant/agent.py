@@ -11,6 +11,8 @@ from genworlds.events.abstracts.action import AbstractAction
 from genworlds.agents.concrete.basic_assistant.actions import (
     UpdateAgentAvailableEntities,
     UpdateAgentAvailableActionSchemas,
+    AgentGoesToSleep,
+    AgentListensEvents,
 )
 from genworlds.agents.abstracts.thought import AbstractThought
 
@@ -40,6 +42,8 @@ class BasicAssistant(AbstractAgent):
 
         actions.append(UpdateAgentAvailableEntities(host_object=self))
         actions.append(UpdateAgentAvailableActionSchemas(host_object=self))
+        actions.append(AgentGoesToSleep(host_object=self))
+        actions.append(AgentListensEvents(host_object=self))
 
         super().__init__(
             name, id, description, state_manager, action_planner, host_world_id, actions

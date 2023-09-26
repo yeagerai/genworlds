@@ -5,7 +5,7 @@ from genworlds.agents.memories.simulation_memory import OneLineEventSummarizer
 
 
 def validate_action(
-    agent_id: str, action_schema: str, pre_filled_event: dict, all_action_schemas: dict
+    agent_id: str, action_schema: str, pre_filled_event: dict, available_action_schemas: dict
 ):
     one_line_summarizer = OneLineEventSummarizer()  # missing key
     try:
@@ -19,7 +19,7 @@ def validate_action(
         summary = one_line_summarizer.summarize(json.dumps(trigger_event))
         trigger_event["summary"] = summary
 
-        event_schema = all_action_schemas[class_name][event_type]
+        event_schema = available_action_schemas[class_name][event_type]
 
         validate(trigger_event, event_schema)
 

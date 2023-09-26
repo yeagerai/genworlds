@@ -41,6 +41,7 @@ def generate_basic_assistant(
         important_event_types=set(),  # fill
         interesting_event_types=set(),  # fill
         wakeup_event_types=set(),  # fill
+        is_asleep=False,
         action_schema_chains=action_schema_chains,
     )
 

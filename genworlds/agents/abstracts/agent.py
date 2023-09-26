@@ -34,22 +34,24 @@ class AbstractAgent(AbstractObject):
         """Continuously plans and executes actions based on the agent's state."""
         while True:
             try:
-                state = self.state_manager.get_updated_state()
-                action_schema, pre_filled_event = self.action_planner.plan_next_action(
-                    state
-                )
-                is_my_action, trigger_event = validate_action(
-                    agent_id=self.id,
-                    action_schema=action_schema,
-                    pre_filled_event=pre_filled_event,
-                    all_action_schemas=state.available_action_schemas,
-                )
-                if is_my_action:
-                    selected_action = self.actions[self.actions.index(action_schema)]
-                    selected_action(trigger_event)
+                if self.state_manager.state.is_asleep:
+                    sleep(0.5)
                 else:
-                    self.send_event(trigger_event)
-
+                    state = self.state_manager.get_updated_state()
+                    action_schema, pre_filled_event = self.action_planner.plan_next_action(
+                        state
+                    )
+                    is_my_action, trigger_event = validate_action(
+                        agent_id=self.id,
+                        action_schema=action_schema,
+                        pre_filled_event=pre_filled_event,
+                        available_action_schemas=state.available_action_schemas,
+                    )
+                    if is_my_action:
+                        selected_action = self.actions[self.actions.index(action_schema)]
+                        selected_action(trigger_event)
+                    else:
+                        self.send_event(trigger_event)
             except Exception as e:
                 print(f"Error in think_n_do: {e}")
 

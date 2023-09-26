@@ -23,10 +23,27 @@ class BasicAssistantStateManager(AbstractStateManager):
         AbstractAgentState
     ):  # should trigger an action to get the initial state from the world
         return AbstractAgentState(
+            name=self.host_agent.name,
             id=self.host_agent.id,
+            goals=[
+                "Starts waiting and sleeps till the user starts a new question.",
+                f"Once {self.host_agent.name} receives a user's question, he makes sure to have all the information before sending the answer to the user.",
+                f"When {self.host_agent.name} has all the required information, he speaks to the user with the results through the agent_speaks_with_user_event.",
+                "After sending the response, he waits for the next user question.",
+                "If you have been waiting for any object or entity to send you an event for over 30 seconds, you will wait and sleep until you receive a new event.",
+            ],
+            # constraints=[],
+            # evaluation_principles=[],
             available_entities={},
             available_action_schemas={},
             current_action_chain=[],
+            host_world_prompt="",
+            is_asleep=False,
+            simulation_memory_persistent_path="./",
+            important_event_types=set(),  # fill
+            interesting_event_types=set(),  # fill
+            wakeup_event_types=set(),  # fill
+            action_schema_chains=[],
         )
 
     def get_updated_state(self) -> AbstractAgentState:
@@ -34,6 +51,10 @@ class BasicAssistantStateManager(AbstractStateManager):
             AgentWantsUpdatedStateEvent(
                 sender_id=self.host_agent.id, target_id=self.host_agent.host_world_id
             )
+        )
+        # retrieve memory and update last_retrieved_memory
+        self.host_agent.state_manager.state.last_retrieved_memory = (
+            self.host_agent.memory.retrieve_memory()
         )
         sleep(
             0.5
