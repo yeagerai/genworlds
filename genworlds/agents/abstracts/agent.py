@@ -1,30 +1,25 @@
-from abc import abstractmethod
 from time import sleep
 import threading
+from typing import List, Type
 
 from genworlds.agents.utils.validate_action import validate_action
 from genworlds.agents.abstracts.action_planner import AbstractActionPlanner
 from genworlds.agents.abstracts.state_manager import AbstractStateManager
+from genworlds.events.abstracts.action import AbstractAction
 from genworlds.objects.abstracts.object import AbstractObject
 
 class AbstractAgent(AbstractObject):
-    """Abstract Base Class for an Agent.
+    """Abstract interface class for an Agent.
     
     This class represents an abstract agent that can think and perform actions
     within a simulation environment.
     """
 
-    @property
-    @abstractmethod
-    def state_manager(self) -> AbstractStateManager:
-        """Property that should return the State Manager instance associated with the agent."""
-        pass
-
-    @property
-    @abstractmethod
-    def action_planner(self) -> AbstractActionPlanner:
-        """Property that should return the Action Planner instance associated with the agent."""
-        pass
+    def __init__(self, name: str, id: str, description: str, state_manager: Type[AbstractStateManager], action_planner: Type[AbstractActionPlanner], 
+                 host_world_id: str = None, actions: List[type[AbstractAction]] = []):
+        self.action_planner = action_planner
+        self.state_manager = state_manager
+        super().__init__(name, id, description, host_world_id, actions)
     
     def think_n_do(self):
         """Continuously plans and executes actions based on the agent's state."""

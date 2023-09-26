@@ -5,26 +5,34 @@ from genworlds.agents.abstracts.agent_state import AbstractAgentState
 
 class AbstractActionPlanner(ABC):
 
-    @property
-    @abstractmethod
-    def action_schema_selector(self) -> AbstractThought:
-        """Returns the thought that will be used to select the next action schema"""
-        pass
+    def __init__(self, action_schema_selector: AbstractThought, event_filler: AbstractThought, other_thoughts: List[AbstractThought] = []):
+        self.action_schema_selector = action_schema_selector
+        self.event_filler = event_filler
+        self.other_thoughts = other_thoughts
 
-    @property
-    @abstractmethod
-    def event_fillers(self) -> List[AbstractThought]:
-        """Returns the event filler thoughts that will be used to fill the event parameters of the next action trigger event"""
-        pass
-
-    @abstractmethod
     def plan_next_action(self, state: AbstractAgentState) -> Tuple[str, Dict[str, Any]]:
-        """Plan the next action based on the given state.
+        if len(state.current_action_chain) > 0:
+            action_schema = state.current_action_chain.pop(0)
+            event_params = self.fill_triggering_event(action_schema, state)
+            return action_schema, event_params
+        action_schema = self.select_next_action_schema(state)
+        event_params = self.fill_triggering_event(action_schema, state)
+        return action_schema, event_params
+
+    @abstractmethod
+    def select_next_action_schema(self, state: AbstractAgentState) -> str:
+        """Select the next action schema based on the given state.
         
-        This method should first call the action schema selector to get the action schema.
-        Then it should call the event fillers to get the event parameters.
+        :param state: The state based on which the next action schema should be selected.
+        :return: The action schema, e.g., "MoveTo".
+        """
+        pass
+
+    @abstractmethod
+    def fill_triggering_event(self, next_action_schema:str, state:AbstractAgentState) -> Dict[str, Any]:
+        """Fill the triggering event parameters based on the given state.
         
-        :param state: The state based on which the next action should be planned.
-        :return: A tuple containing the action schema and the trigger event parameters, e.g., {"arg1": x, "arg2": y, ...}.
+        :param state: The state based on which the triggering event parameters should be filled.
+        :return: The triggering event parameters, e.g., {"arg1": x, "arg2": y, ...}.
         """
         pass

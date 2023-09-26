@@ -2,9 +2,10 @@ from genworlds.objects.abstracts.object import AbstractObject
 from genworlds.events.abstracts.event import AbstractEvent
 from genworlds.events.abstracts.action import AbstractAction
 
-class AgentGetsAvailableEntitiesEvent(AbstractEvent):
-    event_type = "agent_gets_available_entities_event"
-    description = "Get all available entities."
+class AgentWantsUpdatedStateEvent(AbstractEvent):
+    event_type = "agent_wants_updated_state"
+    description = "Agent wants to update its state."
+    # that gives available_action_schemas, and available_entities
 
 class WorldSendsAvailableEntitiesEvent(AbstractEvent):
     event_type = "world_sends_available_entities_event"
@@ -12,12 +13,12 @@ class WorldSendsAvailableEntitiesEvent(AbstractEvent):
     available_entities: dict
 
 class WorldSendsAvailableEntities(AbstractAction):
-    trigger_event_class = AgentGetsAvailableEntitiesEvent
+    trigger_event_class = AgentWantsUpdatedStateEvent
 
     def __init__(self, host_object: AbstractObject):
         super().__init__(host_object=host_object)
 
-    def __call__(self, event: AgentGetsAvailableEntitiesEvent):
+    def __call__(self, event: AgentWantsUpdatedStateEvent):
         self.host_object.update_entities()
         all_entities = self.host_object.entities
         event = WorldSendsAvailableEntitiesEvent(
@@ -35,12 +36,12 @@ class WorldSendsAvailableActionSchemasEvent(AbstractEvent):
     available_action_schemas: dict[str, dict]
 
 class WorldSendsAvailableActionSchemas(AbstractAction):
-    trigger_event_class = AgentGetsAvailableEntitiesEvent ## change that!!
+    trigger_event_class = AgentWantsUpdatedStateEvent
 
     def __init__(self, host_object: AbstractObject):
         super().__init__(host_object=host_object)
 
-    def __call__(self, event: AgentGetsAvailableEntitiesEvent):
+    def __call__(self, event: AgentWantsUpdatedStateEvent):
         self.host_object.update_action_schemas()
         all_action_schemas = self.host_object.action_schemas
         event = WorldSendsAvailableActionSchemasEvent(
