@@ -1,10 +1,6 @@
-# defines state
-# defines state manager
-# defines action planner
-# defines agent
-
 from typing import List
 from genworlds.agents.abstracts.agent import AbstractAgent
+from genworlds.agents.abstracts.agent_state import AbstractAgentState
 from genworlds.agents.concrete.basic_assistant.state_manager import (
     BasicAssistantStateManager,
 )
@@ -16,19 +12,31 @@ from genworlds.agents.concrete.basic_assistant.actions import (
     UpdateAgentAvailableEntities,
     UpdateAgentAvailableActionSchemas,
 )
+from genworlds.agents.abstracts.thought import AbstractThought
 
 
 class BasicAssistant(AbstractAgent):
     def __init__(
         self,
+        openai_api_key: str,
         name: str,
         id: str,
         description: str,
         host_world_id: str = None,
-        actions: List[type[AbstractAction]] = [],
+        initial_agent_state: AbstractAgentState = None,
+        action_classes: List[type[AbstractAction]] = [],
+        other_thoughts: List[AbstractThought] = [],
     ):
-        state_manager = BasicAssistantStateManager(self, None)
-        action_planner = BasicAssistantActionPlanner(None, None, None)
+        state_manager = BasicAssistantStateManager(self, initial_agent_state)
+        action_planner = BasicAssistantActionPlanner(
+            openai_api_key=openai_api_key,
+            initial_agent_state=state_manager.state,
+            other_thoughts=other_thoughts,
+        )
+
+        actions = []
+        for action_class in action_classes:
+            actions.append(action_class(host_object=self))
 
         actions.append(UpdateAgentAvailableEntities(host_object=self))
         actions.append(UpdateAgentAvailableActionSchemas(host_object=self))

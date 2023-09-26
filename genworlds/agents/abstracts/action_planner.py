@@ -9,7 +9,9 @@ class AbstractActionPlanner(ABC):
         self,
         action_schema_selector: AbstractThought,
         event_filler: AbstractThought,
-        other_thoughts: List[AbstractThought] = [],
+        other_thoughts: List[
+            AbstractThought
+        ] = [],  # other trigger event param filler thoughts
     ):
         self.action_schema_selector = action_schema_selector
         self.event_filler = event_filler

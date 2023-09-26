@@ -15,7 +15,7 @@ from langchain.vectorstores import VectorStore
 from genworlds.agents.base_agent.memories.simulation_memory import SimulationMemory
 
 
-class NavigationGeneratorPrompt(BaseChatPromptTemplate, BaseModel):
+class ActionSchemaSelectorGeneratorPrompt(BaseChatPromptTemplate, BaseModel):
     ai_role: str
     response_instruction: str
     token_counter: Callable[[str], int]

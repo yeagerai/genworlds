@@ -3,6 +3,5 @@ from abc import ABC, abstractmethod
 
 class AbstractThought(ABC):
     @abstractmethod
-    def run(self) -> str:
-        """Calls an LLM and gets its output"""
-        pass
+    def run(self, llm_params: dict) -> str:
+        """Run the brain with the given parameters and produce a response."""

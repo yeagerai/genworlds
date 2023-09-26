@@ -6,7 +6,7 @@ from genworlds.agents.base_agent.prompts.navigation_generator_prompt import (
 )
 
 
-class NavigationThought(SingleEvalThoughtGenerator):
+class ActionSchemaSelectorThought(SingleEvalThoughtGenerator):
     def __init__(
         self,
         openai_api_key: str,

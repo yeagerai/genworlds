@@ -17,7 +17,11 @@ class BasicAssistantStateManager(AbstractStateManager):
         else:
             self.state = state
 
-    def _initialize_state(self) -> AbstractAgentState:
+    def _initialize_state(
+        self,
+    ) -> (
+        AbstractAgentState
+    ):  # should trigger an action to get the initial state from the world
         return AbstractAgentState(
             id=self.host_agent.id,
             available_entities={},
