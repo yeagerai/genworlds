@@ -12,8 +12,8 @@ from genworlds.worlds.concrete.base.actions import (
     WorldSendsAvailableActionSchemas,
 )
 
-class BaseWorld(AbstractWorld):
 
+class BaseWorld(AbstractWorld):
     def __init__(
         self,
         name: str,
@@ -25,7 +25,9 @@ class BaseWorld(AbstractWorld):
     ):
         # availability = all entities
         get_available_entities = WorldSendsAvailableEntities(host_object=self)
-        get_available_action_schemas = WorldSendsAvailableActionSchemas(host_object=self)
+        get_available_action_schemas = WorldSendsAvailableActionSchemas(
+            host_object=self
+        )
         actions.append(get_available_entities)
         actions.append(get_available_action_schemas)
 
@@ -80,4 +82,3 @@ class BaseWorld(AbstractWorld):
     #         world_description=self.description,
     #         schemas=schemas,
     #     )
-

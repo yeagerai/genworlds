@@ -2,15 +2,18 @@ from genworlds.objects.abstracts.object import AbstractObject
 from genworlds.events.abstracts.event import AbstractEvent
 from genworlds.events.abstracts.action import AbstractAction
 
+
 class AgentWantsUpdatedStateEvent(AbstractEvent):
     event_type = "agent_wants_updated_state"
     description = "Agent wants to update its state."
     # that gives available_action_schemas, and available_entities
 
+
 class WorldSendsAvailableEntitiesEvent(AbstractEvent):
     event_type = "world_sends_available_entities_event"
     description = "Send available entities."
     available_entities: dict
+
 
 class WorldSendsAvailableEntities(AbstractAction):
     trigger_event_class = AgentWantsUpdatedStateEvent
@@ -24,9 +27,10 @@ class WorldSendsAvailableEntities(AbstractAction):
         event = WorldSendsAvailableEntitiesEvent(
             sender_id=self.host_object.id,
             available_entities=all_entities,
-            target_id=event.sender_id
+            target_id=event.sender_id,
         )
         self.host_object.send_event(event)
+
 
 class WorldSendsAvailableActionSchemasEvent(AbstractEvent):
     event_type = "world_sends_available_action_schemas_event"
@@ -34,6 +38,7 @@ class WorldSendsAvailableActionSchemasEvent(AbstractEvent):
     world_name: str
     world_description: str
     available_action_schemas: dict[str, dict]
+
 
 class WorldSendsAvailableActionSchemas(AbstractAction):
     trigger_event_class = AgentWantsUpdatedStateEvent
@@ -52,6 +57,7 @@ class WorldSendsAvailableActionSchemas(AbstractAction):
         )
         self.host_object.send_event(event)
 
+
 # class AgentSpeaksWithAgentEvent(AbstractEvent):
 #     event_type = "agent_speaks_with_agent_event"
 #     description = "An agent speaks with another agent."
@@ -69,8 +75,8 @@ class WorldSendsAvailableActionSchemas(AbstractAction):
 
 # class AgentGivesObjectToAgentEvent(AbstractEvent):
 #     event_type = "agent_gives_object_to_agent_event"
-#     description = """Give an object from your inventory to another agent. 
-# Only the holder of an item can use this event, you cannot use this event to request an item. 
+#     description = """Give an object from your inventory to another agent.
+# Only the holder of an item can use this event, you cannot use this event to request an item.
 # Target id must be the id of the world."""
 #     object_id: str
 #     recipient_agent_id: str

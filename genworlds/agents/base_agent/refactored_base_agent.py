@@ -13,10 +13,18 @@ from langchain.schema import (
     BaseMessage,
     SystemMessage,
 )
-from genworlds.agents.base_agent.action_planner import ActionPlanner, AbstractActionPlanner
-from genworlds.agents.base_agent.action_validator import ActionValidator, AbstractActionValidator
+from genworlds.agents.base_agent.action_planner import (
+    ActionPlanner,
+    AbstractActionPlanner,
+)
+from genworlds.agents.base_agent.action_validator import (
+    ActionValidator,
+    AbstractActionValidator,
+)
 from genworlds.agents.base_agent.state_manager import StateManager, AbstractStateManager
-from genworlds.simulation.sockets.handlers.event_handler import SimulationSocketEventHandler
+from genworlds.simulation.sockets.handlers.event_handler import (
+    SimulationSocketEventHandler,
+)
 
 from genworlds.events.base_event import BaseEvent
 from genworlds.worlds.base_world.events import (
@@ -27,8 +35,6 @@ from genworlds.worlds.base_world.events import (
     WorldSendsAllEntitiesEvent,
 )
 from genworlds.utils.logging_factory import LoggingFactory
-
-
 
 
 class BaseAgent(SimulationSocketEventHandler):
@@ -62,7 +68,7 @@ class BaseAgent(SimulationSocketEventHandler):
         self.description = description
         self.goals = goals
         self.state = state_manager
-        self.state["id"] = self.id # update id 
+        self.state["id"] = self.id  # update id
 
         # Helpers
         self.state_manager = state_manager
@@ -82,9 +88,6 @@ class BaseAgent(SimulationSocketEventHandler):
         self.next_action_count = 0
         self.plan: Optional[str] = None
 
-
-
-        
         self.register_event_listeners(
             [
                 [WorldSendsSchemasEvent, self.state_manager.update_schemas],
@@ -244,29 +247,29 @@ class BaseAgent(SimulationSocketEventHandler):
                 relevant_commands[selected_command["title"]] = selected_command
 
             # Send message to AI, get response
-            self.action_planner.plan_next_action() # estas variables
+            self.action_planner.plan_next_action()  # estas variables
             navigation_plan_parsed = self.navigation_thought.run(
                 {
                     "goals": self.goals,
-                    "messages": self.full_message_history, # esta
-                    "memory": self.simulation_memory, # esta
+                    "messages": self.full_message_history,  # esta
+                    "memory": self.simulation_memory,  # esta
                     "personality_db": self.personality_db,
                     "all_entities": list(
                         filter(
                             lambda e: (e["held_by"] != self.id),
-                            self.all_entities.values(), # esta
+                            self.all_entities.values(),  # esta
                         )
                     ),
                     "inventory": list(
                         filter(
                             lambda e: (e["held_by"] == self.id),
-                            self.all_entities.values(), # esta
+                            self.all_entities.values(),  # esta
                         )
                     ),
                     "plan": self.plan,
                     "user_input": user_input,
-                    "agent_world_state": agent_world_state, # esta
-                    "relevant_commands": relevant_commands, # esta
+                    "agent_world_state": agent_world_state,  # esta
+                    "relevant_commands": relevant_commands,  # esta
                 }
             )
 
@@ -298,7 +301,9 @@ class BaseAgent(SimulationSocketEventHandler):
                 selected_command = relevant_commands[selected_action]
 
                 if selected_action in self.action_thought_map:
-                    action_brains = self.action_thought_map[selected_action]["thought_chain"]
+                    action_brains = self.action_thought_map[selected_action][
+                        "thought_chain"
+                    ]
                     if len(next_actions) == 0:
                         next_actions = self.action_thought_map[selected_action][
                             "next_actions"
@@ -353,7 +358,9 @@ class BaseAgent(SimulationSocketEventHandler):
                             selected_command["title"], args
                         )
                         if not isinstance(event_sent, dict):
-                            raise ValueError(f"Expected a dictionary, but got {type(event_sent)}: {event_sent}")
+                            raise ValueError(
+                                f"Expected a dictionary, but got {type(event_sent)}: {event_sent}"
+                            )
                         print(event_sent)
                         self.simulation_memory.add_event(
                             json.dumps(event_sent), summarize=True

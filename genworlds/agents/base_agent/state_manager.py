@@ -9,10 +9,11 @@ from genworlds.agents.abstracts.state_manager import AbstractStateManager
 from genworlds.agents.memories.simulation_memory import SimulationMemory
 from genworlds.worlds.base_world.events import (
     WorldSendsSchemasEvent,
-    WorldSendsAllEntitiesEvent
+    WorldSendsAllEntitiesEvent,
 )
 from genworlds.utils.schema_to_model import json_schema_to_pydantic_model
 from genworlds.events.abstracts.event import AbstractEvent
+
 
 class StateManager(AbstractStateManager):
     agent_world_state = "You have not yet learned about the world state."
@@ -70,7 +71,9 @@ class StateManager(AbstractStateManager):
         self.agent_state["all_events"] = []
         self.agent_state["last_events"] = []
 
-        self.agent_state["important_event_types"].update(self.agent_state["special_events"])
+        self.agent_state["important_event_types"].update(
+            self.agent_state["special_events"]
+        )
 
     def get_updated_state(self):
         pass
@@ -107,7 +110,8 @@ class StateManager(AbstractStateManager):
                 event.target_id == self.agent_state["id"]
                 or event.event_type in self.agent_state["important_event_types"]
             )
-            and event.event_type not in self.agent_state["non_memory_important_event_types"]
+            and event.event_type
+            not in self.agent_state["non_memory_important_event_types"]
         ):
             self.agent_state["last_events"].append(event)
             self.agent_state["all_events"].append(event)
@@ -127,7 +131,9 @@ class StateManager(AbstractStateManager):
         return self.agent_state["all_entities"]
 
     def add_wakeup_event(self, event_class: AbstractEvent, params: dict):
-        self.agent_state["wakeup_events"][event_class.__fields__["event_type"].default] = params
+        self.agent_state["wakeup_events"][
+            event_class.__fields__["event_type"].default
+        ] = params
         # self.register_event_listener(event_class, self.handle_wakeup)
 
     def handle_wakeup(self, event):

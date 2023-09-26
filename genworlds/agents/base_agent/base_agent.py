@@ -136,7 +136,7 @@ class BaseAgent(SimulationSocketEventHandler):
             id=self.id,
             websocket_url=websocket_url,
         )
-        
+
         self.register_event_listeners(
             [
                 [WorldSendsSchemasEvent, self.update_schemas],
@@ -349,7 +349,9 @@ class BaseAgent(SimulationSocketEventHandler):
                 selected_command = relevant_commands[selected_action]
 
                 if selected_action in self.action_thought_map:
-                    action_brains = self.action_thought_map[selected_action]["thought_chain"]
+                    action_brains = self.action_thought_map[selected_action][
+                        "thought_chain"
+                    ]
                     if len(next_actions) == 0:
                         next_actions = self.action_thought_map[selected_action][
                             "next_actions"
@@ -404,7 +406,9 @@ class BaseAgent(SimulationSocketEventHandler):
                             selected_command["title"], args
                         )
                         if not isinstance(event_sent, dict):
-                            raise ValueError(f"Expected a dictionary, but got {type(event_sent)}: {event_sent}")
+                            raise ValueError(
+                                f"Expected a dictionary, but got {type(event_sent)}: {event_sent}"
+                            )
                         print(event_sent)
                         self.simulation_memory.add_event(
                             json.dumps(event_sent), summarize=True
@@ -443,14 +447,13 @@ class BaseAgent(SimulationSocketEventHandler):
             # Allow events to be processed
             sleep(3)
 
-    def get_schemas(self): # cap a object
+    def get_schemas(self):  # cap a object
         events = {}
         events["agent_speaks_with_user_event"] = AgentSpeaksWithUserEvent.schema()
         self.schemas["Self"] = events
         return self.schemas
 
-    def execute_event_with_args(self, name: str, args: dict): # cap a object
-
+    def execute_event_with_args(self, name: str, args: dict):  # cap a object
         try:
             class_name = name.split(":")[0]
             event_type = name.split(":")[1]
@@ -486,7 +489,7 @@ class BaseAgent(SimulationSocketEventHandler):
             traceback.print_exc()
             return f"Error: {str(e)}, {type(e).__name__}, args: {args}"
 
-    def agent_request_world_state_update_action(self): # cap a object
+    def agent_request_world_state_update_action(self):  # cap a object
         self.send_event(
             EntityRequestWorldStateUpdateEvent,
             target_id=self.world_spawned_id,
@@ -529,11 +532,11 @@ class BaseAgent(SimulationSocketEventHandler):
         ).start()
         self.logger.info("Threads launched")
 
-    def update_schemas(self, event: WorldSendsSchemasEvent): # cap a object
+    def update_schemas(self, event: WorldSendsSchemasEvent):  # cap a object
         self.schemas = event.schemas
         self.update_event_classes_from_new_schemas(event.schemas)
 
-    def update_event_classes_from_new_schemas(self, schemas): # cap a object
+    def update_event_classes_from_new_schemas(self, schemas):  # cap a object
         for entity in schemas:
             for event in schemas[entity]:
                 Model = json_schema_to_pydantic_model(schemas[entity][event])
@@ -541,11 +544,11 @@ class BaseAgent(SimulationSocketEventHandler):
                 if event_type not in self.event_classes:
                     self.event_classes[event_type] = Model
 
-    def update_world_state(self, event: EntityWorldStateUpdateEvent): # cap a object
+    def update_world_state(self, event: EntityWorldStateUpdateEvent):  # cap a object
         if event.target_id == self.id:
             self.agent_world_state = event.entity_world_state
 
-    def update_all_entities(self, event: WorldSendsAllEntitiesEvent): # cap a object
+    def update_all_entities(self, event: WorldSendsAllEntitiesEvent):  # cap a object
         self.all_entities = event.all_entities
 
     def listen_for_events(self, event: BaseEvent):

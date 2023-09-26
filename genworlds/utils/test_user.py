@@ -9,9 +9,7 @@ class TestUser:
         self.id = "test_user"
         self.name = "Test User"
         self.description = "A test user for the simulation."
-        self.socket_client = SimulationSocketClient(
-            process_event=lambda x: ""
-        )
+        self.socket_client = SimulationSocketClient(process_event=lambda x: "")
         threading.Thread(
             target=self.socket_client.websocket.run_forever,
             name=f"{self.id} Thread",

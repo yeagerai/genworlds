@@ -11,28 +11,33 @@ from genworlds.simulation.sockets.server import start_thread as socket_server_st
 
 WorldEntityType = TypeVar("WorldEntityType", bound=AbstractWorldEntity)
 
+
 class AbstractWorld(Generic[WorldEntityType], AbstractObject):
     """
     An interface class representing a generic world in the simulation.
     """
+
     entities: dict[str, AbstractWorldEntity]
     action_schemas: dict[str, dict]
 
-    def __init__(self, 
-                 name: str, 
-                 id: str, 
-                 description: str, 
-                 actions: List[Type[AbstractAction]], 
-                 objects: List[AbstractObject], 
-                 agents: List[AbstractAgent],
-                 get_available_entities: AbstractAction,
-                 get_available_action_schemas: AbstractAction,
-                 ):
+    def __init__(
+        self,
+        name: str,
+        id: str,
+        description: str,
+        actions: List[Type[AbstractAction]],
+        objects: List[AbstractObject],
+        agents: List[AbstractAgent],
+        get_available_entities: AbstractAction,
+        get_available_action_schemas: AbstractAction,
+    ):
         self.objects = objects
         self.agents = agents
         self.get_available_entities = get_available_entities
         self.get_available_action_schemas = get_available_action_schemas
-        super().__init__(name=name, id=id, description=description, host_world_id=id, actions=actions)
+        super().__init__(
+            name=name, id=id, description=description, host_world_id=id, actions=actions
+        )
 
     def update_entities(self):
         self.entities = {}
@@ -47,17 +52,17 @@ class AbstractWorld(Generic[WorldEntityType], AbstractObject):
         self.action_schemas = {}
         for action in self.actions:
             event_type = action.trigger_event_class.__fields__["event_type"].default
-            key = f"{self.id}:{type(self).__name__}:{event_type}" 
+            key = f"{self.id}:{type(self).__name__}:{event_type}"
             self.action_schemas[key] = action.trigger_event_class.schema()
         for obj in self.objects:
             for action in obj.actions:
                 event_type = action.trigger_event_class.__fields__["event_type"].default
-                key = f"{obj.id}:{type(obj).__name__}:{event_type}" 
+                key = f"{obj.id}:{type(obj).__name__}:{event_type}"
                 self.action_schemas[key] = action.trigger_event_class.schema()
         for agent in self.agents:
             for action in agent.actions:
                 event_type = action.trigger_event_class.__fields__["event_type"].default
-                key = f"{agent.id}:{type(agent).__name__}:{event_type}" 
+                key = f"{agent.id}:{type(agent).__name__}:{event_type}"
                 self.action_schemas[key] = action.trigger_event_class.schema()
 
     def get_entity_from_obj(self, obj: AbstractObject) -> WorldEntityType:
@@ -68,7 +73,7 @@ class AbstractWorld(Generic[WorldEntityType], AbstractObject):
 
     def get_entity_by_id(self, entity_id: str) -> AbstractWorldEntity:
         return self.entities[entity_id]
-    
+
     def add_agent(self, agent: AbstractAgent):
         self.agents.append(agent)
         self.agents[-1].host_world_id = self.id

@@ -8,8 +8,9 @@ from genworlds.events.abstracts.action import AbstractAction
 from genworlds.worlds.concrete.location_based.actions import (
     WorldSendsSameLocationEntities,
     WorldSendsSameLocationActionSchemas,
-    WorldSetsAgentLocation
+    WorldSetsAgentLocation,
 )
+
 
 class WorldLocationEntity(AbstractWorldEntity):
     location: str = None
@@ -31,7 +32,9 @@ class LocationWorld(AbstractWorld[WorldLocationEntity]):
         self.locations = locations
         # availability = same location as sender id
         get_available_entities = WorldSendsSameLocationEntities(host_object=self)
-        get_available_action_schemas = WorldSendsSameLocationActionSchemas(host_object=self)
+        get_available_action_schemas = WorldSendsSameLocationActionSchemas(
+            host_object=self
+        )
 
         actions.append(get_available_entities)
         actions.append(get_available_action_schemas)
