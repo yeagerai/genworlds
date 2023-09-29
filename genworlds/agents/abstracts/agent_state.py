@@ -14,6 +14,7 @@ class AbstractAgentState(BaseModel):
 
     # Static initialized in the constructor
     id: str = Field(..., description="Unique identifier of the agent.")
+    description: str = Field(..., description="Description of the agent.")
     name: str = Field(..., description="Name of the agent.")
     host_world_prompt: str = Field(..., description="Prompt of the host world.")
     simulation_memory_persistent_path: Optional[str] = Field(
@@ -36,9 +37,6 @@ class AbstractAgentState(BaseModel):
 
     # Dynamically updated, so during one think_n_do cycle all of these must be updated somehow
     plan: List[str] = Field(..., description="List of actions that form the plan.")
-    full_message_history: List[str] = Field(
-        ..., description="List of all messages the agent has received."
-    )
     last_retrieved_memory: str = Field(
         ..., description="Last retrieved memory of the agent."
     )
@@ -52,12 +50,6 @@ class AbstractAgentState(BaseModel):
         ..., description="List of available entities in the environment."
     )
     is_asleep: bool = Field(..., description="Indicates whether the agent is asleep.")
-    all_events: List[AbstractEvent] = Field(
-        ..., description="List of all events the agent is aware of."
-    )
-    last_events: List[AbstractEvent] = Field(
-        ..., description="List of the most recent events the agent is aware of."
-    )
     current_action_chain: List[str] = Field(
         ..., description="List of action schemas that are currently being executed."
     )

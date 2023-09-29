@@ -12,7 +12,7 @@ from langchain.tools.base import BaseTool
 from langchain.vectorstores.base import VectorStoreRetriever
 from langchain.vectorstores import VectorStore
 
-from genworlds.agents.base_agent.memories.simulation_memory import SimulationMemory
+from genworlds.agents.memories.simulation_memory import SimulationMemory
 
 
 class ActionSchemaSelectorGeneratorPrompt(BaseChatPromptTemplate, BaseModel):

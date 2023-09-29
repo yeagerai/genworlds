@@ -58,20 +58,38 @@ class WorldSendsAvailableActionSchemas(AbstractAction):
         self.host_object.send_event(event)
 
 
-# class AgentSpeaksWithAgentEvent(AbstractEvent):
-#     event_type = "agent_speaks_with_agent_event"
-#     description = "An agent speaks with another agent."
-#     message: str
+class AgentSpeaksWithAgentEvent(AbstractEvent):
+    event_type = "agent_speaks_with_agent_event"
+    description = "An agent speaks with another agent."
+    message: str
 
-# class AgentSpeaksWithUserEvent(AbstractEvent):
-#     event_type = "agent_speaks_with_user_event"
-#     description = "An agent speaks with the user."
-#     message: str
+class AgentSpeaksWithAgent(AbstractAction):
+    trigger_event_class = AgentSpeaksWithAgentEvent
 
-# class UserSpeaksWithAgentEvent(AbstractEvent):
-#     event_type = "user_speaks_with_agent_event"
-#     description = "The user speaks with an agent."
-#     message: str
+    def __init__(self, host_object: AbstractObject):
+        super().__init__(host_object=host_object)
+
+    def __call__(self, event: AgentSpeaksWithAgentEvent):
+        self.host_object.send_event(event)
+
+class UserSpeaksWithAgentEvent(AbstractEvent):
+    event_type = "user_speaks_with_agent_event"
+    description = "The user speaks with an agent."
+    message: str
+
+class AgentSpeaksWithUserEvent(AbstractEvent):
+    event_type = "agent_speaks_with_user_event"
+    description = "An agent speaks with the user."
+    message: str
+
+class AgentSpeaksWithUser(AbstractAction):
+    trigger_event_class = AgentSpeaksWithUserEvent
+
+    def __init__(self, host_object: AbstractObject):
+        super().__init__(host_object=host_object)
+
+    def __call__(self, event: AgentSpeaksWithUserEvent):
+        self.host_object.send_event(event)    
 
 # class AgentGivesObjectToAgentEvent(AbstractEvent):
 #     event_type = "agent_gives_object_to_agent_event"

@@ -10,10 +10,10 @@ from langchain.output_parsers.openai_functions import (
 )
 from langchain.chains.openai_functions.utils import get_llm_kwargs
 
-from genworlds.agents.base_agent.thoughts.thought import Thought
+from genworlds.agents.abstracts.thought import AbstractThought
 
 
-class SingleEvalThoughtGenerator(Thought):
+class SingleEvalThoughtGenerator(AbstractThought):
     """This brain generates a number of thoughts and passes them all to the evaluator, which selects one of them."""
 
     def __init__(

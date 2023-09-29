@@ -5,10 +5,10 @@ from langchain.chat_models import ChatOpenAI
 from langchain.output_parsers.openai_functions import JsonKeyOutputFunctionsParser
 from langchain.chains.openai_functions.utils import get_llm_kwargs
 
-from genworlds.agents.base_agent.thoughts.thought import Thought
+from genworlds.agents.abstracts.thought import AbstractThought
 
 
-class ZeroShotThoughtGenerator(Thought):
+class ZeroShotThoughtGenerator(AbstractThought):
     """This brain generates one output and returns it."""
 
     def __init__(

@@ -1,8 +1,8 @@
-from genworlds.agents.base_agent.thoughts.single_eval_thought_generator import (
+from genworlds.agents.concrete.basic_assistant.thoughts.single_eval_thought_generator import (
     SingleEvalThoughtGenerator,
 )
-from genworlds.agents.base_agent.prompts.navigation_generator_prompt import (
-    NavigationGeneratorPrompt,
+from genworlds.agents.concrete.basic_assistant.prompts.action_schema_selector_generator_prompt import (
+    ActionSchemaSelectorGeneratorPrompt,
 )
 
 
@@ -11,12 +11,7 @@ class ActionSchemaSelectorThought(SingleEvalThoughtGenerator):
         self,
         openai_api_key: str,
         name: str,
-        role: str,
-        background: str,
-        personality: str,
-        topic_of_conversation: str,
-        constraints: list[str],
-        evaluation_principles: list[str],
+        description: str,
         n_of_thoughts: int,
     ):
         navigation_output_parameter_generator = lambda llm_params: {
@@ -44,7 +39,7 @@ class ActionSchemaSelectorThought(SingleEvalThoughtGenerator):
             },
             "next_action": {
                 "type": "string",
-                "enum": list(llm_params["relevant_commands"].keys()),
+                "enum": list(llm_params["available_action_schemas"].keys()),
                 "description": 'What is the next action you want to take? Example: "EntityClass:action_type_1"',
             },
             "violated_constraints": {
@@ -67,35 +62,28 @@ Example: "Yes, opening the door is valid because I have the key to the door in m
 
         super().__init__(
             openai_api_key=openai_api_key,
-            prompt_template_class=NavigationGeneratorPrompt,
+            prompt_template_class=ActionSchemaSelectorGeneratorPrompt,
             llm_params=[
                 "plan",
                 "goals",
                 "memory",
-                # "personality_db",
                 "agent_world_state",
-                "all_entities",
+                "available_entities",
                 "inventory",
-                "relevant_commands",
+                "available_action_schemas",
                 "messages",
             ],
             output_parameter_generator=navigation_output_parameter_generator,
             n_of_thoughts=n_of_thoughts,
             generator_role_prompt=f"""
-You are {name}, {role}. You need to come up with the next step to get you closer to your goals. It must be consistent with all of the following information:
+You are {name}, {description}. You need to come up with the next step to get you closer to your goals.
 
-## Your background
-{background}
-
-## Your personality
-{personality}
-
-## Topic of conversation
-{topic_of_conversation}
     """,
             generator_results_prompt=f"""
 ## Constraints
-{constraints}
+- Make sure that the proposed action is consistent with your goals
+- Check that the proposed action is in the list of available actions
+- That you meet all the preconditions for the action, like having the correct items in your inventory
 
 # Response type
 Look at your previous plan, your memories about what you have done recently and your goals, and propose {{num_thoughts}} possible plans that advance your goals.
@@ -104,18 +92,18 @@ Then, select the next action that you want to do to achieve the first step of yo
 Check that the action is in the list of available actions, and that you meet all the preconditions for the action.
 If you do not have a plan, propose a new plan.
 """,
-            evaluator_role_prompt=f"You are {name}, {role}. You are trying to evaluate a number of actions to see which will get you closer to your goals. It must be consistent with the following information:",
+            evaluator_role_prompt=f"You are {name}, {description}. You are trying to evaluate a number of actions to see which will get you closer to your goals. It must be consistent with the following information:",
             evaluator_results_prompt=f"""
 ## Choose the best action
 In a previous step, you have generated some possible plans. Now, you need to evaluate them and choose the best one.
 
 ## Evaluation principles
-{evaluation_principles}
+- Make sure that the proposed action is consistent with your goals
 
 ## Constraints
 - Check that the proposed action is in the list of available actions
 - That you meet all the preconditions for the action, like having the correct items in your inventory
-{constraints}
+
 
 # Response type
 Return the best plan of the following options:

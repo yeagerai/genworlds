@@ -90,9 +90,9 @@ class AbstractWorld(Generic[WorldEntityType], AbstractObject):
 
     def launch(self):
         socket_server_start()
-        sleep(1)
+        sleep(0.2)
         self.launch_websocket_thread()
-        sleep(1)
+        sleep(0.2)
         for agent in self.agents:
             sleep(0.1)
             self.add_agent(agent)

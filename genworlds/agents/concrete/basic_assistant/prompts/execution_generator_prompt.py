@@ -12,7 +12,7 @@ from langchain.prompts.chat import (
     BaseChatPromptTemplate,
 )
 
-from genworlds.agents.base_agent.memories.simulation_memory import SimulationMemory
+from genworlds.agents.memories.simulation_memory import SimulationMemory
 
 
 class ExecutionGeneratorPrompt(BaseChatPromptTemplate, BaseModel):

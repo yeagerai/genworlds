@@ -1,5 +1,6 @@
 from typing import List
 from genworlds.agents.abstracts.agent import AbstractAgent
+from genworlds.events.abstracts.event import AbstractEvent
 from genworlds.agents.abstracts.agent_state import AbstractAgentState
 from genworlds.agents.concrete.basic_assistant.state_manager import (
     BasicAssistantStateManager,
@@ -34,6 +35,7 @@ class BasicAssistant(AbstractAgent):
             openai_api_key=openai_api_key,
             initial_agent_state=state_manager.state,
             other_thoughts=other_thoughts,
+            host_agent=self,
         )
 
         actions = []
@@ -48,3 +50,6 @@ class BasicAssistant(AbstractAgent):
         super().__init__(
             name, id, description, state_manager, action_planner, host_world_id, actions
         )
+
+    def add_wakeup_event(self, event_class: AbstractEvent):
+        self.state_manager.state.wakeup_event_types.add(event_class.__fields__["event_type"].default)
