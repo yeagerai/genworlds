@@ -17,6 +17,7 @@ class WorldSendsAvailableEntitiesEvent(AbstractEvent):
 
 class WorldSendsAvailableEntities(AbstractAction):
     trigger_event_class = AgentWantsUpdatedStateEvent
+    description = "Send available entities."
 
     def __init__(self, host_object: AbstractObject):
         super().__init__(host_object=host_object)
@@ -37,11 +38,12 @@ class WorldSendsAvailableActionSchemasEvent(AbstractEvent):
     description = "The world sends the possible action schemas to all the agents."
     world_name: str
     world_description: str
-    available_action_schemas: dict[str, dict]
+    available_action_schemas: dict[str, str]
 
 
 class WorldSendsAvailableActionSchemas(AbstractAction):
     trigger_event_class = AgentWantsUpdatedStateEvent
+    description = "The world sends the possible action schemas to all the agents."
 
     def __init__(self, host_object: AbstractObject):
         super().__init__(host_object=host_object)
@@ -65,6 +67,7 @@ class AgentSpeaksWithAgentEvent(AbstractEvent):
 
 class AgentSpeaksWithAgent(AbstractAction):
     trigger_event_class = AgentSpeaksWithAgentEvent
+    description = "An agent speaks with another agent."
 
     def __init__(self, host_object: AbstractObject):
         super().__init__(host_object=host_object)
@@ -84,6 +87,7 @@ class AgentSpeaksWithUserEvent(AbstractEvent):
 
 class AgentSpeaksWithUser(AbstractAction):
     trigger_event_class = AgentSpeaksWithUserEvent
+    description = "An agent speaks with the user."
 
     def __init__(self, host_object: AbstractObject):
         super().__init__(host_object=host_object)

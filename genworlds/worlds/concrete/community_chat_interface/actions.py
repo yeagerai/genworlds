@@ -6,18 +6,18 @@ from genworlds.events.abstracts.action import AbstractAction
 
 class UserRequestsScreensToWorldEvent(AbstractEvent):
     event_type = "user_requests_screens_to_world"
-    description = "Agent moves to a new location in the world."
+    description = "The user requests the screens to the world."
 
 
 class WorldSendsScreensToUserEvent(AbstractEvent):
     event_type = "world_sends_screens_to_user"
-    description = "Agent moves to a new location in the world."
+    description = "The world sends the screens to the user."
     screens_config: dict
 
 
 class WorldSendsScreensToUser(AbstractAction):
     trigger_event_class = UserRequestsScreensToWorldEvent
-
+    description = "The world sends the screens to the user."
     def __init__(self, host_object: AbstractObject):
         super().__init__(host_object=host_object)
 

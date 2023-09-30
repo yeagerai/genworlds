@@ -30,7 +30,7 @@ class BasicAssistant(AbstractAgent):
         action_classes: List[type[AbstractAction]] = [],
         other_thoughts: List[AbstractThought] = [],
     ):
-        state_manager = BasicAssistantStateManager(self, initial_agent_state)
+        state_manager = BasicAssistantStateManager(self, initial_agent_state, openai_api_key)
         action_planner = BasicAssistantActionPlanner(
             openai_api_key=openai_api_key,
             initial_agent_state=state_manager.state,

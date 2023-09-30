@@ -1,4 +1,5 @@
 from typing import Dict, Any, List
+from genworlds.events.abstracts.event import AbstractEvent
 from genworlds.agents.abstracts.action_planner import AbstractActionPlanner
 from genworlds.agents.abstracts.agent_state import AbstractAgentState
 from genworlds.agents.abstracts.thought import AbstractThought
@@ -24,19 +25,13 @@ class BasicAssistantActionPlanner(AbstractActionPlanner):
         self.host_agent = host_agent
         action_schema_selector = ActionSchemaSelectorThought(
             openai_api_key=openai_api_key,
-            name=initial_agent_state.name,
-            description=initial_agent_state.description,
-            # constraints=initial_agent_state.constraints,
-            # evaluation_principles=initial_agent_state.evaluation_principles,
-            n_of_thoughts=3,
+            agent_state=initial_agent_state,
+            model_name="gpt-4",
         )
         event_filler = EventFillerThought(
             openai_api_key=openai_api_key,
-            name=initial_agent_state.name,
-            description=initial_agent_state.description,
-            # constraints=initial_agent_state.constraints,
-            # evaluation_principles=initial_agent_state.evaluation_principles,
-            n_of_thoughts=1,
+            agent_state=initial_agent_state,
+            model_name="gpt-4",
         )
         other_thoughts = other_thoughts
         super().__init__(
@@ -47,16 +42,7 @@ class BasicAssistantActionPlanner(AbstractActionPlanner):
 
     def select_next_action_schema(self, state: AbstractAgentState) -> str:
         # call action_schema_selector thought with the correct parameters
-        next_action_schema, updated_plan = self.action_schema_selector.run(
-            {
-                "goals": state.goals,
-                "memory": state.last_retrieved_memory,
-                "plan": state.plan,
-                "agent_world_state": state.host_world_prompt,
-                "available_entities": state.available_entities,
-                "available_action_schemas": state.available_action_schemas,
-            }
-        )
+        next_action_schema, updated_plan = self.action_schema_selector.run()
         state.plan = updated_plan
         if next_action_schema in [el[0] for el in state.action_schema_chains]:
             state.current_action_chain = state.action_schema_chains[
@@ -68,21 +54,15 @@ class BasicAssistantActionPlanner(AbstractActionPlanner):
         self, next_action_schema: str, state: AbstractAgentState
     ) -> Dict[str, Any]:
         # check if is a thought action and compute the missing parameters
-        if next_action_schema.startswith("self"):
-            next_action = self.host_agent.actions[self.host_agent.actions.index(next_action_schema)]
+        if next_action_schema.startswith(self.host_agent.id):
+            next_action = [action for action in self.host_agent.actions if next_action_schema == action.action_schema[0]][0]
+            trigger_event_class = next_action.trigger_event_class
             if isinstance(next_action, ThoughtAction):
                 for param in next_action.required_thoughts:
                     thought, run_dict = next_action.required_thoughts[param]
                     state.other_thoughts_filled_parameters[param] = thought.run(run_dict)
 
-        trigger_event = self.event_filler.run(
-            {
-                "goals": state.goals,
-                "memory": state.last_retrieved_memory,
-                "plan": state.plan,
-                "agent_world_state": state.host_world_prompt,
-                "next_action_schema": next_action_schema,
-                "other_thoughts_filled_parameters": state.other_thoughts_filled_parameters,
-            }
-        )
+        else:
+            trigger_event_class = ... # extract substring from next_action_schema, and parse event class from string
+        trigger_event:AbstractEvent = self.event_filler.run(trigger_event_class)
         return trigger_event

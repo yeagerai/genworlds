@@ -9,7 +9,7 @@ from genworlds.worlds.concrete.base.actions import (
 
 class UpdateAgentAvailableEntities(AbstractAction):
     trigger_event_class = WorldSendsAvailableEntitiesEvent
-
+    description="Update the available entities in the agent's state."
     def __init__(self, host_object: AbstractObject):
         super().__init__(host_object=host_object)
 
@@ -21,7 +21,7 @@ class UpdateAgentAvailableEntities(AbstractAction):
 
 class UpdateAgentAvailableActionSchemas(AbstractAction):
     trigger_event_class = WorldSendsAvailableActionSchemasEvent
-
+    description="Update the available action schemas in the agent's state."
     def __init__(self, host_object: AbstractObject):
         super().__init__(host_object=host_object)
 
@@ -36,6 +36,7 @@ class AgentWantsToSleep(AbstractEvent):
 
 class AgentGoesToSleep(AbstractAction):
     trigger_event_class = AgentWantsToSleep
+    description="The agent goes to sleep. He has to wait for new events."
 
     def __init__(self, host_object: AbstractObject):
         super().__init__(host_object=host_object)
@@ -49,13 +50,14 @@ class WildCardEvent(AbstractEvent):
     description = "This event is used as a master listener for all events."
 class AgentListensEvents(AbstractAction):
     trigger_event_class = WildCardEvent
+    description="The agent listens to all the events and stores them in his memory."
 
     def __init__(self, host_object: AbstractObject):
         super().__init__(host_object=host_object)
 
     def __call__(self, event: AbstractEvent):
         if event.target_id == self.host_object.id or event.target_id == None:
-            self.host_object.state_manager.memory.add_event(event, summarize=True)
+            self.host_object.state_manager.memory.add_event(str(event.json()), summarize=True) # takes time
             if event.event_type in self.host_object.state_manager.state.wakeup_event_types:
                 self.host_object.state_manager.state.is_asleep = False
                 print("Agent is waking up...")

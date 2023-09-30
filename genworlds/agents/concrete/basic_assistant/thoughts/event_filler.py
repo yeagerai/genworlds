@@ -1,65 +1,46 @@
-from genworlds.agents.concrete.basic_assistant.thoughts.single_eval_thought_generator import (
-    SingleEvalThoughtGenerator,
+from genworlds.events.abstracts.event import AbstractEvent
+from genworlds.agents.abstracts.agent_state import AbstractAgentState
+from genworlds.agents.abstracts.thought import AbstractThought
+from langchain.chat_models import ChatOpenAI
+from langchain.chains.openai_functions import (
+    create_structured_output_chain,
 )
-from genworlds.agents.concrete.basic_assistant.prompts.execution_generator_prompt import (
-    ExecutionGeneratorPrompt,
-)
+from langchain.chat_models import ChatOpenAI
+from langchain.prompts import ChatPromptTemplate
+
+class EventFillerThought(AbstractThought):
+
+    def __init__(self, agent_state: AbstractAgentState, openai_api_key: str, model_name: str = "gpt-4"):
+        self.agent_state = agent_state
+        self.model_name = model_name
+        self.llm = ChatOpenAI(model=self.model_name, openai_api_key=openai_api_key, temperature=0.1)
+
+    def run(self, trigger_event_class: AbstractEvent):
 
 
-class EventFillerThought(SingleEvalThoughtGenerator):
-    def __init__(
-        self,
-        openai_api_key: str,
-        name: str,
-        description: str,
-        n_of_thoughts: int,
-    ):
-        event_filler_output_parameter_generator = lambda llm_params: llm_params[
-            "command_to_execute"
-        ]["args"]
-
-        super().__init__(
-            openai_api_key=openai_api_key,
-            prompt_template_class=ExecutionGeneratorPrompt,
-            llm_params=[
-                "plan",
-                "goals",
-                "memory",
-                "personality_db",
-                "agent_world_state",
-                "all_entities",
-                "inventory",
-                "command_to_execute",
-                "previous_brain_outputs",
-            ],
-            output_parameter_generator=event_filler_output_parameter_generator,
-            n_of_thoughts=n_of_thoughts,
-            generator_role_prompt=f"""You are {name}, {description}. In previous steps, you have selected an action to execute, and possibly generated some of the response parameters - make sure to include those exactly. 
-You now need to generate a valid set of JSON parameters for the command to execute, based on the following information:
-
-""",
-            generator_results_prompt=f"""
-# Response type
-Generate exactly {{num_thoughts}} possible options for completing the arguments of the command to execute
-
-## Constraints
-- target_id must be the ID of the entity that provides the action
-
-""",
-            evaluator_role_prompt=f"You are {name}, {description}. ou need to evaluate the provided set of JSON parameters based on their correctness, with respect to all of the following information:",
-            evaluator_results_prompt=f"""
-## Parameters to evaluate
-Evaluate the following list of possible parameter sets in terms of their correctness:
-{{thought_to_evaluate}}
-
-## Evaluation principles
-
-## Constraints
-- target_id must be the ID of the entity that provides the action
-
-# Response type
-Return the best parameter set      
-""",
-            verbose=True,
-            model_name="gpt-4",
+        prompt = ChatPromptTemplate.from_messages(
+            [
+                ("system", "You are {agent_name}, {agent_description}."),
+                ("system", "You are embedded in a simulated world with those properties {agent_world_state}"),
+                ("system", "Those are your goals: \n{goals}"),
+                ("system", "And this is your current plan to achieve the goals: \n{plan}"),
+                ("system", "Here is your memories of all the events that you remember from being in this simulation: \n{memory}"),
+                ("system", "Here you have pre-filled parameters coming from your previous thoughts if any: \n{other_thoughts_filled_parameters}"),
+                ("human", "{footer}"),
+            ]
         )
+
+        chain = create_structured_output_chain(trigger_event_class, self.llm, prompt, verbose=True)
+        response:trigger_event_class = chain.run(
+            agent_name = self.agent_state.name,
+            agent_description = self.agent_state.description,
+            agent_world_state=self.agent_state.host_world_prompt,
+            goals=self.agent_state.goals,
+            plan=self.agent_state.plan,
+            memory=self.agent_state.last_retrieved_memory,
+            other_thoughts_filled_parameters=self.agent_state.other_thoughts_filled_parameters,
+            footer="""Fill the parameters of the triggering event based on the previous context that you have about the world.
+            """,
+        )
+
+        return response

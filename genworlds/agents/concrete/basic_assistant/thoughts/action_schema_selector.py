@@ -1,114 +1,68 @@
-from genworlds.agents.concrete.basic_assistant.thoughts.single_eval_thought_generator import (
-    SingleEvalThoughtGenerator,
+from typing import List
+from genworlds.agents.abstracts.agent_state import AbstractAgentState
+from genworlds.agents.abstracts.thought import AbstractThought
+from langchain.chat_models import ChatOpenAI
+from enum import Enum
+from pydantic import BaseModel, Field
+from langchain.chains.openai_functions import (
+    create_structured_output_chain,
 )
-from genworlds.agents.concrete.basic_assistant.prompts.action_schema_selector_generator_prompt import (
-    ActionSchemaSelectorGeneratorPrompt,
-)
+from langchain.chat_models import ChatOpenAI
+from langchain.prompts import ChatPromptTemplate
 
+class ActionSchemaSelectorThought(AbstractThought):
 
-class ActionSchemaSelectorThought(SingleEvalThoughtGenerator):
-    def __init__(
-        self,
-        openai_api_key: str,
-        name: str,
-        description: str,
-        n_of_thoughts: int,
-    ):
-        navigation_output_parameter_generator = lambda llm_params: {
-            "inventory": {
-                "type": "array",
-                "description": "list the ids of the items in your inventory",
-                "items": {
-                    "type": "string",
-                },
-            },
-            "step_completed": {
-                "type": "string",
-                "description": "If you completed a step of your plan, put it here, as well as an explanation of how you did it",
-            },
-            "plan": {
-                "type": "array",
-                "description": "A numbered list of an updated plan",
-                "items": {
-                    "type": "string",
-                },
-            },
-            "next_action_aim": {
-                "type": "string",
-                "description": "What is the aim of the next action you want to take?",
-            },
-            "next_action": {
-                "type": "string",
-                "enum": list(llm_params["available_action_schemas"].keys()),
-                "description": 'What is the next action you want to take? Example: "EntityClass:action_type_1"',
-            },
-            "violated_constraints": {
-                "type": "array",
-                "description": """
-List any constraints form the section "## Constraints" that this action would violate.
-""",
-                "items": {
-                    "type": "string",
-                },
-            },
-            "is_action_valid": {
-                "type": "string",
-                "description": """
-Assess whether the selected next action is valid based on the current state of the world. 
-Example: "Yes, opening the door is valid because I have the key to the door in my inventory"
-    """,
-            },
-        }
+    def __init__(self, agent_state: AbstractAgentState, openai_api_key: str, model_name: str = "gpt-4"):
+        self.agent_state = agent_state
+        self.model_name = model_name
+        self.llm = ChatOpenAI(model=self.model_name, openai_api_key=openai_api_key, temperature=0.1)
 
-        super().__init__(
-            openai_api_key=openai_api_key,
-            prompt_template_class=ActionSchemaSelectorGeneratorPrompt,
-            llm_params=[
-                "plan",
-                "goals",
-                "memory",
-                "agent_world_state",
-                "available_entities",
-                "inventory",
-                "available_action_schemas",
-                "messages",
-            ],
-            output_parameter_generator=navigation_output_parameter_generator,
-            n_of_thoughts=n_of_thoughts,
-            generator_role_prompt=f"""
-You are {name}, {description}. You need to come up with the next step to get you closer to your goals.
+    def run(self):
+        dynamic_values = {}
+        for i,action_schema in enumerate(self.agent_state.available_action_schemas):
+            dynamic_values[f"action_{i}"] = action_schema
 
-    """,
-            generator_results_prompt=f"""
-## Constraints
-- Make sure that the proposed action is consistent with your goals
-- Check that the proposed action is in the list of available actions
-- That you meet all the preconditions for the action, like having the correct items in your inventory
+        ActionEnum = Enum('ActionEnum', {value: value for key, value in dynamic_values.items()})
 
-# Response type
-Look at your previous plan, your memories about what you have done recently and your goals, and propose {{num_thoughts}} possible plans that advance your goals.
-Check if you have already completed a step in your plan, and if so, propose the next step as the first one.
-Then, select the next action that you want to do to achieve the first step of your plan.
-Check that the action is in the list of available actions, and that you meet all the preconditions for the action.
-If you do not have a plan, propose a new plan.
-""",
-            evaluator_role_prompt=f"You are {name}, {description}. You are trying to evaluate a number of actions to see which will get you closer to your goals. It must be consistent with the following information:",
-            evaluator_results_prompt=f"""
-## Choose the best action
-In a previous step, you have generated some possible plans. Now, you need to evaluate them and choose the best one.
+        class NextActionSchema(BaseModel):
+            """Select the next action to be executed, and whether it is valid or not, why, and a new plan to achieve the goals."""
+            action: ActionEnum = Field(..., description="The action to execute next.")
+            is_action_valid: bool = Field(..., description="Determines whether the action is valid or not.")
+            is_action_valid_reason: str = Field(..., description="Explains why the action is valid or not.")
+            new_plan: List[str] = Field(..., description="The new plan to execute to achieve the goals.")
+        action_schemas_full_string = "## Possible Actions: \n\n"
+        for action_schema_key,action_schema_value in self.agent_state.available_action_schemas.items():
+            action_schemas_full_string += "Action Name: "+action_schema_key+"\nAction Description: "+action_schema_value+"\n\n"
 
-## Evaluation principles
-- Make sure that the proposed action is consistent with your goals
-
-## Constraints
-- Check that the proposed action is in the list of available actions
-- That you meet all the preconditions for the action, like having the correct items in your inventory
-
-
-# Response type
-Return the best plan of the following options:
-{{thought_to_evaluate}}
-""",
-            verbose=True,
-            model_name="gpt-4",
+        prompt = ChatPromptTemplate.from_messages(
+            [
+                ("system", "You are {agent_name}, {agent_description}."),
+                ("system", "You are embedded in a simulated world with those properties {agent_world_state}"),
+                ("system", "Those are your goals: \n{goals}"),
+                ("system", "And this is your current plan to achieve the goals: \n{plan}"),
+                ("system", "Here is your memories of all the events that you remember from being in this simulation: \n{memory}"),
+                ("system", "Those are the available actions that you can choose from: \n{available_actions}"),
+                ("human", "{footer}"),
+            ]
         )
+
+        chain = create_structured_output_chain(NextActionSchema, self.llm, prompt, verbose=True)
+        try:
+            response:NextActionSchema = chain.run(
+                agent_name = self.agent_state.name,
+                agent_description = self.agent_state.description,
+                agent_world_state=self.agent_state.host_world_prompt,
+                goals=self.agent_state.goals,
+                plan=self.agent_state.plan,
+                memory=self.agent_state.last_retrieved_memory,
+                available_actions=action_schemas_full_string,
+                footer="""Select the next action from the provided enum that you want to execute based on previous context.
+                Also select whether the action is valid or not, and if not, why.
+                And finally, state a new updated plan that you want to execute to achieve your goals. If your next action is going to sleep, then you don't need to state a new plan.
+                """,
+            )
+        except Exception as e:
+            print(f"This is the result of the chain execution: {e}")
+            return "Bad Format Error", self.agent_state.plan
+        print(response)
+        return response.action.value, response.new_plan

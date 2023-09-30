@@ -4,18 +4,20 @@ from genworlds.agents.abstracts.agent_state import AbstractAgentState
 from genworlds.agents.abstracts.agent import AbstractAgent
 
 from genworlds.worlds.concrete.base.actions import AgentWantsUpdatedStateEvent
-
+from genworlds.agents.memories.simulation_memory import SimulationMemory
 
 class BasicAssistantStateManager(AbstractStateManager):
     """This state manager keeps track of the current state of the agent."""
 
-    def __init__(self, host_agent: AbstractAgent, state: AbstractAgentState):
+    def __init__(self, host_agent: AbstractAgent, state: AbstractAgentState, openai_api_key:str):
         self.host_agent = host_agent
         self.state = state
         if not state:
             self.state = self._initialize_state(host_agent)
         else:
             self.state = state
+
+        self.memory = SimulationMemory(openai_api_key=openai_api_key)
 
     def _initialize_state(
         self,
@@ -32,8 +34,6 @@ class BasicAssistantStateManager(AbstractStateManager):
                 "After sending the response, he waits for the next user question.",
                 "If you have been waiting for any object or entity to send you an event for over 30 seconds, you will wait and sleep until you receive a new event.",
             ],
-            # constraints=[],
-            # evaluation_principles=[],
             available_entities={},
             available_action_schemas={},
             current_action_chain=[],
@@ -54,8 +54,8 @@ class BasicAssistantStateManager(AbstractStateManager):
         )
         # retrieve memory and update last_retrieved_memory
         self.host_agent.state_manager.state.last_retrieved_memory = (
-            self.host_agent.memory.retrieve_memory()
+            self.memory.get_event_stream_memories(query="") # needs to be fixed
         )
-        sleep(0.5)
+        sleep(5)
         # meanwhile the concrete.base world processes the request and triggers the basic_assistant actions that update the state
         return self.state

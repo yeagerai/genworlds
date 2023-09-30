@@ -168,12 +168,12 @@ class SimulationMemory:
             return []
 
         if summarized:
-            m_events = self.summarized_events_qdrant_db.similarity_search(
+            m_events = self.summarized_events_db.similarity_search(
                 k=self.n_of_similar_events, query=query
             )
             return [el.page_content for el in m_events]
         else:
-            m_events = self.events_qdrant_db.similarity_search(
+            m_events = self.events_db.similarity_search(
                 k=self.n_of_similar_events, query=query
             )
             return [el.page_content for el in m_events]

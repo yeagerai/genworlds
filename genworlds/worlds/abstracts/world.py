@@ -51,19 +51,16 @@ class AbstractWorld(Generic[WorldEntityType], AbstractObject):
     def update_action_schemas(self):
         self.action_schemas = {}
         for action in self.actions:
-            event_type = action.trigger_event_class.__fields__["event_type"].default
-            key = f"{self.id}:{type(self).__name__}:{event_type}"
-            self.action_schemas[key] = action.trigger_event_class.schema()
+            key, value = action.action_schema
+            self.action_schemas[key] = value
         for obj in self.objects:
             for action in obj.actions:
-                event_type = action.trigger_event_class.__fields__["event_type"].default
-                key = f"{obj.id}:{type(obj).__name__}:{event_type}"
-                self.action_schemas[key] = action.trigger_event_class.schema()
+                key, value = action.action_schema
+                self.action_schemas[key] = value
         for agent in self.agents:
             for action in agent.actions:
-                event_type = action.trigger_event_class.__fields__["event_type"].default
-                key = f"{agent.id}:{type(agent).__name__}:{event_type}"
-                self.action_schemas[key] = action.trigger_event_class.schema()
+                key, value = action.action_schema
+                self.action_schemas[key] = value
 
     def get_entity_from_obj(self, obj: AbstractObject) -> WorldEntityType:
         """

@@ -49,7 +49,7 @@ class SimulationSocketEventHandler:
         if "*" in self.event_actions_dict:
             parsed_event = self.event_actions_dict[
                 event["event_type"]
-            ].trigger_event_class.parse_obj(event)
+            ][0].trigger_event_class.parse_obj(event)
             for listener in self.event_actions_dict["*"]:
                 listener(parsed_event)
 
