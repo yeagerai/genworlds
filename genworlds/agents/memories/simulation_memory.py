@@ -159,9 +159,10 @@ class SimulationMemory:
 
     def _get_n_last_events(self, summarized: bool = False):
         if summarized:
-            return self.summarized_events[-self.n_of_last_events :]
+            events = self.summarized_events[-self.n_of_last_events :]
         else:
-            return self.world_events[-self.n_of_last_events :]
+            events = self.world_events[-self.n_of_last_events :]
+        return events#[::-1]
 
     def _get_m_similar_events(self, query: str, summarized: bool = False):
         if self.n_of_similar_events < 1:
