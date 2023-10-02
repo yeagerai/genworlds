@@ -187,13 +187,12 @@ class SimulationMemory:
             )
             return nmk
         last_events = self._get_n_last_events(summarized=summarized)
-        similar_events = self._get_m_similar_events(query=query, summarized=summarized)
+        # similar_events = self._get_m_similar_events(query=query, summarized=summarized)
         nmk = (
             "\n\n# Your Memories\n\n"
-            "## Full Summary\n\n"
-            + self.full_summary
-            + "\n\n## Similar events\n\n"
-            + "\n".join(similar_events)
+            "## Full Summary\n\n" + self.full_summary
+            # + "\n\n## Similar events\n\n"
+            # + "\n".join(similar_events)
             + "\n\n## Last events from oldest to most recent\n\n"
             + "\n".join(last_events)
         )

@@ -34,14 +34,16 @@ def generate_basic_assistant(
         ],
         plan=[],
         last_retrieved_memory="",
-        other_thoughts_filled_parameters = {},
+        other_thoughts_filled_parameters={},
         available_entities=[],
         available_action_schemas={},
         current_action_chain=[],
         host_world_prompt="",
         simulation_memory_persistent_path=simulation_memory_persistent_path,
-        important_event_types=set(),  # fill
-        interesting_event_types=set(),  # fill
+        memory_ignored_event_types=(
+            "world_sends_available_action_schemas_event",
+            "world_sends_available_entities_event",
+        ),
         wakeup_event_types=set(),  # fill
         is_asleep=False,
         action_schema_chains=action_schema_chains,

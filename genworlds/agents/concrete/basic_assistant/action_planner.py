@@ -1,4 +1,5 @@
 from typing import Dict, Any, List
+import json
 from genworlds.events.abstracts.event import AbstractEvent
 from genworlds.agents.abstracts.action_planner import AbstractActionPlanner
 from genworlds.agents.abstracts.agent_state import AbstractAgentState
@@ -11,6 +12,8 @@ from genworlds.agents.concrete.basic_assistant.thoughts.event_filler import (
     EventFillerThought,
 )
 from genworlds.agents.abstracts.thought_action import ThoughtAction
+from genworlds.utils.schema_to_model import json_schema_to_pydantic_model
+
 
 class BasicAssistantActionPlanner(AbstractActionPlanner):
     """This action planner selects the action schema with the highest priority and fills the event parameters with the highest priority."""
@@ -42,7 +45,10 @@ class BasicAssistantActionPlanner(AbstractActionPlanner):
 
     def select_next_action_schema(self, state: AbstractAgentState) -> str:
         # call action_schema_selector thought with the correct parameters
-        next_action_schema, updated_plan = self.action_schema_selector.run()
+        (
+            next_action_schema,
+            updated_plan,
+        ) = self.action_schema_selector.run()  # gives enum values
         state.plan = updated_plan
         if next_action_schema in [el[0] for el in state.action_schema_chains]:
             state.current_action_chain = state.action_schema_chains[
@@ -55,14 +61,28 @@ class BasicAssistantActionPlanner(AbstractActionPlanner):
     ) -> Dict[str, Any]:
         # check if is a thought action and compute the missing parameters
         if next_action_schema.startswith(self.host_agent.id):
-            next_action = [action for action in self.host_agent.actions if next_action_schema == action.action_schema[0]][0]
+            next_action = [
+                action
+                for action in self.host_agent.actions
+                if next_action_schema == action.action_schema[0]
+            ][0]
             trigger_event_class = next_action.trigger_event_class
             if isinstance(next_action, ThoughtAction):
                 for param in next_action.required_thoughts:
                     thought, run_dict = next_action.required_thoughts[param]
-                    state.other_thoughts_filled_parameters[param] = thought.run(run_dict)
+                    state.other_thoughts_filled_parameters[param] = thought.run(
+                        run_dict
+                    )
 
         else:
-            trigger_event_class = ... # extract substring from next_action_schema, and parse event class from string
-        trigger_event:AbstractEvent = self.event_filler.run(trigger_event_class)
+            trigger_event_class_schema = json.loads(
+                self.host_agent.state_manager.state.available_action_schemas[
+                    next_action_schema
+                ].split("|")[-1]
+            )
+            trigger_event_class = json_schema_to_pydantic_model(
+                trigger_event_class_schema
+            )
+
+        trigger_event: AbstractEvent = self.event_filler.run(trigger_event_class)
         return trigger_event

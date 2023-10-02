@@ -18,6 +18,7 @@ class WorldSendsScreensToUserEvent(AbstractEvent):
 class WorldSendsScreensToUser(AbstractAction):
     trigger_event_class = UserRequestsScreensToWorldEvent
     description = "The world sends the screens to the user."
+
     def __init__(self, host_object: AbstractObject):
         super().__init__(host_object=host_object)
 

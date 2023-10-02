@@ -6,10 +6,13 @@ from genworlds.agents.abstracts.agent import AbstractAgent
 from genworlds.worlds.concrete.base.actions import AgentWantsUpdatedStateEvent
 from genworlds.agents.memories.simulation_memory import SimulationMemory
 
+
 class BasicAssistantStateManager(AbstractStateManager):
     """This state manager keeps track of the current state of the agent."""
 
-    def __init__(self, host_agent: AbstractAgent, state: AbstractAgentState, openai_api_key:str):
+    def __init__(
+        self, host_agent: AbstractAgent, state: AbstractAgentState, openai_api_key: str
+    ):
         self.host_agent = host_agent
         self.state = state
         if not state:
@@ -53,8 +56,9 @@ class BasicAssistantStateManager(AbstractStateManager):
             )
         )
         # retrieve memory and update last_retrieved_memory
+        query = "No plan" if self.state.plan == [] else str(self.state.plan)
         self.host_agent.state_manager.state.last_retrieved_memory = (
-            self.memory.get_event_stream_memories(query="") # needs to be fixed
+            self.memory.get_event_stream_memories(query=query)
         )
         sleep(5)
         # meanwhile the concrete.base world processes the request and triggers the basic_assistant actions that update the state

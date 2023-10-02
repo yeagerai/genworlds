@@ -8,8 +8,6 @@ from genworlds.events.abstracts.event import AbstractEvent
 
 
 class SimulationSocketEventHandler:
-    event_actions_dict: dict[str, AbstractAction] = {}
-
     def __init__(
         self,
         id: str,
@@ -17,6 +15,7 @@ class SimulationSocketEventHandler:
         external_event_classes: dict[str, AbstractEvent] = {},
         websocket_url: str = "ws://127.0.0.1:7456/ws",
     ):
+        self.event_actions_dict: dict[str, AbstractAction] = {}
         self.id = id if id else str(uuid4())
         self.actions = actions
         for action in self.actions:
@@ -47,11 +46,8 @@ class SimulationSocketEventHandler:
                 listener(parsed_event)
 
         if "*" in self.event_actions_dict:
-            parsed_event = self.event_actions_dict[
-                event["event_type"]
-            ][0].trigger_event_class.parse_obj(event)
             for listener in self.event_actions_dict["*"]:
-                listener(parsed_event)
+                listener(event)
 
     def send_event(self, event: AbstractEvent):
         self.simulation_socket_client.send_message(event.json())

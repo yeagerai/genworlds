@@ -2,6 +2,7 @@ from abc import ABC, abstractmethod
 from typing import List, Dict, Any, Tuple
 from genworlds.agents.abstracts.thought import AbstractThought
 from genworlds.agents.abstracts.agent_state import AbstractAgentState
+from genworlds.events.abstracts.event import AbstractEvent
 
 
 class AbstractActionPlanner(ABC):
@@ -17,14 +18,14 @@ class AbstractActionPlanner(ABC):
         self.event_filler = event_filler
         self.other_thoughts = other_thoughts
 
-    def plan_next_action(self, state: AbstractAgentState) -> Tuple[str, Dict[str, Any]]:
+    def plan_next_action(self, state: AbstractAgentState) -> Tuple[str, AbstractEvent]:
         if len(state.current_action_chain) > 0:
             action_schema = state.current_action_chain.pop(0)
-            event_params = self.fill_triggering_event(action_schema, state)
-            return action_schema, event_params
+            trigger_event = self.fill_triggering_event(action_schema, state)
+            return action_schema, trigger_event
         action_schema = self.select_next_action_schema(state)
-        event_params = self.fill_triggering_event(action_schema, state)
-        return action_schema, event_params
+        trigger_event = self.fill_triggering_event(action_schema, state)
+        return action_schema, trigger_event
 
     @abstractmethod
     def select_next_action_schema(self, state: AbstractAgentState) -> str:

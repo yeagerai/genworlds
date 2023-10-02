@@ -5,7 +5,10 @@ from genworlds.agents.memories.simulation_memory import OneLineEventSummarizer
 
 
 def validate_action(
-    agent_id: str, action_schema: str, pre_filled_event: dict, available_action_schemas: dict
+    agent_id: str,
+    action_schema: str,
+    pre_filled_event: dict,
+    available_action_schemas: dict,
 ):
     one_line_summarizer = OneLineEventSummarizer()  # missing key
     try:

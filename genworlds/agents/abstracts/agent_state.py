@@ -20,11 +20,9 @@ class AbstractAgentState(BaseModel):
     simulation_memory_persistent_path: Optional[str] = Field(
         None, description="Memory object storing the simulation data."
     )
-    important_event_types: Set[str] = Field(
-        ..., description="Set of event types considered important by the agent."
-    )
-    interesting_event_types: Set[str] = Field(
-        ..., description="Set of events considered interesting by the agent."
+    memory_ignored_event_types: Set[str] = Field(
+        ...,
+        description="Set of event types that will be ignored and not added to memory of the agent.",
     )
     wakeup_event_types: Set[str] = Field(
         ..., description="Events that can wake up the agent."
