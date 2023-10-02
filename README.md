@@ -13,7 +13,9 @@
 
 ## 👀 About
 
-GenWorlds is an open-source framework for building reliable multi-agent systems.
+GenWorlds is the event-based communication framework for building multi-agent systems. 
+
+Using a websocket, GenWorlds provides a platform for creating interactive environments where AI agents asynchronously interact with each other and their environments to collectively execute complex tasks.
 
 Drawing inspiration from the seminal research paper ["Generative Agents: Interactive Simulacra of Human Behavior"](https://arxiv.org/abs/2304.03442) by Stanford and Google researchers, GenWorlds provides a platform for creating flexible, scalable, and interactive environments where AI agents can exist, communicate asynchronously, interact with diverse objects, and form new memories.
 
