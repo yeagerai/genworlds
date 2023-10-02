@@ -1,3 +1,4 @@
+import traceback
 from time import sleep
 import threading
 from typing import List, Type
@@ -54,6 +55,7 @@ class AbstractAgent(AbstractObject):
                         self.send_event(trigger_event)
             except Exception as e:
                 print(f"Error in think_n_do: {e}")
+                traceback.print_exc()
 
     def launch(self):
         """Launches the agent by starting the websocket and thinking threads."""

@@ -69,10 +69,9 @@ class BasicAssistantActionPlanner(AbstractActionPlanner):
             trigger_event_class = next_action.trigger_event_class
             if isinstance(next_action, ThoughtAction):
                 for param in next_action.required_thoughts:
-                    thought, run_dict = next_action.required_thoughts[param]
-                    state.other_thoughts_filled_parameters[param] = thought.run(
-                        run_dict
-                    )
+                    thought_class = next_action.required_thoughts[param]
+                    thought = thought_class(self.host_agent.state_manager.state)
+                    state.other_thoughts_filled_parameters[param] = thought.run()
 
         else:
             trigger_event_class_schema = json.loads(

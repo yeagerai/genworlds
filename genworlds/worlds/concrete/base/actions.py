@@ -50,7 +50,20 @@ class WorldSendsAvailableActionSchemas(AbstractAction):
 
     def __call__(self, event: AgentWantsUpdatedStateEvent):
         self.host_object.update_action_schemas()
+        self.host_object.update_entities()
         all_action_schemas = self.host_object.action_schemas
+        all_entities = self.host_object.entities
+        to_delete = []
+        for action_schema in all_action_schemas:
+            if all_entities[action_schema.split(":")[0]].entity_type == "AGENT" and action_schema.split(":")[0] != event.sender_id:
+                to_delete.append(action_schema)
+        
+            if action_schema == f"{event.sender_id}:AgentListensEvents":
+                to_delete.append(action_schema)
+
+        for action_schema in to_delete:
+            del all_action_schemas[action_schema]
+            
         event = WorldSendsAvailableActionSchemasEvent(
             sender_id=self.host_object.id,
             world_name=self.host_object.name,
