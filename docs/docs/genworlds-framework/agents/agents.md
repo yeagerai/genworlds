@@ -8,7 +8,7 @@ Agents are the entities that interact with the world. They have a set of goals a
 
 The agents interact with their environment by sending events through a WebSocket server initiated by the world. They dynamically learn about the world and the objects around them, figuring out how to utilize these objects to achieve their goals.
 
-There can be many different types of agents, as long as each one of them understands the event protocol used to communicate with the [World](/docs/genworlds-framework/world.md)
+There can be many different types of agents, as long as each one of them understands the event protocol used to communicate with the [World](/docs/genworlds-framework/worlds.md)
 
 ## Agent Mental Model
 
