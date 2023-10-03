@@ -60,7 +60,7 @@ export default function Home() {
   return (
     <Layout
       title={`Hello (Gen)World`}
-      description="🧬🌍 GenWorlds is an open-source framework for building reliable multi-agent systems.">
+      description="🧬🌍 GenWorlds is the event-based communication framework for building multi-agent systems.">
       <HomepageHeader />
       <main className={styles.content}>
       <section className={styles.features}>

@@ -13,6 +13,7 @@
 
 ## 👀 About
 
+
 GenWorlds is the event-based communication framework for building multi-agent systems.
 
 Using a websocket, GenWorlds provides a platform for creating interactive environments where AI agents asynchronously interact with each other and their environments to collectively execute complex tasks.
