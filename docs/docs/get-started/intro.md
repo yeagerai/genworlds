@@ -29,7 +29,7 @@ Here is how to install GenWorlds, and get started with your first multi-agent sy
 
 Before you dive into the specifics, it's crucial to understand the primitives that underpin GenWorlds:
 
-- [**World:**](/docs/genworlds-framework/world.md) is the stage of action, tracking agents, objects, and world-specific attributes. It provides agents with real-time updates on the world state, available entities, actions, and events, facilitating interactions.
+- [**Worlds:**](/docs/genworlds-framework/worlds.md) is the stage of action, tracking agents, objects, and world-specific attributes. It provides agents with real-time updates on the world state, available entities, actions, and events, facilitating interactions.
 
 - [**Objects:**](/docs/genworlds-framework/objects.md) are the essential interactive elements, each defined by unique action sets. We tend to use objects when we want to trigger deterministic processes.
 
