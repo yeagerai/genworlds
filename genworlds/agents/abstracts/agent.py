@@ -35,7 +35,7 @@ class AbstractAgent(AbstractObject):
         """Continuously plans and executes actions based on the agent's state."""
         while True:
             try:
-                sleep(5)
+                sleep(1)
                 if self.state_manager.state.is_asleep:
                     continue
                 else:

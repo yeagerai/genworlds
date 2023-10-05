@@ -57,6 +57,9 @@ class WorldSendsAvailableActionSchemas(AbstractAction):
         for action_schema in all_action_schemas:
             if all_entities[action_schema.split(":")[0]].entity_type == "AGENT" and action_schema.split(":")[0] != event.sender_id:
                 to_delete.append(action_schema)
+
+            if all_entities[action_schema.split(":")[0]].entity_type == "WORLD":
+                to_delete.append(action_schema)
         
             if action_schema == f"{event.sender_id}:AgentListensEvents":
                 to_delete.append(action_schema)

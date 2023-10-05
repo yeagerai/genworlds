@@ -41,7 +41,7 @@ class AgentWantsToSleepEvent(AbstractEvent):
 
 class AgentGoesToSleepEvent(AbstractEvent):
     event_type = "agent_goes_to_sleep"
-    description = "The agent goes to sleep."
+    description = "The agent is waiting."
 
 
 class AgentGoesToSleep(AbstractAction):

@@ -16,7 +16,7 @@ class EventFillerThought(AbstractThought):
         self,
         agent_state: AbstractAgentState,
         openai_api_key: str,
-        model_name: str = "gpt-4",
+        model_name: str = "gpt-3.5-turbo",
     ):
         self.agent_state = agent_state
         self.model_name = model_name
