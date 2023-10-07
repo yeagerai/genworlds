@@ -37,9 +37,9 @@ Before you dive into the specifics, it's crucial to understand the primitives th
 
 - [**Actions:**](/docs/genworlds-framework/actions.md) Routines that are triggered by an event, and usually the end up sending another event to the socket. Is the main way to define worlds, objects, and agents.
 
-- [**Events:**](/docs/genworlds-framework/events.md) Payloads of information that essentially are the state of the world.
+- [**Events:**](/docs/genworlds-framework/actions.md) Payloads of information that essentially are the state of the world.
 
-- [**Thoughts:**](/docs/genworlds-framework/thoughts.md) Essentially calls to LLMs that will non deterministically fill parameters of the events that will be sent to the socket.
+- [**Thoughts:**](/docs/genworlds-framework/agents/thoughts.md) Essentially calls to LLMs that will non deterministically fill parameters of the events that will be sent to the socket.
 
 ## Tutorials
 

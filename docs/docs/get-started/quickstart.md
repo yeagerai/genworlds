@@ -8,7 +8,7 @@ Whether you're a creator dreaming up new simulated worlds, or a developer lookin
 
 :::tip Info
 
-GenWorlds utilizes GPT-4, which is currently accessible to those who have made at least one successful payment through `https://platform.openai.com/`.
+GenWorlds utilizes GPT models, which are currently accessible  through `https://platform.openai.com/`.
 
 :::
 
