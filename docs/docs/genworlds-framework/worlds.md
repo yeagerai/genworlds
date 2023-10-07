@@ -6,22 +6,20 @@ sidebar_position: 1
 
 The 'World' in GenWorlds serves as the setting for all the action. It keeps track of all the agents, objects, and world properties such as agent inventories.
 
-The World ensures every agent is informed about the world state, entities nearby, and the events that are available to them to interact with the world.
+The World ensures every entity (mainly objects and agents) is informed about the events that happen in the world, and the available actions and entities to interact.
 
 Here's a graphical representation of how the World interacts with other components in the system:
 
 ```mermaid
 graph TD
-    subgraph Simulation
-        W1(Simulation Socket)
-        subgraph World
-            A1(Agent 2)
-            A2(Agent 3)
-            AN(... Agent N)
-            O1(Object 1)
-            O2(Object 2)
-            ON(... Object M)
-        end
+    subgraph World
+        W1(World Socket)
+        A1(Agent 1)
+        A2(Agent 2)
+        AN(... Agent N)
+        O1(Object 1)
+        O2(Object 2)
+        ON(... Object M)
     end
     I1(Interfaces)
     I2(APIs)
@@ -39,35 +37,114 @@ graph TD
     style World stroke:#f66,stroke-dasharray: 5 5,stroke-width:3px
 ```
 
-The World is designed with flexibility in mind, thanks to the `BaseWorld` class. This enables the easy addition of new world properties. For instance, the `World2D` class, which is an extension of `BaseWorld`, adds a spatial dimension to the world by introducing a `location` property for agents and objects.
+## Properties
 
-Here's an example of how you might instantiate a `World2D` object:
+* **Basic Properties**: `name`, `id`, and `description` are the basic properties of the World. They are used to identify the World and to provide a description of the World mainly to agents.
+
+* **World Socket Server**: The World Socket Server is the main communication channel where world entities (socket clients) send and receive events from.
+
+* **Objects**: Objects are the main entities that populate the World. Used in general to perform deterministic actions. Are reactive to events that happen in the World.
+
+* **Agents**: Agents are autonomous AI Agents that are active in the world in the sense that they can trigger events to activate other entities. Those are commonly used to perform non-deterministic actions and take non-deterministic desicions.
+
+* **Actions**: World Actions are the actions that define the World. There are two specific actions that must be defined by the developer which are `get_available_entities`, and `get_available_action_schemas` which essentially helps you define the concept of availability. For example in our `BaseWorld` available entities are all entities, and available actions are all actions. But the developer can redefine this concept to define a more complex world with gated content depending on different variables.
+
+    A part from those two actions, usually the rest of world actions are used to interact with the user interfaces or backends, to send specific details about the world so it can be rendered in a webapp for instance.
+
+* **World Entity Type**: All world entities are defined by a type. This is used to identify the entity and to provide other characteristics that can be useful later on during the simulation.
+
+## Usage Example
+
+The easiest way to start using worlds, is to use the worlds defined in the GenWorlds utility layer. That is inside `genworlds/worlds/concrete` for example to use the `BaseWorld` you can do:
 
 ```python
-world = World2D(
-    id="world",
-    name="roundtable",
-    description="This is a podcast studio, where you record the Roundtable podcast.,
-    locations=["roundtable"],
+from genworlds.worlds.concrete.base.world import BaseWorld
+
+# Define the World
+hello_world = BaseWorld(
+    name="Test World",
+    description="A basic world to test some experiments.",
 )
+
+# Launch the socket server
+hello_world.launch()
 ```
 
-## World2D
+## Custom World and Actions
 
-`World2D` extends `BaseWorld` by adding spatial attributes to the world environment. Here, each agent and object possesses a location property selected from a list of pre-specified locations. The `World2D` setup restricts an agent's perceptual field to other agents and objects that share the same location. The `get_nearby_entities` method handles this by returning a list of entities that are either in the same location or are directly associated with the querying agent (for example, objects held by the agent).
+To create a custom world, you can start looking for the different implementations in our basic utility layer at `genworlds/worlds/concrete`. For example let's take a look at the `ChatInterfaceWorld`:
 
-An event listener method, `agent_moves_to_new_location_listener`, is defined to handle the situation where an agent moves to a new location. This method updates the agent's location and then sends an update of the world state to the agent.
+```python
+# Omitted imports for readibility
 
-In terms of real-world parallels, `World2D` functionality could be likened to a Discord server. Here, an agent acts as a user and can be present in one of the available channels at any given time. The agent is aware only of the activities and users in the same channel, mirroring the agent-object location-based interaction in `World2D`.
+class ChatInterfaceWorld(AbstractWorld):
+    def __init__(
+        self,
+        name: str,
+        description: str,
+        agents: List[AbstractAgent] = [],
+        objects: List[AbstractObject] = [],
+        actions: List[Type[AbstractAction]] = [],
+        id: str = None,
+        screens_config_path: str = "./screens_config.json",
+    ):
+        self.screens_config_path = screens_config_path
 
-The practical value of having a spatial world, such as `World2D`, is to create an organized environment with distinct sections, each designated for specific activities and interactions, similar to an airport or a football field in the physical world.
+        # availability = all entities
+        get_available_entities = WorldSendsAvailableEntities(host_object=self)
+        get_available_action_schemas = WorldSendsAvailableActionSchemas(
+            host_object=self
+        )
+        actions.append(get_available_entities)
+        actions.append(get_available_action_schemas)
 
-- Structure and Context: In a spatially organized environment like an airport, different areas are designated for specific purposes, like check-ins, security, boarding, dining, etc. Similarly, World2D creates structured environments where specific interactions can occur, offering context to the interactions between agents and objects.
+        actions.append(WorldSendsScreensToUser(host_object=self))
 
-- Scope Limitation: Just as football players focus on their immediate surroundings and the ball rather than the entire field or stadium, World2D restricts an agent's perceptual field. This allows for more concentrated and relevant interactions between agents and objects in the same location.
+        super().__init__(
+            name=name,
+            description=description,
+            agents=agents,
+            objects=objects,
+            actions=actions,
+            get_available_entities=get_available_entities,
+            get_available_action_schemas=get_available_action_schemas,
+            id=id,
+        )
+```
 
-- Dynamic Interactions: In spatially organized environments, the transition from one place to another triggers different sets of interactions and events. For example, moving from the boarding gate to the airplane in an airport or a player moving with the ball across the football field. This mirrors the agent_moves_to_new_location_listener function in World2D, which adjusts the agent's surroundings and interactions as they move to a new location.
+As you can see, the `ChatInterfaceWorld` is a custom world that inherits from `AbstractWorld`. It defines a custom `__init__` method that defines the `get_available_entities` and `get_available_action_schemas` actions. It also defines a custom action `WorldSendsScreensToUser` that is used to send the screens configuration to the user interface.
 
-- Modeling Real-world Scenarios: Spatial worlds allow for the modeling of more realistic and complex scenarios. From simulating a bustling airport terminal to recreating a competitive football match, World2D can encapsulate a diverse range of real-world systems and environments.
+So basically a world is defined by its actions. The same happen to objects and agents. Now let's take a closer look at the `WorldSendsAvailableEntities` action:
 
-In essence, the ability to create spatial worlds in AI, like World2D, can make agent interactions more dynamic, contextual, and reflective of real-world situations.
+```python
+class AgentWantsUpdatedStateEvent(AbstractEvent):
+    event_type = "agent_wants_updated_state"
+    description = "Agent wants to update its state."
+    # that gives available_action_schemas, and available_entities
+
+
+class WorldSendsAvailableEntitiesEvent(AbstractEvent):
+    event_type = "world_sends_available_entities_event"
+    description = "Send available entities."
+    available_entities: dict
+
+
+class WorldSendsAvailableEntities(AbstractAction):
+    trigger_event_class = AgentWantsUpdatedStateEvent
+    description = "Send available entities."
+
+    def __init__(self, host_object: AbstractObject):
+        super().__init__(host_object=host_object)
+
+    def __call__(self, event: AgentWantsUpdatedStateEvent):
+        self.host_object.update_entities()
+        all_entities = self.host_object.entities
+        event = WorldSendsAvailableEntitiesEvent(
+            sender_id=self.host_object.id,
+            available_entities=all_entities,
+            target_id=event.sender_id,
+        )
+        self.host_object.send_event(event)
+```
+
+As you can see, the `WorldSendsAvailableEntities` action is defined by a `trigger_event_class` which is the event that triggers the action. In this case the `AgentWantsUpdatedStateEvent` is triggered by the agent when it wants to update its state. The action then calls the `update_entities` method of the host object which is the world. And then it sends the `WorldSendsAvailableEntitiesEvent` to the agent with the available entities. Remember that all this communication happens asynchronously through the socket server where every entity (world included) has its own event-listener.
