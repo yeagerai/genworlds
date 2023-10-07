@@ -39,7 +39,7 @@ Before you dive into the specifics, it's crucial to understand the primitives th
 
 - [**Events:**](/docs/genworlds-framework/actions.md) Payloads of information that essentially are the state of the world.
 
-- [**Thoughts:**](/docs/genworlds-framework/agents/thoughts.md) Essentially calls to LLMs that will non deterministically fill parameters of the events that will be sent to the socket.
+- [**Thoughts:**](/docs/genworlds-framework/agents/thought_actions.md) Essentially calls to LLMs that will non deterministically fill parameters of the events that will be sent to the socket.
 
 ## Tutorials
 

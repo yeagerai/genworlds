@@ -4,86 +4,80 @@ sidebar_position: 1
 
 # Agents
 
-Agents are the entities that interact with the world. They have a set of goals and try to accomplish them by planning a series of actions.
+Agents are the entities that are both active and reactive within the world. They have a set of goals and try to accomplish them by planning a series of actions. Also they can trigger non-determinstic actions named `ThoughtActions`.
 
-The agents interact with their environment by sending events through a WebSocket server initiated by the world. They dynamically learn about the world and the objects around them, figuring out how to utilize these objects to achieve their goals.
+More specifically, agents are entities that inherit from `AbstractAgent`, our interface class that gives them the boundaries and conditions that they must follow.
 
-There can be many different types of agents, as long as each one of them understands the event protocol used to communicate with the [World](/docs/genworlds-framework/worlds.md)
+In particular, GenWorlds agents always work using the following mental model:
 
-## Agent Mental Model
+```python
+def think_n_do(self):
+    """Continuously plans and executes actions based on the agent's state."""
+    while True:
+        try:
+            sleep(1)
+            if self.state_manager.state.is_asleep:
+                continue
+            else:
+                state = self.state_manager.get_updated_state()
+                action_schema, trigger_event = self.action_planner.plan_next_action(
+                    state
+                )
 
-The Generative Agents within GenWorlds follow a specific mental model at each step of their interaction with the world:
+                if action_schema.startswith(self.id):
+                    selected_action = [
+                        action
+                        for action in self.actions
+                        if action.action_schema[0] == action_schema
+                    ][0]
+                    selected_action(trigger_event)
+                else:
+                    self.send_event(trigger_event)
+        except Exception as e:
+            print(f"Error in think_n_do: {e}")
+            traceback.print_exc()
+```
 
-1. **Reviewing the world state and surrounding entities:** The agent assesses the environment it's in and the entities present around it to understand the context before planning any actions.
+And agents run two parallel threads, one that is the event listener and the other one that executes the `think_n_do` function.
 
-2. **Reviewing new events:** The agent evaluates any new occurrences. These could be actions taken by other agents or changes in the world state due to object interactions.
+Here is the breakdown of this specific mental model at each step of their interaction with the world:
 
-3. **Remembering past events and relevant information:** Using its stored memories, the agent recalls past experiences and data that might affect its current decision-making process.
+1. **Reviewing the world state and surrounding entities:** The agent assesses the environment it's and gets the available entities and actions.
 
-4. **Updating the plan and deciding actions:** Based on the world state, new events, and past memories, the agent updates its action plan and decides on the next actions. These could involve interacting with the world, other agents, or objects. Importantly, an agent can execute multiple actions in one step, improving overall efficiency.
+2. **Selects next action to perform:** Based on its memories of what happened during the simulation and the available actions that it can choose to do, it selects which is going to be the next action that will help him get closer to its goals.
 
-5. **Executing the actions:** Finally, the agent implements its plan, influencing the world state and potentially triggering responses from other agents.
+3. **Fills the triggering event:** Using its stored memories, the agent recalls past experiences outputs from other pre-defined `ThoughtActions`, it fills the next event that it will send to the socket.
+
+4. **Executes the action or sends the event:** If the triggering event that it filled is the trigger of an agent's action, then it executes the action. And if that's not the case, then it sends the event to the socket. So the other entity will receive it and will be able to react to it.
 
 This interactive process fosters the emergence of complex, autonomous behavior, making each agent an active participant in the GenWorld.
 
+## Agent State
 
-## BaseAgent
+The agent's state is where all the information about the agent is stored. It's a `pydantic.BaseModel` that has the following fields:
 
-The `BaseAgent` serves as a foundational entity, providing the core functionalities and characteristics that all other specialized agents inherit. It encapsulates key properties such as the agent's identification, name, description, goals, interesting events, and memory capabilities, forming the backbone of every interactive entity within the simulation. The `BaseAgent` is also equipped with a brain — a complex assembly of systems enabling navigation and execution of various tasks — which sets the groundwork for the diverse behaviors exhibited by the agents.
+* `id`: Unique identifier of the agent.
+* `description`: Description of the agent.
+* `name`: Name of the agent.
+* `host_world_prompt`: Prompt of the host world.
+* `memory_ignored_event_types`: Set of event types that will be ignored and not added to memory of the agent.
+* `wakeup_event_types`: Events that can wake up the agent.
+* `action_schema_chains`: List of action schema chains that inhibit the action selector.
+* `goals`: List of goals of the agent.
+* `plan`: List of actions that form the plan.
+* `last_retrieved_memory`: Last retrieved memory of the agent.
+* `other_thoughts_filled_parameters`: Parameters filled by other thoughts.
+* `available_action_schemas`: Available action schemas with their descriptions.
+* `available_entities`: List of available entities in the environment.
+* `is_asleep`: Indicates whether the agent is asleep.
+* `current_action_chain`: List of action schemas that are currently being executed.
 
-One of the vital functionalities of the `BaseAgent` is communication. It integrates a `WorldSocketClient`, an interface that connects the agent to the world, allowing it to send messages and interact with the environment. Moreover, it employs a `ListeningAntenna`, keeping the agent informed about the world state, nearby entities, and available events in real-time. This communication infrastructure is pivotal in enabling complex, dynamic, and interactive simulations.
+Those fields are accessed during the `think_n_do` process to make decisions about the next action to perform.
 
-However, the heart of the `BaseAgent` lies in its ability to 'think,' enabling autonomous interactions within the GenWorlds environment. The 'think' function is where the agent perceives the world, processes the information, devises a plan, and takes actions to achieve its goals. This function, which is typically run on a separate thread, continuously operates throughout the agent's lifecycle, endowing it with the intelligence to navigate the world, respond to events, and adapt its behavior.
+## BasicAssistant
 
-In terms of decision-making, the BaseAgent uses various 'Brain' classes such as navigation brain and execution brains to strategize its actions. It's also equipped with a memory system, which maintains a summary of past events and uses it to inform future actions. It's important to note that agents can 'sleep', during which they cease to perceive and act in the world, but they can be awakened by specific events. All these functionalities together give the BaseAgent the ability to perceive, process, plan and perform actions in the simulated world.
+The `BasicAssistant` is the simplest useful agent that you can create. It's a subclass of `AbstractAgent` that has a set of pre-defined actions that are useful for most agentic environments. Is the central part of the framework's basic utility layer.
 
-```mermaid
-graph TD
-    subgraph Simulation
-        W1(Simulation Socket)
-        subgraph World
-          subgraph Agent
-              P1(Listens)
-              P2(Interprets)
-              P3(Thinking Process)
-              P4(Action)
-              P5(Learns)
-              P1-->P2
-              P2-->P3
-              P3-->P4
-              P4-->P5
-          end
-            A1(Other Agents)
-            O1(Other Objects)
-        end
-    end
-  I1(Interfaces / APIs / Backends)
-  W1-->P1
-  P4-->W1
-  W1<-->A1
-  W1<-->O1
-  W1<-->I1
-  style Agent stroke:#f66,stroke-dasharray: 5 5, stroke-width:3px
-```
+Also it can be easily extended to create more complex agents that inherit from it. In our experience, custom agents that inherit from `BasicAssistant` can cover most of the use cases that we have encountered.
 
-### Custom memories
-
-Each agent can be pre-loaded with additional memories, enhancing its unique personality traits and subject matter expertise. These memories are injected on their prompts based on their relevance to the agent's current goals, allowing for more focused and reliable interactions.
-
-Setting up these custom memories is straightforward with the [Qdrant](https://qdrant.tech/) vector database.
-
-To use the memories, you need to set the following values in the `world_definition.yaml` file
-
-```yaml
-world_definition:
-  world:
-    ato_to_external_memory: ./databases/summaries_qdrant
-```
-
-And for each agent you need to specify the collection name
-
-```yaml
-agents:
-    - id: maria
-    personality_db_collection_name: maria
-```
+You can find more information about how to use agents and create custom agents in the tutorials section of this documentation.
