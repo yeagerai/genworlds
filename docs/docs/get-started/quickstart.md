@@ -223,14 +223,13 @@ Agent goes to sleep...
 {"event_type": "agent_goes_to_sleep", "description": "The agent goes to sleep.", "summary": null, "created_at": "2023-10-03T15:35:39.997321", "sender_id": "agent1", "target_id": null}
 ```
 
-## Step 7: Explore More
+### Step 7: Explore More
 
 Now, delve into more advanced concepts with the following tutorials:
 
-- [Foundational RAG World](/docs/example-usecases/foundational_rag.md) An example of a RAG (Retrieval Augmented Generation) World that can be used as a foundational piece from where to expand and create a knowledge source of your projects. Here you will learn a lot about deterministic actions and objects.
+- [Simple Collaboration Method](/docs/tutorials/simple_collaboration_method.md) An example of a basic world, with two agents that cooperate to achieve a very simple task.
+
+- [Foundational in-house RAG World](/docs/tutorials/foundational_rag.md) An example of a RAG (Retrieval Augmented Generation) World that can be used as a foundational piece from where to expand and create a knowledge source of your projects. Here you will learn a lot about deterministic actions and objects.
+
 - [Custom Q&A Agent](https://genworlds.com/) In this tutorial, you will learn how you can create custom autonomous agents that have multiple thoughts and how they get integrated into already existing worlds.
-
-### Collaboration Methods
-
-- [First-Steps](https://genworlds.com/) An example of a basic world, with two agents that cooperate to achieve a very simple task.
-- [Token Bearer (Roundtable)](https://genworlds.com/) An example of a multi-agent system, where agents interact with each other speaking through a microphone, which is a token to communicate and to signal to the other Agents whose turn it is to perform an action.
+<!-- - [Token Bearer (Roundtable)](https://genworlds.com/) An example of a multi-agent system, where agents interact with each other speaking through a microphone, which is a token to communicate and to signal to the other Agents whose turn it is to perform an action. -->

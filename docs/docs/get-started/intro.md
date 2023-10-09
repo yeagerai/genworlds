@@ -45,14 +45,12 @@ Before you dive into the specifics, it's crucial to understand the primitives th
 
 The best way to understand the GenWorlds framework is to see it in action. The following tutorials will give you a taste of what you can achieve with GenWorlds.
 
-### Introductory
+- [Simple Collaboration Method](/docs/tutorials/simple_collaboration_method.md) An example of a basic world, with two agents that cooperate to achieve a very simple task.
 
-Again, if you are new to the topic of autonomous AI Agents, we highly recommend to follow the [Quickstart guide](/docs/get-started/quickstart.md).
+- [Foundational in-house RAG World](/docs/tutorials/foundational_rag.md) An example of a RAG (Retrieval Augmented Generation) World that can be used as a foundational piece from where to expand and create a knowledge source of your projects. Here you will learn a lot about deterministic actions and objects.
 
-- [Foundational RAG World](/docs/example-usecases/foundational_rag.md) An example of a RAG (Retrieval Augmented Generation) World that can be used as a foundational piece from where to expand and create a knowledge source of your projects. Here you will learn a lot about deterministic actions and objects.
 - [Custom Q&A Agent](https://genworlds.com/) In this tutorial, you will learn how you can create custom autonomous agents that have multiple thoughts and how they get integrated into already existing worlds.
 
-### Collaboration Methods
+<!-- - [Token Bearer (Roundtable)](https://genworlds.com/) An example of a multi-agent system, where agents interact with each other speaking through a microphone, which is a token to communicate and to signal to the other Agents whose turn it is to perform an action. -->
 
-- [First-Steps](https://genworlds.com/) An example of a basic world, with two agents that cooperate to achieve a very simple task.
-- [Token Bearer (Roundtable)](https://genworlds.com/) An example of a multi-agent system, where agents interact with each other speaking through a microphone, which is a token to communicate and to signal to the other Agents whose turn it is to perform an action.
+Again, if you are new to the topic of autonomous AI Agents, we highly recommend to follow the [Quickstart guide](/docs/get-started/quickstart.md).
