@@ -225,7 +225,7 @@ Agent goes to sleep...
 
 Now, delve into more advanced concepts with the following tutorials:
 
-- [Foundational RAG World](https://genworlds.com/) An example of a RAG (Retrieval Augmented Generation) World that can be used as a foundational piece from where to expand and create a knowledge source of your projects. Here you will learn a lot about deterministic actions and objects.
+- [Foundational RAG World](/docs/example-usecases/foundational_rag.md) An example of a RAG (Retrieval Augmented Generation) World that can be used as a foundational piece from where to expand and create a knowledge source of your projects. Here you will learn a lot about deterministic actions and objects.
 - [Custom Q&A Agent](https://genworlds.com/) In this tutorial, you will learn how you can create custom autonomous agents that have multiple thoughts and how they get integrated into already existing worlds.
 
 ### Collaboration Methods
