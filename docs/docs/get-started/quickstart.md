@@ -22,6 +22,8 @@ Welcome! Get ready to create your first multi-agent system with GenWorlds. Letâ€
 pip install genworlds
 ```
 
+To understand the GenWorlds framework, it's crucial to understand the primitives that underpin it, you can find a simple overview [here](/docs/get-started/intro.md).
+
 ### Step 2: Create Your First World
 
 Generate your initial world (by now empty), where agents and objects will live.
