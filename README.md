@@ -13,7 +13,6 @@
 
 ## 👀 About
 
-
 GenWorlds is the event-based communication framework for building multi-agent systems.
 
 Using a websocket, GenWorlds provides a platform for creating interactive environments where AI agents asynchronously interact with each other and their environments to collectively execute complex tasks.
@@ -22,7 +21,7 @@ Drawing inspiration from the seminal research paper ["Generative Agents: Interac
 
 These agents communicate with the world through a WebSocket server, promoting ease of UI construction, deployment, and future scalability.
 
-The current version of GenWorlds is powered by [OpenAI's GPT4](https://openai.com/product/gpt-4), [Langchain](https://python.langchain.com/en/latest/index.html), [Qdrant](https://cloud.qdrant.io?ref=yeagerai), and was inspired by [AutoGPT](https://github.com/Significant-Gravitas/Auto-GPT).
+The current version of GenWorlds is powered by [OpenAI's GPT API](https://openai.com/product#made-for-developers), [Langchain](https://python.langchain.com/en/latest/index.html), [Qdrant](https://cloud.qdrant.io?ref=yeagerai), and was inspired by [AutoGPT](https://github.com/Significant-Gravitas/Auto-GPT).
 
 ## 📖 The Docs
 
