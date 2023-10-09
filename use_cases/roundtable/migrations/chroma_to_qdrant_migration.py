@@ -1,5 +1,7 @@
 # DB migration
-def run_chroma_to_qdrant_migration(collections: list[str], chroma_db_path: str, qdrant_db_path: str):
+def run_chroma_to_qdrant_migration(
+    collections: list[str], chroma_db_path: str, qdrant_db_path: str
+):
     import os
     import chromadb
     from dotenv import load_dotenv
@@ -32,9 +34,9 @@ def run_chroma_to_qdrant_migration(collections: list[str], chroma_db_path: str, 
             persist_directory=chroma_db_path,
         )
 
-        items = collection._collection.get(include = ["embeddings", "metadatas", "documents"])
-
-        
+        items = collection._collection.get(
+            include=["embeddings", "metadatas", "documents"]
+        )
 
         qdrant_client.recreate_collection(
             collection_name=collection_name,
@@ -50,12 +52,12 @@ def run_chroma_to_qdrant_migration(collections: list[str], chroma_db_path: str, 
         qdrant_client.upsert(
             collection_name=collection_name,
             points=rest.Batch.construct(
-                ids=items['ids'],
+                ids=items["ids"],
                 vectors=items["embeddings"],
                 payloads=Qdrant._build_payloads(
-                    items['documents'], items["metadatas"], CONTENT_KEY, METADATA_KEY
+                    items["documents"], items["metadatas"], CONTENT_KEY, METADATA_KEY
                 ),
             ),
         )
-    
+
     print("Done")

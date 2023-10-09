@@ -1,6 +1,6 @@
 # 🧬🌍 GenWorlds - The Collaborative AI Agent Framework
 
-[![Run it on Replit](https://img.shields.io/badge/Replit-Run-0b1324?logo=Replit)](https://replit.com/@yeagerai/GenWorlds) [![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](https://opensource.org/license/mit/) [![Discord](https://dcbadge.vercel.app/api/server/VpfmXEMN66?compact=true&style=flat)](https://discord.gg/VpfmXEMN66) [![Twitter](https://img.shields.io/twitter/url/https/twitter.com/yeagerai.svg?style=social&label=Follow%20%40YeagerAI)](https://twitter.com/yeagerai) [![GitHub star chart](https://img.shields.io/github/stars/yeagerai/genworlds?style=social)](https://star-history.com/#yeagerai/genworlds)
+[![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](https://opensource.org/license/mit/) [![Discord](https://dcbadge.vercel.app/api/server/VpfmXEMN66?compact=true&style=flat)](https://discord.gg/VpfmXEMN66) [![Twitter](https://img.shields.io/twitter/url/https/twitter.com/yeagerai.svg?style=social&label=Follow%20%40YeagerAI)](https://twitter.com/yeagerai) [![GitHub star chart](https://img.shields.io/github/stars/yeagerai/genworlds?style=social)](https://star-history.com/#yeagerai/genworlds)
 
 **Quick install:** `pip install genworlds`
 
@@ -13,15 +13,15 @@
 
 ## 👀 About
 
-GenWorlds is the event-based communication framework for building multi-agent systems. 
+GenWorlds is the event-based communication framework for building multi-agent systems.
 
 Using a websocket, GenWorlds provides a platform for creating interactive environments where AI agents asynchronously interact with each other and their environments to collectively execute complex tasks.
 
 Drawing inspiration from the seminal research paper ["Generative Agents: Interactive Simulacra of Human Behavior"](https://arxiv.org/abs/2304.03442) by Stanford and Google researchers, GenWorlds provides a platform for creating flexible, scalable, and interactive environments where AI agents can exist, communicate asynchronously, interact with diverse objects, and form new memories.
 
-Agents can also be pre-loaded with a series of memories that give them personality and helps them become subject-matter experts. This feature allows for nuanced and sophisticated interactions and behaviors. These agents communicate with the world through a WebSocket server, promoting ease of UI construction and future scalability.
+These agents communicate with the world through a WebSocket server, promoting ease of UI construction, deployment, and future scalability.
 
-The current version of GenWorlds is powered by [OpenAI's GPT4](https://openai.com/product/gpt-4), [Langchain](https://python.langchain.com/en/latest/index.html), [Qdrant](https://cloud.qdrant.io?ref=yeagerai), and was inspired by [AutoGPT](https://github.com/Significant-Gravitas/Auto-GPT).
+The current version of GenWorlds is powered by [OpenAI's GPT API](https://openai.com/product#made-for-developers), [Langchain](https://python.langchain.com/en/latest/index.html), [Qdrant](https://cloud.qdrant.io?ref=yeagerai), and was inspired by [AutoGPT](https://github.com/Significant-Gravitas/Auto-GPT).
 
 ## 📖 The Docs
 
@@ -41,13 +41,13 @@ Detailed information of how to use the framework can be found at [GenWorlds Docs
 
 ## 🛠️ Getting Started
 
+### Follow the Quickstart Guide
+
+The best way to get started with GenWorlds is to follow the [Quickstart guide](https://genworlds.com/docs/get-started/quickstart).
+
 ### Run it with the Community Tooling
 
-The easiest way to start using genworlds is through the  [GenWorlds-Community](https://github.com/yeagerai/genworlds-community). This will provide you with a pre-configured environment to start fine-tuning and testing your own worlds.
-
-#### Test it on Replit
-
-If you want to test with different use-cases the fastest way is to use the [Replit Genworlds-Community Fork](https://replit.com/@yeagerai/GenWorlds?v=1), fork it and run it. After that, you can start playing around with the world setup in the `use_cases/rountable/world-definition.yaml` file to try out your ideas.
+The easiest way to start using genworlds with a graphical UI is through the  [GenWorlds-Community](https://github.com/yeagerai/genworlds-community). Then you will be able to easily connect your `GenWorld` with a ChatGPT-like UI with different rooms for all the agents.
 
 ## Contributing
 

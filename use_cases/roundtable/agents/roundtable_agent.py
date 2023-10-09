@@ -1,15 +1,11 @@
-
-
-
 from qdrant_client import QdrantClient
 from genworlds.agents.base_agent.base_agent import BaseAgent
-from use_cases.roundtable.brains.event_filler_brain import EventFillerBrain
-from use_cases.roundtable.brains.navigation_brain import NavigationBrain
-from use_cases.roundtable.brains.podcast_brain import PodcastBrain
+from use_cases.roundtable.thoughts.event_filler_thought import EventFillerThought
+from use_cases.roundtable.thoughts.navigation_thought import NavigationThought
+from use_cases.roundtable.thoughts.podcast_thought import PodcastThought
 
 
 class RoundtableAgent(BaseAgent):
-
     def __init__(
         self,
         openai_api_key: str,
@@ -36,7 +32,6 @@ class RoundtableAgent(BaseAgent):
             websocket_url=websocket_url,
             personality_db_qdrant_client=personality_db_qdrant_client,
             personality_db_collection_name=personality_db_collection_name,
-
             interesting_events={
                 "agent_speaks_into_microphone",
                 "agent_gives_object_to_agent_event",
@@ -44,12 +39,11 @@ class RoundtableAgent(BaseAgent):
             wakeup_events={
                 "agent_gives_object_to_agent_event": {
                     "recipient_agent_id": id,
-                } 
+                }
             },
-
-            navigation_brain = NavigationBrain(
+            navigation_brain=NavigationThought(
                 openai_api_key=openai_api_key,
-                name=name, 
+                name=name,
                 role=role,
                 background=background,
                 personality=personality,
@@ -59,11 +53,11 @@ class RoundtableAgent(BaseAgent):
                 n_of_thoughts=3,
             ),
             execution_brains={
-                "podcast_brain": PodcastBrain(
+                "podcast_brain": PodcastThought(
                     openai_api_key=openai_api_key,
-                    name=name, 
+                    name=name,
                     role=role,
-                    background=background,                    
+                    background=background,
                     personality=personality,
                     communication_style=communication_style,
                     topic_of_conversation=topic_of_conversation,
@@ -71,9 +65,9 @@ class RoundtableAgent(BaseAgent):
                     evaluation_principles=evaluation_principles,
                     n_of_thoughts=1,
                 ),
-                "event_filler_brain": EventFillerBrain(
+                "event_filler_brain": EventFillerThought(
                     openai_api_key=openai_api_key,
-                    name=name, 
+                    name=name,
                     role=role,
                     background=background,
                     topic_of_conversation=topic_of_conversation,
@@ -83,11 +77,17 @@ class RoundtableAgent(BaseAgent):
                 ),
             },
             action_brain_map={
-                "Microphone:agent_speaks_into_microphone": {"brains":[
-                    "podcast_brain",
-                    "event_filler_brain",
-                ], "next_actions": ["World:agent_gives_object_to_agent_event"]},
-                "World:agent_gives_object_to_agent_event": {"brains":["event_filler_brain"], "next_actions": []},
-                "default": {"brains":["event_filler_brain"], "next_actions": []},
+                "Microphone:agent_speaks_into_microphone": {
+                    "brains": [
+                        "podcast_brain",
+                        "event_filler_brain",
+                    ],
+                    "next_actions": ["World:agent_gives_object_to_agent_event"],
+                },
+                "World:agent_gives_object_to_agent_event": {
+                    "brains": ["event_filler_brain"],
+                    "next_actions": [],
+                },
+                "default": {"brains": ["event_filler_brain"], "next_actions": []},
             },
         )
