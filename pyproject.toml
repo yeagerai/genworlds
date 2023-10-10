@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "genworlds"
-version = "0.0.12"
+version = "0.0.13"
 description = "GenWorlds by YeagerAI: Pioneering AI-based simulations based on collaborative autonomous agents."
 authors = []
 
@@ -12,8 +12,8 @@ colorlog="6.7.0"
 fastapi="0.88.0"
 fastjsonschema="2.16.3"
 jsonschema="4.17.3"
-langchain="0.0.215"
-openai="0.27.4"
+langchain="0.0.305"
+openai="0.28.0"
 prompt-toolkit="3.0.38"
 pydantic="1.10.7"
 python-dotenv="1.0.0"
