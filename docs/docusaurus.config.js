@@ -75,6 +75,11 @@ const config = {
     ({
       // Replace with your project's social card
       image: 'img/genworlds-social-card.jpg',
+      metadata: [
+        {name: 'twitter:card', content: 'summary_large_image'},
+        {name: 'og:image', content: 'img/genworlds-social-card.jpg'},
+        {name: 'twitter:image', content: 'img/genworlds-social-card.jpg'},
+      ],
       navbar: {
         title: '🧬🌍 GenWorlds',
         items: [
