@@ -74,7 +74,12 @@ const config = {
     /** @type {import('@docusaurus/preset-classic').ThemeConfig} */
     ({
       // Replace with your project's social card
-      image: 'img/genworlds-social-card.jpg',
+      image: 'img/genworlds-social-card.png',
+      metadata: [
+        {name: 'twitter:card', content: 'summary_large_image'},
+        {name: 'og:image', content: 'img/genworlds-social-card.png'},
+        {name: 'twitter:image', content: 'img/genworlds-social-card.png'},
+      ],
       navbar: {
         title: '🧬🌍 GenWorlds',
         items: [
