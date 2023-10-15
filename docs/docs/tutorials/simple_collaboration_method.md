@@ -389,7 +389,7 @@ Let's reflect on what we've accomplished and what we've learned:
 1. **Basics of the GenWorlds Framework:**
     - We began with a solid foundation, introducing the core components and functionalities of the GenWorlds simulation framework. This framework is powerful and flexible, enabling the creation and management of complex agent-driven worlds.
 2. **Creation of Dummy Agents:**
-    - We went through the process of creating basic, dummy agents and setting up their attributes. This gave us a hands-on understanding of agent attributes like name, role, background, and their thought processes like navigation_brain.
+    - We went through the process of creating basic, dummy agents and setting up their attributes. This gave us a hands-on understanding of agent attributes like name, role, background, and their custom thoughts and thought actions.
 3. **User-Agent Interaction:**
     - We designed a Fake User to simulate real-world interactions between users and agents in the environment. This user-agent interaction plays a crucial role in instructing agents and receiving feedback from them.
 4. **Defining Custom Events & Objects:**

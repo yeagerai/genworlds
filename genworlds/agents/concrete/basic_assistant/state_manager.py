@@ -60,6 +60,6 @@ class BasicAssistantStateManager(AbstractStateManager):
         self.host_agent.state_manager.state.last_retrieved_memory = (
             self.memory.get_event_stream_memories(query=query)
         )
-        sleep(1)
+        sleep(2)
         # meanwhile the concrete.base world processes the request and triggers the basic_assistant actions that update the state
         return self.state
