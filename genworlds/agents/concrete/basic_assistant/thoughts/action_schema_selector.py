@@ -66,7 +66,7 @@ class ActionSchemaSelectorThought(AbstractThought):
                 ("system", "Those are your goals: \n{goals}\n"),
                 (
                     "system",
-                    "And this is your current plan to achieve the goals: \n{plan}\n",
+                    "And this is the previous plan to achieve the goals: \n{plan}\n",
                 ),
                 (
                     "system",

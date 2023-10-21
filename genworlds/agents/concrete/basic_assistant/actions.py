@@ -53,6 +53,7 @@ class AgentGoesToSleep(AbstractAction):
 
     def __call__(self, event: AgentWantsToSleepEvent):
         self.host_object.state_manager.state.is_asleep = True
+        self.host_object.state_manager.state.plan = []
         self.host_object.send_event(
             AgentGoesToSleepEvent(sender_id=self.host_object.id, target_id=None)
         )
