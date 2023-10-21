@@ -85,8 +85,8 @@ class AbstractWorld(Generic[WorldEntityType], AbstractObject):
     # TODO: update and restart objects and agents close threads and launch new ones
     # TODO: be able to stop the world and restart it
 
-    def launch(self):
-        socket_server_start()
+    def launch(self, host: str = "127.0.0.1", port: int = 7456):
+        socket_server_start(host=host, port=port)
         sleep(0.2)
         self.launch_websocket_thread()
         sleep(0.2)
