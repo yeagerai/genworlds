@@ -66,12 +66,18 @@ async def websocket_endpoint(websocket: WebSocket):
         await websocket_manager.disconnect(websocket)
 
 
-def start(host: str = "127.0.0.1", port: int = 7456, silent: bool = False):
+def start(host: str = "127.0.0.1", port: int = 7456, silent: bool = False, ws_ping_interval: int = 600, ws_ping_timeout: int = 600, timeout_keep_alive: int = 60):
     if silent:
         sys.stdout = open(os.devnull, "w")
         sys.stderr = open(os.devnull, "w")
 
-    uvicorn.run(app, host=host, port=port, log_level="info")
+    uvicorn.run(app, 
+                host=host, 
+                port=port, 
+                log_level="info",
+                ws_ping_interval=ws_ping_interval,
+                ws_ping_timeout=ws_ping_timeout,
+                timeout_keep_alive=timeout_keep_alive)  
 
     if silent:
         sys.stdout = sys.__stdout__
