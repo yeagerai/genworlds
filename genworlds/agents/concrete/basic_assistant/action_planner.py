@@ -24,17 +24,18 @@ class BasicAssistantActionPlanner(AbstractActionPlanner):
         openai_api_key,
         initial_agent_state: AbstractAgentState,
         other_thoughts: List[AbstractThought] = [],
+        model_name: str = "gpt-3.5-turbo",
     ):
         self.host_agent = host_agent
         action_schema_selector = ActionSchemaSelectorThought(
             openai_api_key=openai_api_key,
             agent_state=initial_agent_state,
-            model_name="gpt-4",
+            model_name=model_name,
         )
         event_filler = EventFillerThought(
             openai_api_key=openai_api_key,
             agent_state=initial_agent_state,
-            model_name="gpt-4",
+            model_name=model_name,
         )
         other_thoughts = other_thoughts
         super().__init__(

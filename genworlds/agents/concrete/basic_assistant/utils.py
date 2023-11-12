@@ -12,6 +12,7 @@ def generate_basic_assistant(
     host_world_id: Optional[str] = None,
     initial_agent_state: Optional[AbstractAgentState] = None,
     other_thoughts: List[AbstractThought] = [],
+    model_name: str = "gpt-3.5-turbo",
     action_classes: List[type[AbstractAction]] = [],
     action_schema_chains: List[type[str]] = [],
     simulation_memory_persistent_path: str = "./",
@@ -61,4 +62,5 @@ def generate_basic_assistant(
         initial_agent_state=initial_agent_state,
         action_classes=action_classes,
         other_thoughts=other_thoughts,
+        model_name=model_name,
     )
