@@ -31,7 +31,7 @@ class BasicAssistant(AbstractAgent):
         initial_agent_state: AbstractAgentState = None,
         action_classes: List[type[AbstractAction]] = [],
         other_thoughts: List[AbstractThought] = [],
-        model_name: str = "gpt-3.5-turbo",
+        model_name: str = "gpt-3.5-turbo-1106",
     ):
         state_manager = BasicAssistantStateManager(
             self, initial_agent_state, openai_api_key

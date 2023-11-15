@@ -73,13 +73,17 @@ class AgentListensEvents(AbstractAction):
         super().__init__(host_object=host_object)
 
     def __call__(self, event: dict):
-        if event["target_id"] == self.host_object.id or event["target_id"] == None or event["sender_id"] == self.host_object.id:
+        if (
+            event["target_id"] == self.host_object.id
+            or event["target_id"] == None
+            or event["sender_id"] == self.host_object.id
+        ):
             if (
                 event["event_type"]
                 not in self.host_object.state_manager.state.memory_ignored_event_types
             ):
                 self.host_object.state_manager.memory.add_event(
-                    json.dumps(event), summarize=True
+                    json.dumps(event), summarize=False
                 )  # takes time
             if (
                 event["event_type"]
