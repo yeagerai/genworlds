@@ -39,7 +39,11 @@ class AbstractAgent(AbstractObject):
                     sleep(1)
                     continue
                 else:
+                    sleep(
+                        0.5
+                    )  # actions that its output take over 0.5 secs have to implement a sleep in the action before finishing
                     state = self.state_manager.get_updated_state()
+                    sleep(0.5)
                     action_schema, trigger_event = self.action_planner.plan_next_action(
                         state
                     )

@@ -1,5 +1,6 @@
 from typing import Dict, Any, List
 import json
+from datetime import datetime
 from genworlds.events.abstracts.event import AbstractEvent
 from genworlds.agents.abstracts.action_planner import AbstractActionPlanner
 from genworlds.agents.abstracts.agent_state import AbstractAgentState
@@ -24,17 +25,18 @@ class BasicAssistantActionPlanner(AbstractActionPlanner):
         openai_api_key,
         initial_agent_state: AbstractAgentState,
         other_thoughts: List[AbstractThought] = [],
+        model_name: str = "gpt-3.5-turbo-1106",
     ):
         self.host_agent = host_agent
         action_schema_selector = ActionSchemaSelectorThought(
             openai_api_key=openai_api_key,
             agent_state=initial_agent_state,
-            model_name="gpt-4",
+            model_name=model_name,
         )
         event_filler = EventFillerThought(
             openai_api_key=openai_api_key,
             agent_state=initial_agent_state,
-            model_name="gpt-4",
+            model_name=model_name,
         )
         other_thoughts = other_thoughts
         super().__init__(
@@ -84,4 +86,5 @@ class BasicAssistantActionPlanner(AbstractActionPlanner):
             )
 
         trigger_event: AbstractEvent = self.event_filler.run(trigger_event_class)
+        trigger_event.created_at = datetime.now().isoformat()
         return trigger_event

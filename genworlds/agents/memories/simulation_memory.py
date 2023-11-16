@@ -12,7 +12,7 @@ from langchain.docstore.document import Document
 
 
 class OneLineEventSummarizer:
-    def __init__(self, openai_api_key: str, model_name: str = "gpt-3.5-turbo"):
+    def __init__(self, openai_api_key: str, model_name: str = "gpt-3.5-turbo-1106"):
         self.summary_template = """
         This is The last event coming from a web-socket, it is in JSON format:
         {event}
@@ -42,7 +42,7 @@ class OneLineEventSummarizer:
 
 
 class FullEventStreamSummarizer:
-    def __init__(self, openai_api_key: str, model_name: str = "gpt-3.5-turbo"):
+    def __init__(self, openai_api_key: str, model_name: str = "gpt-3.5-turbo-1106"):
         self.small_summary_template = """
         This is the full event stream coming from a web-socket, it is in JSON format:
         {event_stream}
@@ -87,8 +87,8 @@ class SimulationMemory:
     def __init__(
         self,
         openai_api_key: str,
-        model_name: str = "gpt-3.5-turbo",
-        n_of_last_events: int = 5,
+        model_name: str = "gpt-3.5-turbo-1106",
+        n_of_last_events: int = 15,
         n_of_similar_events: int = 5,
         n_of_paragraphs_in_summary: int = 5,
     ):
@@ -162,7 +162,7 @@ class SimulationMemory:
             events = self.summarized_events[-self.n_of_last_events :]
         else:
             events = self.world_events[-self.n_of_last_events :]
-        return events#[::-1]
+        return events  # [::-1]
 
     def _get_m_similar_events(self, query: str, summarized: bool = False):
         if self.n_of_similar_events < 1:
