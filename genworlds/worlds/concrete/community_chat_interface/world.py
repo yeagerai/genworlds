@@ -6,10 +6,13 @@ from genworlds.agents.abstracts.agent import AbstractAgent
 from genworlds.objects.abstracts.object import AbstractObject
 from genworlds.worlds.concrete.community_chat_interface.actions import (
     WorldSendsScreensToUser,
+    UserStopsSession,
+    UserStartsNewSession,
+    UserLoadsSession,
 )
 from genworlds.worlds.concrete.base.actions import (
     WorldSendsAvailableEntities,
-    WorldSendsAvailableActionSchemas,
+    WorldSendsAvailableActionSchemas,    
 )
 
 
@@ -23,8 +26,10 @@ class ChatInterfaceWorld(AbstractWorld):
         actions: List[Type[AbstractAction]] = [],
         id: str = None,
         screens_config_path: str = "./screens_config.json",
+        sessions_storage_path: str = "./sessions/"
     ):
         self.screens_config_path = screens_config_path
+        self.sessions_storage_path = sessions_storage_path
         # availability = all entities
         get_available_entities = WorldSendsAvailableEntities(host_object=self)
         get_available_action_schemas = WorldSendsAvailableActionSchemas(
@@ -33,6 +38,9 @@ class ChatInterfaceWorld(AbstractWorld):
         actions.append(get_available_entities)
         actions.append(get_available_action_schemas)
         actions.append(WorldSendsScreensToUser(host_object=self))
+        actions.append(UserLoadsSession(host_object=self))
+        actions.append(UserStartsNewSession(host_object=self))
+        actions.append(UserStopsSession(host_object=self))
 
         super().__init__(
             name=name,
