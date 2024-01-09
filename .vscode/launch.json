@@ -1,57 +1,15 @@
 {
     "version": "0.2.0",
     "configurations": [
-        
         {
-            "name": "Start Socket Server",
+            "name": "Simple Q&A Agent Test",
             "type": "python",
             "request": "launch",
-            "program": "genworlds/sockets/world_socket_server.py",
-            "console": "externalTerminal",
-            "env": {
-                "PYTHONPATH": "${workspaceRoot}"
-            },
-        },
-        {
-            "name": "Start CLI",
-            "type": "python",
-            "request": "launch",
-            "program": "genworlds/interfaces/cli/run.py",
-            "console": "externalTerminal",
-            "env": {
-                "PYTHONPATH": "${workspaceRoot}"
-            },
-        },
-        {
-            "name": "Start Roundtable World",
-            "type": "python",
-            "request": "launch",
-            "program": "use_cases/roundtable/world_setup.py",
+            "program": "use_cases/custom_qna_agent/basic_qna_agent_test.py",
             "console": "integratedTerminal",
             "env": {
                 "PYTHONPATH": "${workspaceRoot}"
             },
         },
-        {
-            "name": "Start Mocked Socket Generator",
-            "type": "python",
-            "request": "launch",
-            "program": "use_cases/roundtable/mocked_socket_generator.py",
-            "console": "integratedTerminal",
-            "env": {
-                "PYTHONPATH": "${workspaceRoot}"
-            },
-        },
-    ],
-    "compounds": [
-        {
-          "name": "Launch Full Stack",
-          "configurations": [
-            "Start Socket Server",
-            "Start CLI",
-            "Start Roundtable World",
-          ],
-          "stopAll": true
-        }
-      ]
+    ]
 }
