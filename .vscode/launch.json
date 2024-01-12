@@ -5,7 +5,7 @@
             "name": "Simple Q&A Agent Test",
             "type": "python",
             "request": "launch",
-            "program": "use_cases/custom_qna_agent/basic_qna_agent_test.py",
+            "program": "use_cases/coffee_shop/coffee_shop.py",
             "console": "integratedTerminal",
             "env": {
                 "PYTHONPATH": "${workspaceRoot}"

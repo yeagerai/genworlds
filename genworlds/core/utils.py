@@ -1,5 +1,6 @@
 import json
 from datetime import datetime
+import websockets
 
 from genworlds.core.types import Event, WorldState
 
@@ -9,10 +10,12 @@ def stringify_event(event: Event) -> str:
         event_dict['created_at'] = event.created_at.strftime("%Y-%m-%d %H:%M:%S")
     return json.dumps(event_dict)
 
+async def trigger_simulation(uri, event: Event):
+    async with websockets.connect(uri) as websocket:
+        await websocket.send(stringify_event(event))
+
+
 def can_apply_modification(source_atom: WorldState, current_atom: WorldState, actual_modification: WorldState):
-    source_atom = source_atom._asdict()
-    current_atom = current_atom._asdict()
-    actual_modification = actual_modification._asdict()
 
     for key in actual_modification:
         if key in current_atom and key in source_atom:
@@ -20,14 +23,11 @@ def can_apply_modification(source_atom: WorldState, current_atom: WorldState, ac
                 return False
     return True
 
-def apply_nested_modifications(main_dict, modifications_dict):
-    def apply_modifications_recursively(current_dict, key, value):
-        if key in current_dict:
-            current_dict[key] = value
-        else:
-            for k, v in current_dict.items():
-                if isinstance(v, dict):
-                    apply_modifications_recursively(v, key, value)
+def apply_nested_modifications(main_dict, path, new_sub_dict):
+    def get_nested_dict(dct, path):
+        for key in path:
+            dct = dct[key]
+        return dct
 
-    for mod_key, mod_value in modifications_dict.items():
-        apply_modifications_recursively(main_dict, mod_key, mod_value)
+    parent_dict = get_nested_dict(main_dict, path[:-1])
+    parent_dict[path[-1]] = new_sub_dict

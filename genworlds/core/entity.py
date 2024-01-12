@@ -1,5 +1,6 @@
 from typing import Callable
 import asyncio
+import copy
 
 from genworlds.core.types import EntityState, Event, WorldState
 from genworlds.core.comms import event_mult
@@ -7,7 +8,7 @@ from genworlds.core.utils import can_apply_modification
 
 world_state_dict = {} # Singleton
 def get_world_state_dict():
-    return world_state_dict
+    return copy.deepcopy(world_state_dict)
 
 def entity_updates_internal_state(entity_state: EntityState, event: Event) -> EntityState:
     if entity_state.custom_state_updaters:
@@ -31,7 +32,7 @@ async def entity(id: str):
                 chosen_action = entity_chooses_action(new_internal_state, new_event)
 
                 if callable(chosen_action):
-                    await chosen_action("entity", id, world_state, new_internal_state, new_event)
+                    await chosen_action("entity", id, new_internal_state, new_event)
         except AttributeError:
             continue
 
@@ -56,6 +57,6 @@ async def world(id: str, initial_world_state: WorldState):
                     chosen_action = entity_chooses_action(new_internal_state, new_event)
 
                     if callable(chosen_action):
-                        await chosen_action("world", id, world_state, new_internal_state, new_event)
+                        await chosen_action("world", id, new_internal_state, new_event)
         except AttributeError:
             continue

@@ -63,6 +63,6 @@ async def agent(id: str):
                 chosen_action = get_action_function_by_meta_name(new_internal_state, chosen_action_name)
 
                 if chosen_action:
-                    asyncio.create_task(chosen_action("agent", id, world_state, new_internal_state, new_event))
+                    asyncio.create_task(chosen_action("agent", id, new_internal_state, new_event))
         except AttributeError:
             continue
