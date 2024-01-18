@@ -1,3 +1,4 @@
+from typing import Set
 import asyncio
 import websockets
 import json
@@ -7,7 +8,7 @@ from genworlds.core.utils import stringify_event
 
 class EventMulticast:
     def __init__(self):
-        self.subscribers = set()
+        self.subscribers:Set[asyncio.Queue] = set()
 
     def subscribe(self, subscriber: asyncio.Queue):
         self.subscribers.add(subscriber)
@@ -27,7 +28,7 @@ async def start_websocket_server():
     connected_websockets = set()
 
     async def send_to_all_clients():
-        while True:
+        while True: 
             message = await ws_queue.get()
             stringified_event = stringify_event(message)
             print("Event-chan -> WS:", stringified_event)

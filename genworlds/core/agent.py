@@ -3,10 +3,8 @@ import asyncio
 
 from genworlds.core.types import AgentState, WorldState, Event
 from genworlds.core.comms import event_mult
-from genworlds.core.llm_calls import call_openai
+from genworlds.core.llm_calls import call_openai, call_ollama
 from genworlds.core.entity import get_world_state_dict
-
-supported_llms = {"openai": ["gpt-3.5-turbo", "gpt-4"]}
 
 def agent_updates_internal_state(agent_state: AgentState, event: Event):
     updated_state = agent_state
@@ -19,6 +17,9 @@ def agent_updates_internal_state(agent_state: AgentState, event: Event):
 
 def actions_names_docstrings(actions: List[Callable]):
     return [f"__{action.__name__}__ : {action.__doc__}\n" for action in actions.values()]
+
+def actions_names_as_string(actions: List[Callable]):
+    return ', '.join([f'__{action.__name__}__' for action in actions.values()])
 
 def choose_action_prompt_generator(agent_state: AgentState):
     prompt = (
@@ -33,16 +34,17 @@ def choose_action_prompt_generator(agent_state: AgentState):
         f"{agent_state.memories}\n"
         "## Available Actions:\n"
         f"{''.join(actions_names_docstrings(agent_state.actions))}"
-        "\nPlease just respond with the name of the next action that you must do, nothing more:\n"
+        f"\nYou can only perform one of the following actions: {actions_names_as_string(agent_state.actions)}\n No other actions are possible. Which one do you choose?"
     )
     return prompt
 
 async def agent_chooses_action_name(agent_state: AgentState):
     prompt = choose_action_prompt_generator(agent_state)
-    platform_models = supported_llms.get(agent_state.llm_platform, [])
 
-    if agent_state.llm_platform == "openai" and agent_state.model_name in platform_models:
+    if agent_state.llm_platform == "openai":
         return await call_openai(agent_state.model_name, prompt, r"__([a-zA-Z]+(_[a-zA-Z]+)*)__", None)
+    elif agent_state.llm_platform == "ollama":
+        return await call_ollama(agent_state.endpoint, agent_state.model_name, prompt, r"__([a-zA-Z]+(_[a-zA-Z]+)*)__", None)
     else:
         return None
     

@@ -4,11 +4,22 @@ import websockets
 
 from genworlds.core.types import Event, WorldState
 
-def stringify_event(event: Event) -> str:
-    event_dict = event._asdict()
-    if isinstance(event.created_at, datetime):
-        event_dict['created_at'] = event.created_at.strftime("%Y-%m-%d %H:%M:%S")
-    return json.dumps(event_dict)
+def convert_event_to_serializable_objs(obj):
+    if callable(obj):
+        return str(obj)
+    elif isinstance(obj, datetime):
+        return obj.strftime("%Y-%m-%d %H:%M:%S")
+    elif isinstance(obj, dict):
+        return {k: convert_event_to_serializable_objs(v) for k, v in obj.items()}
+    elif hasattr(obj, "_asdict"):
+        return {k: convert_event_to_serializable_objs(v) for k, v in obj._asdict().items()}
+    elif isinstance(obj, list):
+        return [convert_event_to_serializable_objs(v) for v in obj]
+    else:
+        return obj
+
+def stringify_event(event) -> str:
+    return json.dumps(convert_event_to_serializable_objs(event))
 
 async def trigger_simulation(uri, event: Event):
     async with websockets.connect(uri) as websocket:

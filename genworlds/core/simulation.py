@@ -9,7 +9,7 @@ from genworlds.core.comms import start_websocket_server
 async def simulation(initial_world_state: WorldState):
     print(f"\n{initial_world_state}\n")
 
-    await start_websocket_server()
+    create_task(start_websocket_server())
 
     print("Starting simulation...")
 
